@@ -1,9 +1,9 @@
-[![Actions Status](https://github.com/TheLartians/ModernCppStarter/workflows/MacOS/badge.svg)](https://github.com/TheLartians/ModernCppStarter/actions)
-[![Actions Status](https://github.com/TheLartians/ModernCppStarter/workflows/Windows/badge.svg)](https://github.com/TheLartians/ModernCppStarter/actions)
-[![Actions Status](https://github.com/TheLartians/ModernCppStarter/workflows/Ubuntu/badge.svg)](https://github.com/TheLartians/ModernCppStarter/actions)
-[![Actions Status](https://github.com/TheLartians/ModernCppStarter/workflows/Style/badge.svg)](https://github.com/TheLartians/ModernCppStarter/actions)
-[![Actions Status](https://github.com/TheLartians/ModernCppStarter/workflows/Install/badge.svg)](https://github.com/TheLartians/ModernCppStarter/actions)
-[![codecov](https://codecov.io/gh/TheLartians/ModernCppStarter/branch/master/graph/badge.svg)](https://codecov.io/gh/TheLartians/ModernCppStarter)
+[![Actions Status](https://github.com/hameerabbasi/xsparse/workflows/MacOS/badge.svg)](https://github.com/hameerabbasi/xsparse/actions)
+[![Actions Status](https://github.com/hameerabbasi/xsparse/workflows/Windows/badge.svg)](https://github.com/hameerabbasi/xsparse/actions)
+[![Actions Status](https://github.com/hameerabbasi/xsparse/workflows/Ubuntu/badge.svg)](https://github.com/hameerabbasi/xsparse/actions)
+[![Actions Status](https://github.com/hameerabbasi/xsparse/workflows/Style/badge.svg)](https://github.com/hameerabbasi/xsparse/actions)
+[![Actions Status](https://github.com/hameerabbasi/xsparse/workflows/Install/badge.svg)](https://github.com/hameerabbasi/xsparse/actions)
+[![codecov](https://codecov.io/gh/hameerabbasi/xsparse/branch/main/graph/badge.svg)](https://codecov.io/gh/hameerabbasi/xsparse)
 
 <p align="center">
   <img src="https://repository-images.githubusercontent.com/254842585/4dfa7580-7ffb-11ea-99d0-46b8fe2f4170" height="175" width="auto" />
