@@ -4,3 +4,4 @@
  */
 
 #include <xsparse/levels/dense.hpp>
+#include <xsparse/levels/compressed.hpp>

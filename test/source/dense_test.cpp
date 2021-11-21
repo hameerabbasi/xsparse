@@ -2,13 +2,13 @@
 
 #include <tuple>
 
-#include <xsparse/xsparse.hpp>
+#include <xsparse/levels/dense.hpp>
 #include <xsparse/version.h>
 
 TEST_CASE("Dense-BaseCase")
 {
     constexpr uintptr_t SIZE = 5;
-    constexpr uintptr_t ZERO = 0;
+    constexpr uint8_t ZERO = 0;
 
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> d(SIZE);
 

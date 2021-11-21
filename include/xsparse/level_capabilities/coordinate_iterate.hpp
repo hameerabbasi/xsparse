@@ -230,7 +230,7 @@ namespace xsparse::level_capabilities
                 }
             };
 
-            explicit inline iteration_helper(typename BaseTraits::T const& level,
+            explicit inline iteration_helper(typename BaseTraits::Level const& level,
                                              typename BaseTraits::I const i,
                                              typename BaseTraits::PKM1 const pkm1) noexcept
                 : m_level(level)

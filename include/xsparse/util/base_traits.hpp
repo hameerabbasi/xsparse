@@ -24,8 +24,8 @@ namespace xsparse::util
     struct base_traits<T, std::tuple<LowerLevels...>, Opts...>
     {
         using Level = T<std::tuple<LowerLevels...>, Opts...>;
-        using I = std::tuple<coordinate_t<LowerLevels>...>;
-        using P = std::tuple<position_t<LowerLevels>...>;
+        using I = typename std::tuple<coordinate_t<LowerLevels>...>;
+        using P = typename std::tuple<position_t<LowerLevels>...>;
         using IK = coordinate_t<Level>;
         using PK = position_t<Level>;
         static_assert(std::is_convertible_v<IK, uintptr_t>,
