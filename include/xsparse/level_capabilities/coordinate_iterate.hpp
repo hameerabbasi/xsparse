@@ -154,6 +154,18 @@ namespace xsparse::level_capabilities
     public:
         class iteration_helper
         {
+            static_assert(std::is_nothrow_invocable_r_v<typename BaseTraits::IK,
+                                                        decltype(&BaseTraits::Level::pos_access),
+                                                        typename BaseTraits::Level&,
+                                                        typename BaseTraits::PK,
+                                                        typename BaseTraits::I>);
+
+            static_assert(std::is_nothrow_invocable_r_v<
+                          std::pair<typename BaseTraits::PK, typename BaseTraits::PK>,
+                          decltype(&BaseTraits::Level::pos_bounds),
+                          typename BaseTraits::Level&,
+                          typename BaseTraits::PKM1>);
+
         private:
             typename BaseTraits::Level const& m_level;
             typename BaseTraits::I const m_i;
