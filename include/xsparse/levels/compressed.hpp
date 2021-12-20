@@ -54,7 +54,7 @@ namespace xsparse
 
             inline std::pair<PK, PK> pos_bounds(typename BaseTraits::PKM1 pkm1) const noexcept
             {
-                return { m_pos[pkm1], m_pos[pkm1 + static_cast<typename BaseTraits::PKM1>(1)] };
+                return { m_pos[pkm1], m_pos[static_cast<typename BaseTraits::PKM1>(pkm1 + 1)] };
             }
 
             inline IK pos_access(PK pk, [[maybe_unused]] typename BaseTraits::I i) const noexcept

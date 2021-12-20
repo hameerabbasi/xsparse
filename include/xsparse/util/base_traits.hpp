@@ -38,9 +38,8 @@ namespace xsparse::util
             // Except that the type list has uint8_t appended to it.
             // This has the effect of choosing uint8_t instead of the
             // first element if `sizeof...(LowerLevels) == 0`.
-            // TODO: Check if this can be bool after advanced indexing
             // is in place.
-            std::tuple<position_t<LowerLevels>..., uint8_t>>;
+            std::tuple<position_t<LowerLevels>..., bool>>;
     };
 }
 
