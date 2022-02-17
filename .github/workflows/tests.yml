@@ -1,4 +1,4 @@
-name: Ubuntu
+name: Tests
 
 on:
   push:
@@ -9,6 +9,7 @@ on:
     branches:
       - master
       - main
+  workflow_dispatch: []
 
 env:
   CTEST_OUTPUT_ON_FAILURE: 1
@@ -17,7 +18,11 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v2
@@ -25,7 +30,7 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: "**/cpm_modules"
-          key: ${{ github.workflow }}-cpm-modules-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+          key: ${{ github.workflow }}-${{ matrix.os }}-cpm-modules-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
 
       - name: configure
         run: cmake -Stest -Bbuild -DENABLE_TEST_COVERAGE=1 -DCMAKE_BUILD_TYPE=Debug
@@ -39,4 +44,7 @@ jobs:
           ctest --build-config Debug
 
       - name: collect code coverage
-        run: bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
+        uses: codecov/codecov-action@v2
+        with:
+          flags: tests
+          token: ${{ secrets.CODECOV_TOKEN }}
