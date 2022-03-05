@@ -20,8 +20,6 @@ CPMAddPackage("gh:TheLartians/Format.cmake@1.7.0")
 
 if(TEST_INSTALLED_VERSION)
   find_package(XSparse REQUIRED)
-else()
-  CPMAddPackage(NAME XSparse SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/..)
 endif()
 
 # ---- Create binary ----

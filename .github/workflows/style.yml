@@ -31,7 +31,7 @@ jobs:
           pip3 install cmake_format==0.6.11 pyyaml
 
       - name: configure
-        run: cmake -Stest -Bbuild
+        run: cmake -DENABLE_TESTING=On -Bbuild
 
       - name: check style
         run: cmake --build build --target check-format

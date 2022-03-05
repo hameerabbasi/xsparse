@@ -28,7 +28,7 @@ jobs:
 
       - name: Build
         run: |
-          cmake -Sdocumentation -Bbuild
+          cmake -DENABLE_DOCS=On -Bbuild
           cmake --build build --target GenerateDocs
 
       - name: Publish

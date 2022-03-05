@@ -1,5 +1,7 @@
 /.idea
+/.vscode
 /build*
+/cmake-build-*
 /.vscode
 /cpm_modules
-.DS_Store
+/**/.DS_Store

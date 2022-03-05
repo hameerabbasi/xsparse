@@ -86,3 +86,17 @@ packageProject(
   COMPATIBILITY SameMinorVersion
   DEPENDENCIES "fmt 7.1.3; xtl 0.7.3"
 )
+
+include(cmake/tools.cmake)
+
+option(ENABLE_TESTS "Build tests along with the library" OFF)
+option(ENABLE_DOCS "Build documentation along with the library" OFF)
+
+if(ENABLE_TESTING)
+  enable_testing()
+  add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/test ${CMAKE_BINARY_DIR}/test)
+endif()
+
+if (ENABLE_DOCS)
+  add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/documentation ${CMAKE_BINARY_DIR}/documentation)
+endif()

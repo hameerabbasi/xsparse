@@ -35,8 +35,8 @@ namespace xsparse::util
         using PKM1 = std::tuple_element_t<
             // First element of P
             0,
-            // Except that the type list has uint8_t appended to it.
-            // This has the effect of choosing uint8_t instead of the
+            // Except that the type list has bool appended to it.
+            // This has the effect of choosing bool instead of the
             // first element if `sizeof...(LowerLevels) == 0`.
             // is in place.
             std::tuple<position_t<LowerLevels>..., bool>>;

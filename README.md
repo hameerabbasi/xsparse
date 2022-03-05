@@ -1,6 +1,4 @@
-[![Actions Status](https://github.com/hameerabbasi/xsparse/workflows/MacOS/badge.svg)](https://github.com/hameerabbasi/xsparse/actions)
-[![Actions Status](https://github.com/hameerabbasi/xsparse/workflows/Windows/badge.svg)](https://github.com/hameerabbasi/xsparse/actions)
-[![Actions Status](https://github.com/hameerabbasi/xsparse/workflows/Ubuntu/badge.svg)](https://github.com/hameerabbasi/xsparse/actions)
+[![Actions Status](https://github.com/hameerabbasi/xsparse/workflows/Tests/badge.svg)](https://github.com/hameerabbasi/xsparse/actions)
 [![Actions Status](https://github.com/hameerabbasi/xsparse/workflows/Style/badge.svg)](https://github.com/hameerabbasi/xsparse/actions)
 [![Actions Status](https://github.com/hameerabbasi/xsparse/workflows/Install/badge.svg)](https://github.com/hameerabbasi/xsparse/actions)
 [![codecov](https://codecov.io/gh/hameerabbasi/xsparse/branch/main/graph/badge.svg)](https://codecov.io/gh/hameerabbasi/xsparse)
