@@ -51,7 +51,7 @@ namespace xsparse
 
             inline std::pair<IK, IK> coord_bounds(typename BaseTraits::I i) const noexcept
             {
-                static_assert(std::tuple_size<i> > 1, "Hello");
+                static_assert(std::tuple_size<i> > 1, "Tuple size should be greater than 1");
                 return { static_cast<IK>(std::max(0, - m_offset[std::get<0>(i)])),
                          static_cast<IK>(std::min(m_size_N, m_size_M - m_offset[std::get<0>(i)]))
                 };
