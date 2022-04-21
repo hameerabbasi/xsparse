@@ -21,11 +21,8 @@ namespace xsparse
                                                                   PK,
                                                                   OffsetContainer>
         {
-            using BaseTraits = util::base_traits<range,
-                                                 std::tuple<LowerLevels...>,
-                                                 IK,
-                                                 PK,
-                                                 OffsetContainer>;
+            using BaseTraits
+                = util::base_traits<range, std::tuple<LowerLevels...>, IK, PK, OffsetContainer>;
 
         public:
             range(IK size_N, IK size_M)
@@ -51,10 +48,10 @@ namespace xsparse
 
             inline std::pair<IK, IK> coord_bounds(typename BaseTraits::I i) const noexcept
             {
-                static_assert(std::tuple_size<i> > 1, "Tuple size should be greater than 1");
-                return { static_cast<IK>(std::max(0, - m_offset[std::get<0>(i)])),
-                         static_cast<IK>(std::min(m_size_N, m_size_M - m_offset[std::get<0>(i)]))
-                };
+                static_assert(std::tuple_size_v<decltype(i)> >= 1,
+                              "Tuple size should be at least 1");
+                return { static_cast<IK>(std::max(0, -m_offset[std::get<0>(i)])),
+                         static_cast<IK>(std::min(m_size_N, m_size_M - m_offset[std::get<0>(i)])) };
             }
 
             inline std::optional<PK> coord_access(typename BaseTraits::PKM1 pkm1,
