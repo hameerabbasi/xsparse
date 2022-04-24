@@ -62,7 +62,7 @@ namespace xsparse
             }
 
         private:
-            IK m_size_M, m_size_N;
+            IK m_size_N, m_size_M;
             OffsetContainer m_offset;
         };
     }
