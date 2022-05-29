@@ -39,7 +39,7 @@ TEST_CASE("Singleton-COO")
             CHECK(crd1[l2] == i2);
             ++l2;
         }
-        CHECK(l2 == p1+1);
+        CHECK(l2 == p1 + 1);
         ++l1;
     }
     CHECK(l1 == pos.back());
