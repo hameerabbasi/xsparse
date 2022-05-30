@@ -13,7 +13,7 @@ TEST_CASE("Singleton-COO")
     constexpr uint8_t ZERO = 0;
 
     std::vector<uintptr_t> const pos{ 0, 7 };
-    std::vector<uintptr_t> const crd{ 0, 0, 1, 1, 3, 3, 3 };
+    std::vector<uintptr_t> const crd0{ 0, 0, 1, 1, 3, 3, 3 };
     std::vector<uintptr_t> const crd1{ 0, 1, 0, 1, 0, 3, 4 };
 
     xsparse::levels::compressed<std::tuple<>,
