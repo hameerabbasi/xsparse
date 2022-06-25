@@ -33,21 +33,18 @@ namespace xsparse
             private:
                 typename BaseTraits::Level const& m_level;
                 typename BaseTraits::PKM1 const m_pkm1;
+                typename BaseTraits::I const m_i;
 
             public:
-                class iterator;
-                using value_type = typename BaseTraits::PK;
-                using difference_type = typename std::make_signed_t<typename BaseTraits::PK>;
-                using key_type = typename BaseTraits::IK;
-                using pointer = typename BaseTraits::PK*;
-                using reference = std::pair<typename BaseTraits::IK, typename BaseTraits::PK>;
                 using iterator_type = std::unordered_map<typename BaseTraits::IK,
                                                          typename BaseTraits::PK>::const_iterator;
 
                 explicit inline iteration_helper(typename BaseTraits::Level const& level,
+                                                 typename BaseTraits::I const i,
                                                  typename BaseTraits::PKM1 const pkm1) noexcept
                     : m_level(level)
                     , m_pkm1(pkm1)
+                    , m_i(i)
                 {
                 }
 
@@ -62,9 +59,9 @@ namespace xsparse
                 }
             };
 
-            iteration_helper iter_helper(typename BaseTraits::PKM1 pkm1)
+            iteration_helper iter_helper(typename BaseTraits::I i, typename BaseTraits::PKM1 pkm1)
             {
-                return iteration_helper{ *static_cast<typename BaseTraits::Level*>(this), pkm1 };
+                return iteration_helper{ *static_cast<typename BaseTraits::Level*>(this), i, pkm1 };
             }
 
             hashed(IK size)
