@@ -160,7 +160,7 @@ TEST_CASE("Hashed-Singleton-Dense")
             for (auto const [i3, p3] : d.iter_helper(std::make_tuple(i2), p2))
             {
                 CHECK(l3 == i3);
-                CHECK(l3+SIZE2*l2 == p3);
+                CHECK(l3 + SIZE2 * l2 == p3);
                 ++l3;
             }
             CHECK(l3 == SIZE2);
