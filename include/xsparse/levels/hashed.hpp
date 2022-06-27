@@ -36,8 +36,47 @@ namespace xsparse
                 typename BaseTraits::I const m_i;
 
             public:
-                using iterator_type = std::unordered_map<typename BaseTraits::IK,
-                                                         typename BaseTraits::PK>::const_iterator;
+                class iterator;
+                using value_type =
+                    typename std::pair<typename BaseTraits::IK, typename BaseTraits::PK>;
+                using difference_type = typename std::make_signed_t<typename BaseTraits::PK>;
+                using pointer =
+                    typename std::pair<typename BaseTraits::IK, typename BaseTraits::PK>*;
+                using reference = std::pair<typename BaseTraits::IK, typename BaseTraits::PK>;
+                using iterator_type = iterator;
+
+                class iterator : public xtl::xbidirectional_iterator_base2<iteration_helper>
+                {
+                public:
+                    explicit inline iterator() noexcept
+                        :
+                    {
+                    }
+
+                    /*inline std::tuple<typename BaseTraits::IK, typename BaseTraits::PK>
+                    operator*()
+                        const noexcept
+                    {
+                        // return { ik, pk };
+                    }
+
+                    inline iterator& operator++() noexcept
+                    {
+                        //increment
+                        return iterator{++it};
+                    }
+
+                    inline iterator& operator--() noexcept
+                    {
+                        //decrement
+                        return iterator{--it};
+                    }
+                    
+                    inline bool operator==(iterator const& other) const noexcept
+                    {
+                        return it == other;
+                    }*/
+                };
 
                 explicit inline iteration_helper(typename BaseTraits::Level const& level,
                                                  typename BaseTraits::I const i,
@@ -50,12 +89,12 @@ namespace xsparse
 
                 inline iterator_type begin() const noexcept
                 {
-                    return m_level.m_crd[m_pkm1].cbegin();
+                    return m_level.m_crd[m_pkm1].begin();
                 }
 
                 inline iterator_type end() const noexcept
                 {
-                    return m_level.m_crd[m_pkm1].cend();
+                    return m_level.m_crd[m_pkm1].end();
                 }
             };
 
