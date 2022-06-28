@@ -32,9 +32,7 @@ namespace xsparse
                                                             typename BaseTraits::IK>);
 
             private:
-                typename BaseTraits::Level const& m_level;
-                typename BaseTraits::PKM1 const m_pkm1;
-                typename BaseTraits::I const m_i;
+                std::unordered_map<typename BaseTraits::IK, typename BaseTraits::PK> m_map;
 
             public:
                 class iterator;
@@ -46,7 +44,7 @@ namespace xsparse
                 using reference = std::pair<typename BaseTraits::IK, typename BaseTraits::PK>;
                 using iterator_type = iterator;
 
-                class iterator : xtl::xbidirectional_iterator_base2<iteration_helper>
+                class iterator : public xtl::xbidirectional_iterator_base2<iteration_helper>
                 {
                 private:
                     using wrapped_iterator_type =
@@ -84,45 +82,46 @@ namespace xsparse
                     }
                 };
 
-                explicit inline iteration_helper(typename BaseTraits::Level const& level,
-                                                 typename BaseTraits::I const i,
-                                                 typename BaseTraits::PKM1 const pkm1) noexcept
-                    : m_level(level)
-                    , m_pkm1(pkm1)
-                    , m_i(i)
+                explicit inline iteration_helper(
+                    std::unordered_map<typename BaseTraits::IK, typename BaseTraits::PK>
+                        map) noexcept
+                    : m_map(map)
                 {
                 }
 
-                inline iterator begin() const noexcept
+                inline iterator_type begin() const noexcept
                 {
-                    return iterator{ m_level.m_crd[m_pkm1].begin() };
+                    return iterator_type{ m_map.begin() };
                 }
 
-                inline iterator end() const noexcept
+                inline iterator_type end() const noexcept
                 {
-                    return iterator{ m_level.m_crd[m_pkm1].end() };
+                    return iterator_type{ m_map.end() };
                 }
             };
 
-            iteration_helper iter_helper(typename BaseTraits::I i, typename BaseTraits::PKM1 pkm1)
+            iteration_helper iter_helper(typename BaseTraits::PKM1 pkm1)
             {
-                return iteration_helper{ *static_cast<typename BaseTraits::Level*>(this), i, pkm1 };
+                return iteration_helper{ this->m_crd[pkm1] };
             }
 
-            hashed(IK size)
-                : m_crd_size(std::move(size))
+            hashed(IK size, PK crd_size)
+                : m_size(std::move(size))
+                , m_crd_size(std::move(crd_size))
                 , m_crd()
             {
             }
 
-            hashed(IK size, CrdContainer const& crd)
-                : m_crd_size(std::move(size))
+            hashed(IK size, PK crd_size, CrdContainer const& crd)
+                : m_size(std::move(size))
+                , m_crd_size(std::move(crd_size))
                 , m_crd(crd)
             {
             }
 
-            hashed(IK size, CrdContainer&& crd)
-                : m_crd_size(std::move(size))
+            hashed(IK size, PK crd_size, CrdContainer&& crd)
+                : m_size(std::move(size))
+                , m_crd_size(std::move(crd_size))
                 , m_crd(crd)
             {
             }
@@ -149,6 +148,7 @@ namespace xsparse
             }
 
         private:
+            IK m_size;
             PK m_crd_size;
             CrdContainer m_crd;
         };
