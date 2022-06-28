@@ -7,6 +7,7 @@
 #include <unordered_map>
 
 #include <xsparse/util/base_traits.hpp>
+#include <xtl/xiterator_base.hpp>
 
 namespace xsparse
 {
@@ -45,37 +46,42 @@ namespace xsparse
                 using reference = std::pair<typename BaseTraits::IK, typename BaseTraits::PK>;
                 using iterator_type = iterator;
 
-                class iterator : public xtl::xbidirectional_iterator_base2<iteration_helper>
+                class iterator : xtl::xbidirectional_iterator_base2<iteration_helper>
                 {
+                private:
+                    using wrapped_iterator_type =
+                        typename std::unordered_map<typename BaseTraits::IK,
+                                                    typename BaseTraits::PK>::const_iterator;
+                    wrapped_iterator_type wrapped_it;
+
                 public:
-                    explicit inline iterator() noexcept
-                        :
+                    explicit inline iterator(wrapped_iterator_type wrapped) noexcept
+                        : wrapped_it(wrapped)
                     {
                     }
 
-                    /*inline std::tuple<typename BaseTraits::IK, typename BaseTraits::PK>
-                    operator*()
+                    inline std::tuple<typename BaseTraits::IK, typename BaseTraits::PK> operator*()
                         const noexcept
                     {
-                        // return { ik, pk };
+                        return { wrapped_it->first, wrapped_it->second };
+                    }
+
+                    inline bool operator==(const iterator& other) const noexcept
+                    {
+                        return wrapped_it == other.wrapped_it;
                     }
 
                     inline iterator& operator++() noexcept
                     {
-                        //increment
-                        return iterator{++it};
+                        ++wrapped_it;
+                        return *this;
                     }
 
                     inline iterator& operator--() noexcept
                     {
-                        //decrement
-                        return iterator{--it};
+                        --wrapped_it;
+                        return *this;
                     }
-                    
-                    inline bool operator==(iterator const& other) const noexcept
-                    {
-                        return it == other;
-                    }*/
                 };
 
                 explicit inline iteration_helper(typename BaseTraits::Level const& level,
@@ -87,14 +93,14 @@ namespace xsparse
                 {
                 }
 
-                inline iterator_type begin() const noexcept
+                inline iterator begin() const noexcept
                 {
-                    return m_level.m_crd[m_pkm1].begin();
+                    return iterator{ m_level.m_crd[m_pkm1].begin() };
                 }
 
-                inline iterator_type end() const noexcept
+                inline iterator end() const noexcept
                 {
-                    return m_level.m_crd[m_pkm1].end();
+                    return iterator{ m_level.m_crd[m_pkm1].end() };
                 }
             };
 
