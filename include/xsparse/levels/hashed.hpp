@@ -32,7 +32,7 @@ namespace xsparse
                                                             typename BaseTraits::IK>);
 
             private:
-                std::unordered_map<typename BaseTraits::IK, typename BaseTraits::PK> m_map;
+                std::unordered_map<typename BaseTraits::IK, typename BaseTraits::PK>& m_map;
 
             public:
                 class iterator;
@@ -83,7 +83,7 @@ namespace xsparse
                 };
 
                 explicit inline iteration_helper(
-                    std::unordered_map<typename BaseTraits::IK, typename BaseTraits::PK>
+                    std::unordered_map<typename BaseTraits::IK, typename BaseTraits::PK>&
                         map) noexcept
                     : m_map(map)
                 {
@@ -105,20 +105,23 @@ namespace xsparse
                 return iteration_helper{ this->m_crd[pkm1] };
             }
 
-            hashed(PK size)
-                : m_crd_size(std::move(size))
+            hashed(IK size, PK crd_size)
+                : m_size(std::move(size))
+                , m_crd_size(std::move(crd_size))
                 , m_crd()
             {
             }
 
-            hashed(PK size, CrdContainer const& crd)
-                : m_crd_size(std::move(size))
+            hashed(IK size, PK crd_size, CrdContainer const& crd)
+                : m_size(std::move(size))
+                , m_crd_size(std::move(crd_size))
                 , m_crd(crd)
             {
             }
 
-            hashed(PK size, CrdContainer&& crd)
-                : m_crd_size(std::move(size))
+            hashed(IK size, PK crd_size, CrdContainer&& crd)
+                : m_size(std::move(size))
+                , m_crd_size(std::move(crd_size))
                 , m_crd(crd)
             {
             }
@@ -145,6 +148,7 @@ namespace xsparse
             }
 
         private:
+            IK m_size;
             PK m_crd_size;
             CrdContainer m_crd;
         };
