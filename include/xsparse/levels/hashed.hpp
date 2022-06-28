@@ -105,23 +105,20 @@ namespace xsparse
                 return iteration_helper{ this->m_crd[pkm1] };
             }
 
-            hashed(IK size, PK crd_size)
-                : m_size(std::move(size))
-                , m_crd_size(std::move(crd_size))
+            hashed(PK size)
+                : m_crd_size(std::move(size))
                 , m_crd()
             {
             }
 
-            hashed(IK size, PK crd_size, CrdContainer const& crd)
-                : m_size(std::move(size))
-                , m_crd_size(std::move(crd_size))
+            hashed(PK size, CrdContainer const& crd)
+                : m_crd_size(std::move(size))
                 , m_crd(crd)
             {
             }
 
-            hashed(IK size, PK crd_size, CrdContainer&& crd)
-                : m_size(std::move(size))
-                , m_crd_size(std::move(crd_size))
+            hashed(PK size, CrdContainer&& crd)
+                : m_crd_size(std::move(size))
                 , m_crd(crd)
             {
             }
@@ -148,7 +145,6 @@ namespace xsparse
             }
 
         private:
-            IK m_size;
             PK m_crd_size;
             CrdContainer m_crd;
         };
