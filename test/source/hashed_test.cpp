@@ -8,7 +8,7 @@ TEST_CASE("Dense-Hashed")
     constexpr uintptr_t SIZE0 = 3;
     constexpr uint8_t ZERO = 0;
     constexpr uintptr_t SIZE1 = 3;
-    constexpr uintptr_t SIZE2 = 3;
+    constexpr uintptr_t SIZE2 = 7;
 
     std::unordered_map<uintptr_t, uintptr_t> const umap1{ { 5, 2 }, { 6, 1 }, { 4, 0 } };
     std::unordered_map<uintptr_t, uintptr_t> const umap2{ { 2, 5 } };
@@ -44,10 +44,10 @@ TEST_CASE("Dense-Hashed")
 TEST_CASE("Hashed-Hashed")
 {
     constexpr uintptr_t SIZE0 = 1;
-    constexpr uintptr_t SIZE1 = 1;
+    constexpr uintptr_t SIZE1 = 3;
     constexpr uint8_t ZERO = 0;
     constexpr uintptr_t SIZE2 = 3;
-    constexpr uintptr_t SIZE3 = 3;
+    constexpr uintptr_t SIZE3 = 7;
 
     std::unordered_map<uintptr_t, uintptr_t> const umap1{ { 0, 1 }, { 2, 0 }, { 1, 2 } };
 
@@ -90,7 +90,7 @@ TEST_CASE("Hashed-Hashed")
 TEST_CASE("Hashed-Singleton")
 {
     constexpr uintptr_t SIZE0 = 1;
-    constexpr uintptr_t SIZE1 = 1;
+    constexpr uintptr_t SIZE1 = 3;
     constexpr uintptr_t SIZE2 = 3;
     constexpr uint8_t ZERO = 0;
 
@@ -130,7 +130,7 @@ TEST_CASE("Hashed-Singleton")
 TEST_CASE("Hashed-Singleton-Dense")
 {
     constexpr uintptr_t SIZE0 = 1;
-    constexpr uintptr_t SIZE1 = 1;
+    constexpr uintptr_t SIZE1 = 5;
     constexpr uintptr_t SIZE2 = 1;
     constexpr uintptr_t SIZE3 = 2;
     constexpr uintptr_t ZERO = 0;
