@@ -3,6 +3,9 @@
 #include <xsparse/levels/dense.hpp>
 #include <xsparse/levels/singleton.hpp>
 
+#include <vector>
+#include <unordered_map>
+
 TEST_CASE("Dense-Hashed")
 {
     constexpr uintptr_t SIZE0 = 3;
