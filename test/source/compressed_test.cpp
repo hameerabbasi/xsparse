@@ -115,6 +115,7 @@ TEST_CASE("Compressed-Append")
 {
     constexpr uintptr_t SIZE = 0;
     constexpr uint8_t ZERO = 0;
+    constexpr uintptr_t SIZE_PREV = 1;
 
     std::vector<uintptr_t> pos{ 0 };
     std::vector<uintptr_t> crd;
@@ -126,13 +127,13 @@ TEST_CASE("Compressed-Append")
                                 std::vector<uintptr_t>>
         s{ SIZE, pos, crd };
 
-    s.append_init(1);
+    s.append_init(SIZE_PREV);
     s.append_edges(0, 0, 4);
     s.append_coord(0);
     s.append_coord(1);
     s.append_coord(4);
     s.append_coord(6);
-    s.append_finalize(1);
+    s.append_finalize(SIZE_PREV);
 
     uintptr_t l = 0;
     for (auto const [i, p] : s.iter_helper(std::make_tuple(), ZERO))
