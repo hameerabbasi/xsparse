@@ -3,6 +3,7 @@
 
 #include <tuple>
 #include <utility>
+#include <vector>
 
 #include <xsparse/level_capabilities/coordinate_iterate.hpp>
 
@@ -60,6 +61,33 @@ namespace xsparse
             inline IK pos_access(PK pk, [[maybe_unused]] typename BaseTraits::I i) const noexcept
             {
                 return m_crd[pk];
+            }
+
+            inline void append_init(typename BaseTraits::IK szkm1) noexcept
+            {
+                m_pos.resize(szkm1 + 1);
+            }
+
+            inline void append_edges([[maybe_unused]] typename BaseTraits::PKM1 pkm1,
+                                     typename BaseTraits::PK pk_begin,
+                                     typename BaseTraits::PK pk_end) noexcept
+            {
+                m_pos.push_back(pk_end - pk_begin);
+            }
+
+            inline void append_coord(typename BaseTraits::IK ik) noexcept
+            {
+                m_crd.push_back(ik);
+            }
+
+            inline void append_finalize(typename BaseTraits::IK szkm1) noexcept
+            {
+                auto cumsum = m_pos[0];
+                for (auto pkm1 = 1; pkm1 <= szkm1; ++pkm1)
+                {
+                    cumsum += m_pos[pkm1];
+                    m_pos[pkm1] = cumsum;
+                }
             }
 
         private:
