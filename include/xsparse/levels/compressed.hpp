@@ -82,8 +82,8 @@ namespace xsparse
 
             inline void append_finalize(typename BaseTraits::IK szkm1) noexcept
             {
-                auto cumsum = m_pos[0];
-                for (auto pkm1 = 1; pkm1 <= szkm1; ++pkm1)
+                typename BaseTraits::PK cumsum = m_pos[0];
+                for (typename BaseTraits::PK pkm1 = 1; pkm1 <= szkm1; ++pkm1)
                 {
                     cumsum += m_pos[pkm1];
                     m_pos[pkm1] = cumsum;
