@@ -214,7 +214,7 @@ TEST_CASE("Dense-Hashed-Insert")
     h.insert_init(SIZE0);
 
     uintptr_t pkm1 = 0;
-    for (int j = 0; j < edge_holder.size(); ++j)
+    for (auto j = 0; j < edge_holder.size(); ++j)
     {
         h.insert_edges(pkm1, edge_holder[j]);
         for (auto const [i, p] : crd_holder[j])

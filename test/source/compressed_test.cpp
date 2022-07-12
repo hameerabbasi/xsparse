@@ -135,7 +135,7 @@ TEST_CASE("Compressed-CSR-Append")
     s2.append_init(SIZE1);
 
     uintptr_t pkm1 = 0;
-    for (int i = 1; i < pos_holder.size(); ++i)
+    for (auto i = 1; i < pos_holder.size(); ++i)
     {
         s2.append_edges(pkm1, ZERO, pos_holder[i] - pos_holder[i - 1]);
         ++pkm1;
