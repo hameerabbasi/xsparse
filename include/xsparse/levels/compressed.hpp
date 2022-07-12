@@ -68,11 +68,11 @@ namespace xsparse
                 m_pos.resize(szkm1 + 1);
             }
 
-            inline void append_edges([[maybe_unused]] typename BaseTraits::PKM1 pkm1,
+            inline void append_edges(typename BaseTraits::PKM1 pkm1,
                                      typename BaseTraits::PK pk_begin,
                                      typename BaseTraits::PK pk_end) noexcept
             {
-                m_pos.push_back(pk_end - pk_begin);
+                m_pos[pkm1 + 1] = pk_end - pk_begin;
             }
 
             inline void append_coord(typename BaseTraits::IK ik) noexcept

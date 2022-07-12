@@ -111,36 +111,57 @@ TEST_CASE("Compressed-DCSR")
     CHECK(l1 == pos1.back());
 }
 
-TEST_CASE("Compressed-Append")
+TEST_CASE("Compressed-CSR-Append")
 {
-    constexpr uintptr_t SIZE = 0;
+    constexpr uintptr_t SIZE1 = 4;
+    constexpr uintptr_t SIZE2 = 100;
     constexpr uint8_t ZERO = 0;
-    constexpr uintptr_t SIZE_PREV = 1;
+    constexpr uint8_t ONE = 1;
+
+    std::vector<uintptr_t> const pos_holder{ 0, 2, 4, 4, 7 };
+    std::vector<uintptr_t> const crd_holder{ 0, 1, 0, 1, 0, 3, 4 };
 
     std::vector<uintptr_t> pos{ 0 };
     std::vector<uintptr_t> crd;
 
-    xsparse::levels::compressed<std::tuple<>,
+    xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> d1{ SIZE1 };
+    xsparse::levels::compressed<std::tuple<decltype(d1)>,
                                 uintptr_t,
                                 uintptr_t,
                                 std::vector<uintptr_t>,
                                 std::vector<uintptr_t>>
-        s{ SIZE, pos, crd };
+        s2{ SIZE2, pos, crd };
 
-    s.append_init(SIZE_PREV);
-    s.append_edges(0, 0, 4);
-    s.append_coord(0);
-    s.append_coord(1);
-    s.append_coord(4);
-    s.append_coord(6);
-    s.append_finalize(SIZE_PREV);
+    s2.append_init(SIZE1);
 
-    uintptr_t l = 0;
-    for (auto const [i, p] : s.iter_helper(std::make_tuple(), ZERO))
+    uintptr_t pkm1 = 0;
+    for (int i = 1; i < pos_holder.size(); ++i)
     {
-        CHECK(l == p);
-        CHECK(crd[l] == i);
-        ++l;
+        s2.append_edges(pkm1, ZERO, pos_holder[i] - pos_holder[i - 1]);
+        ++pkm1;
     }
-    CHECK(l == pos.back());
+
+    for (auto const c : crd_holder)
+    {
+        s2.append_coord(c);
+    }
+
+    s2.append_finalize(SIZE1);
+
+    uintptr_t l1 = 0;
+    for (auto const [i1, p1] : d1.iter_helper(std::make_tuple(), ZERO))
+    {
+        CHECK(l1 == p1);
+        CHECK(l1 == i1);
+        uintptr_t l2 = 0;
+        for (auto const [i2, p2] : s2.iter_helper(std::make_tuple(i1), p1))
+        {
+            CHECK(pos_holder[l1] + l2 == p2);
+            CHECK(crd_holder[p2] == i2);
+            ++l2;
+        }
+        CHECK(l2 == pos_holder[l1 + 1] - pos_holder[l1]);
+        ++l1;
+    }
+    CHECK(l1 == d1.size(ONE));
 }

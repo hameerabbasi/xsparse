@@ -97,3 +97,67 @@ TEST_CASE("Singleton-COO-3D")
     }
     CHECK(l1 == pos.back());
 }
+
+TEST_CASE("Singleton-COO-Append")
+{
+    constexpr uintptr_t SIZE = 1;
+    constexpr uintptr_t SIZE1 = 1;
+    constexpr uint8_t ZERO = 0;
+
+    std::vector<uintptr_t> const pos_holder{ 0, 7 };
+    std::vector<uintptr_t> const crd0_holder{ 0, 0, 1, 1, 3, 3, 3 };
+    std::vector<uintptr_t> const crd1_holder{ 0, 1, 0, 1, 0, 3, 4 };
+
+    std::vector<uintptr_t> const pos{ 0 };
+    std::vector<uintptr_t> const crd0;
+    std::vector<uintptr_t> const crd1;
+
+    xsparse::levels::compressed<std::tuple<>,
+                                uintptr_t,
+                                uintptr_t,
+                                std::vector<uintptr_t>,
+                                std::vector<uintptr_t>>
+        c{ SIZE, pos, crd0 };
+
+    xsparse::levels::
+        singleton<std::tuple<decltype(c)>, uintptr_t, uintptr_t, std::vector<uintptr_t>>
+            s{ SIZE1, crd1 };
+
+    c.append_init(SIZE);
+
+    uintptr_t pkm1 = 0;
+    for (int i = 1; i < pos_holder.size(); ++i)
+    {
+        c.append_edges(pkm1, ZERO, pos_holder[i] - pos_holder[i - 1]);
+        ++pkm1;
+    }
+
+    for (auto const coord : crd0_holder)
+    {
+        c.append_coord(coord);
+    }
+
+    c.append_finalize(SIZE);
+
+    for (auto const coord : crd1_holder)
+    {
+        s.append_coord(coord);
+    }
+
+    uintptr_t l1 = 0;
+    for (auto const [i1, p1] : c.iter_helper(std::make_tuple(), ZERO))
+    {
+        CHECK(l1 == p1);
+        CHECK(crd0_holder[l1] == i1);
+        uintptr_t l2 = p1;
+        for (auto const [i2, p2] : s.iter_helper(std::make_tuple(i1), p1))
+        {
+            CHECK(l2 == p2);
+            CHECK(crd1_holder[l2] == i2);
+            ++l2;
+        }
+        CHECK(l2 == p1 + 1);
+        ++l1;
+    }
+    CHECK(l1 == pos_holder.back());
+}

@@ -132,19 +132,20 @@ namespace xsparse
                 return it != m_crd[pkm1].end() ? std::optional<PK>(it->second) : std::nullopt;
             }
 
-            inline void insert_init(typename BaseTraits::IK szkm1) const noexcept
+            inline void insert_init(typename BaseTraits::IK szkm1) noexcept
             {
                 m_crd.resize(szkm1);
             }
 
-            inline void insert_coord(typename BaseTraits::PKM1 pkm1, PK pk, IK ik) const noexcept
+            inline void insert_coord(typename BaseTraits::PKM1 pkm1, PK pk, IK ik) noexcept
             {
                 m_crd[pkm1][ik] = pk;
             }
 
-            inline void insert_edges(typename BaseTraits::PKM1 pkm1) const noexcept
+            inline void insert_edges([[maybe_unused]] typename BaseTraits::PKM1 pkm1,
+                                     typename BaseTraits::PK szk) noexcept
             {
-                m_crd_size += m_crd[pkm1].size();
+                m_crd_size += szk;
             }
 
         private:
