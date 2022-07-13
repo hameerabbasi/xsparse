@@ -39,7 +39,7 @@ namespace xsparse
                 return std::optional(static_cast<PK>(pkm1 * m_size + ik));
             }
 
-            inline BaseTraits::IK size(typename BaseTraits::IK szkm1) const noexcept
+            inline IK size(typename BaseTraits::IK szkm1) const noexcept
             {
                 return szkm1 * m_size;
             }
