@@ -116,7 +116,6 @@ TEST_CASE("Compressed-CSR-Append")
     constexpr uintptr_t SIZE1 = 4;
     constexpr uintptr_t SIZE2 = 100;
     constexpr uint8_t ZERO = 0;
-    constexpr uint8_t ONE = 1;
 
     std::vector<uintptr_t> const pos_holder{ 0, 2, 4, 4, 7 };
     std::vector<uintptr_t> const crd_holder{ 0, 1, 0, 1, 0, 3, 4 };
@@ -163,5 +162,5 @@ TEST_CASE("Compressed-CSR-Append")
         CHECK(l2 == pos_holder[l1 + 1] - pos_holder[l1]);
         ++l1;
     }
-    CHECK(l1 == d1.size(ONE));
+    CHECK(l1 == SIZE1);
 }

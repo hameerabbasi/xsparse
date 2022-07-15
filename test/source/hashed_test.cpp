@@ -11,7 +11,6 @@ TEST_CASE("Dense-Hashed")
     constexpr uintptr_t SIZE0 = 3;
     constexpr uint8_t ZERO = 0;
     constexpr uintptr_t SIZE1 = 3;
-    constexpr uintptr_t SIZE2 = 7;
 
     std::unordered_map<uintptr_t, uintptr_t> const umap1{ { 5, 2 }, { 6, 1 }, { 4, 0 } };
     std::unordered_map<uintptr_t, uintptr_t> const umap2{ { 2, 5 } };
@@ -25,7 +24,7 @@ TEST_CASE("Dense-Hashed")
                             uintptr_t,
                             uintptr_t,
                             std::vector<std::unordered_map<uintptr_t, uintptr_t>>>
-        h{ SIZE1, SIZE2, crd };
+        h{ SIZE1, crd };
 
     uintptr_t l1 = 0;
     for (auto const [i1, p1] : d.iter_helper(std::make_tuple(), ZERO))
@@ -47,10 +46,8 @@ TEST_CASE("Dense-Hashed")
 TEST_CASE("Hashed-Hashed")
 {
     constexpr uintptr_t SIZE0 = 1;
-    constexpr uintptr_t SIZE1 = 3;
     constexpr uint8_t ZERO = 0;
-    constexpr uintptr_t SIZE2 = 3;
-    constexpr uintptr_t SIZE3 = 7;
+    constexpr uintptr_t SIZE1 = 3;
 
     std::unordered_map<uintptr_t, uintptr_t> const umap1{ { 0, 1 }, { 2, 0 }, { 1, 2 } };
 
@@ -66,13 +63,13 @@ TEST_CASE("Hashed-Hashed")
                             uintptr_t,
                             uintptr_t,
                             std::vector<std::unordered_map<uintptr_t, uintptr_t>>>
-        h{ SIZE0, SIZE1, crd0 };
+        h{ SIZE0, crd0 };
 
     xsparse::levels::hashed<std::tuple<decltype(h)>,
                             uintptr_t,
                             uintptr_t,
                             std::vector<std::unordered_map<uintptr_t, uintptr_t>>>
-        h1{ SIZE2, SIZE3, crd1 };
+        h1{ SIZE1, crd1 };
 
     uintptr_t l1 = 0;
     for (auto const [i1, p1] : h.iter_helper(ZERO))
@@ -94,7 +91,6 @@ TEST_CASE("Hashed-Singleton")
 {
     constexpr uintptr_t SIZE0 = 1;
     constexpr uintptr_t SIZE1 = 3;
-    constexpr uintptr_t SIZE2 = 3;
     constexpr uint8_t ZERO = 0;
 
     std::unordered_map<uintptr_t, uintptr_t> const umap1{ { 0, 1 }, { 2, 0 }, { 1, 2 } };
@@ -107,11 +103,11 @@ TEST_CASE("Hashed-Singleton")
                             uintptr_t,
                             uintptr_t,
                             std::vector<std::unordered_map<uintptr_t, uintptr_t>>>
-        h{ SIZE0, SIZE1, crd0 };
+        h{ SIZE0, crd0 };
 
     xsparse::levels::
         singleton<std::tuple<decltype(h)>, uintptr_t, uintptr_t, std::vector<uintptr_t>>
-            s{ SIZE2, crd1 };
+            s{ SIZE1, crd1 };
 
     uintptr_t l1 = 0;
     for (auto const [i1, p1] : h.iter_helper(ZERO))
@@ -133,9 +129,8 @@ TEST_CASE("Hashed-Singleton")
 TEST_CASE("Hashed-Singleton-Dense")
 {
     constexpr uintptr_t SIZE0 = 1;
-    constexpr uintptr_t SIZE1 = 5;
-    constexpr uintptr_t SIZE2 = 1;
-    constexpr uintptr_t SIZE3 = 2;
+    constexpr uintptr_t SIZE1 = 1;
+    constexpr uintptr_t SIZE2 = 2;
     constexpr uintptr_t ZERO = 0;
 
     std::unordered_map<uintptr_t, uintptr_t> umap1{
@@ -149,11 +144,11 @@ TEST_CASE("Hashed-Singleton-Dense")
                             uintptr_t,
                             uintptr_t,
                             std::vector<std::unordered_map<uintptr_t, uintptr_t>>>
-        h{ SIZE0, SIZE1, crd0 };
+        h{ SIZE0, crd0 };
     xsparse::levels::
         singleton<std::tuple<decltype(h)>, uintptr_t, uintptr_t, std::vector<uintptr_t>>
-            s{ SIZE2, crd1 };
-    xsparse::levels::dense<std::tuple<decltype(s)>, uintptr_t, uintptr_t> d{ SIZE3 };
+            s{ SIZE1, crd1 };
+    xsparse::levels::dense<std::tuple<decltype(s)>, uintptr_t, uintptr_t> d{ SIZE2 };
 
     uintptr_t l1 = 0;
     for (auto const [i1, p1] : h.iter_helper(ZERO))
@@ -168,10 +163,10 @@ TEST_CASE("Hashed-Singleton-Dense")
             for (auto const [i3, p3] : d.iter_helper(std::make_tuple(i2), p2))
             {
                 CHECK(l3 == i3);
-                CHECK(l3 + SIZE3 * l2 == p3);
+                CHECK(l3 + SIZE2 * l2 == p3);
                 ++l3;
             }
-            CHECK(l3 == SIZE3);
+            CHECK(l3 == SIZE2);
             ++l2;
         }
         CHECK(l2 == p1 + 1);
@@ -185,7 +180,6 @@ TEST_CASE("Dense-Hashed-Insert")
     constexpr uintptr_t SIZE0 = 3;
     constexpr uint8_t ZERO = 0;
     constexpr uintptr_t SIZE1 = 3;
-    constexpr uintptr_t SIZE2 = 0;
 
     std::unordered_map<uintptr_t, uintptr_t> const umap1_holder{ { 5, 2 }, { 6, 1 }, { 4, 0 } };
     std::unordered_map<uintptr_t, uintptr_t> const umap2_holder{ { 2, 5 } };
@@ -209,14 +203,13 @@ TEST_CASE("Dense-Hashed-Insert")
                             uintptr_t,
                             uintptr_t,
                             std::vector<std::unordered_map<uintptr_t, uintptr_t>>>
-        h{ SIZE1, SIZE2, crd };
+        h{ SIZE1, crd };
 
     h.insert_init(SIZE0);
 
     uintptr_t pkm1 = 0;
     for (size_t j = 0; j < edge_holder.size(); ++j)
     {
-        h.insert_edges(pkm1, edge_holder[j]);
         for (auto const [i, p] : crd_holder[j])
         {
             h.insert_coord(pkm1, p, i);

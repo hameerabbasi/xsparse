@@ -105,23 +105,20 @@ namespace xsparse
                 return iteration_helper{ this->m_crd[pkm1] };
             }
 
-            hashed(IK size, PK crd_size)
+            hashed(IK size)
                 : m_size(std::move(size))
-                , m_crd_size(std::move(crd_size))
                 , m_crd()
             {
             }
 
-            hashed(IK size, PK crd_size, CrdContainer const& crd)
+            hashed(IK size, CrdContainer const& crd)
                 : m_size(std::move(size))
-                , m_crd_size(std::move(crd_size))
                 , m_crd(crd)
             {
             }
 
-            hashed(IK size, PK crd_size, CrdContainer&& crd)
+            hashed(IK size, CrdContainer&& crd)
                 : m_size(std::move(size))
-                , m_crd_size(std::move(crd_size))
                 , m_crd(crd)
             {
             }
@@ -142,15 +139,8 @@ namespace xsparse
                 m_crd[pkm1][ik] = pk;
             }
 
-            inline void insert_edges([[maybe_unused]] typename BaseTraits::PKM1 pkm1,
-                                     typename BaseTraits::PK szk) noexcept
-            {
-                m_crd_size += szk;
-            }
-
         private:
             IK m_size;
-            PK m_crd_size;
             CrdContainer m_crd;
         };
     }  // namespace levels
