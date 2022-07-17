@@ -54,6 +54,11 @@ namespace xsparse
                 return m_crd[pk];
             }
 
+            inline void append_coord(typename BaseTraits::IK ik) noexcept
+            {
+                m_crd.push_back(ik);
+            }
+
         private:
             IK m_size;
             CrdContainer m_crd;

@@ -105,23 +105,20 @@ namespace xsparse
                 return iteration_helper{ this->m_crd[pkm1] };
             }
 
-            hashed(IK size, PK crd_size)
+            hashed(IK size)
                 : m_size(std::move(size))
-                , m_crd_size(std::move(crd_size))
                 , m_crd()
             {
             }
 
-            hashed(IK size, PK crd_size, CrdContainer const& crd)
+            hashed(IK size, CrdContainer const& crd)
                 : m_size(std::move(size))
-                , m_crd_size(std::move(crd_size))
                 , m_crd(crd)
             {
             }
 
-            hashed(IK size, PK crd_size, CrdContainer&& crd)
+            hashed(IK size, CrdContainer&& crd)
                 : m_size(std::move(size))
-                , m_crd_size(std::move(crd_size))
                 , m_crd(crd)
             {
             }
@@ -132,24 +129,18 @@ namespace xsparse
                 return it != m_crd[pkm1].end() ? std::optional<PK>(it->second) : std::nullopt;
             }
 
-            inline void insert_init(typename BaseTraits::IK szkm1) const noexcept
+            inline void insert_init(typename BaseTraits::IK szkm1) noexcept
             {
                 m_crd.resize(szkm1);
             }
 
-            inline void insert_coord(typename BaseTraits::PKM1 pkm1, PK pk, IK ik) const noexcept
+            inline void insert_coord(typename BaseTraits::PKM1 pkm1, PK pk, IK ik) noexcept
             {
                 m_crd[pkm1][ik] = pk;
             }
 
-            inline void insert_edges(typename BaseTraits::PKM1 pkm1) const noexcept
-            {
-                m_crd_size += m_crd[pkm1].size();
-            }
-
         private:
             IK m_size;
-            PK m_crd_size;
             CrdContainer m_crd;
         };
     }  // namespace levels

@@ -110,3 +110,57 @@ TEST_CASE("Compressed-DCSR")
     }
     CHECK(l1 == pos1.back());
 }
+
+TEST_CASE("Compressed-CSR-Append")
+{
+    constexpr uintptr_t SIZE1 = 4;
+    constexpr uintptr_t SIZE2 = 100;
+    constexpr uint8_t ZERO = 0;
+
+    std::vector<uintptr_t> const pos_holder{ 0, 2, 4, 4, 7 };
+    std::vector<uintptr_t> const crd_holder{ 0, 1, 0, 1, 0, 3, 4 };
+
+    std::vector<uintptr_t> pos{ 0 };
+    std::vector<uintptr_t> crd;
+
+    xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> d1{ SIZE1 };
+    xsparse::levels::compressed<std::tuple<decltype(d1)>,
+                                uintptr_t,
+                                uintptr_t,
+                                std::vector<uintptr_t>,
+                                std::vector<uintptr_t>>
+        s2{ SIZE2, pos, crd };
+
+    s2.append_init(SIZE1);
+
+    uintptr_t pkm1 = 0;
+    for (size_t i = 0; i < pos_holder.size() - 1; ++i)
+    {
+        s2.append_edges(pkm1, ZERO, pos_holder[i + 1] - pos_holder[i]);
+        ++pkm1;
+    }
+
+    for (auto const c : crd_holder)
+    {
+        s2.append_coord(c);
+    }
+
+    s2.append_finalize(SIZE1);
+
+    uintptr_t l1 = 0;
+    for (auto const [i1, p1] : d1.iter_helper(std::make_tuple(), ZERO))
+    {
+        CHECK(l1 == p1);
+        CHECK(l1 == i1);
+        uintptr_t l2 = 0;
+        for (auto const [i2, p2] : s2.iter_helper(std::make_tuple(i1), p1))
+        {
+            CHECK(pos_holder[l1] + l2 == p2);
+            CHECK(crd_holder[p2] == i2);
+            ++l2;
+        }
+        CHECK(l2 == pos_holder[l1 + 1] - pos_holder[l1]);
+        ++l1;
+    }
+    CHECK(l1 == SIZE1);
+}
