@@ -7,10 +7,18 @@
 
 namespace xsparse::util
 {
-    template <template <class...> class T, class LowerLevels, class IK, class PK, class... Containers>
+    template <template <class...> class T,
+              class LowerLevels,
+              class IK,
+              class PK,
+              class... Containers>
     struct container_traits;
 
-    template <template <class...> class T, class... LowerLevels, class IK, class PK, class... Containers>
+    template <template <class...> class T,
+              class... LowerLevels,
+              class IK,
+              class PK,
+              class... Containers>
     struct container_traits<T, std::tuple<LowerLevels...>, IK, PK, Containers...>
     {
         using Vector_pos_t = typename std::vector<PK>;
