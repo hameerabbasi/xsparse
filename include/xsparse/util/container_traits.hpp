@@ -7,23 +7,17 @@
 
 namespace xsparse::util
 {
-    template <template <class...> class T,
-              class LowerLevels,
-              class IK,
-              class PK,
-              class... Containers>
+    template <class TVec, class TSet, class TMap>
     struct container_traits;
 
-    template <template <class...> class T,
-              class... LowerLevels,
-              class IK,
-              class PK,
-              class... Containers>
-    struct container_traits<T, std::tuple<LowerLevels...>, IK, PK, Containers...>
+    template <class TVec = typename std::vector,
+              class TSet = typename std::unordered_set,
+              class TMap = typename std::unordered_map>
+    struct container_traits<TVec, TSet, TMap>
     {
-        using Vector_t = typename std::vector;
-        using Unordered_set_t = typename std::unordered_set;
-        using Unordered_map_t = typename std::unordered_map;
+        using Vec = TVec;
+        using Set = TSet;
+        using Map = TMap;
     };
 }
 
