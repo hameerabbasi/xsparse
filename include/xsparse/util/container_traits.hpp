@@ -7,17 +7,16 @@
 
 namespace xsparse::util
 {
-    template <class TVec, class TSet, class TMap>
-    struct container_traits;
-
-    template <class TVec = typename std::vector,
-              class TSet = typename std::unordered_set,
-              class TMap = typename std::unordered_map>
-    struct container_traits<TVec, TSet, TMap>
+    template <class IK,
+              class PK,
+              template <typename> class TVec,
+              template <typename> class TSet,
+              template <typename, typename> class TMap>
+    struct container_traits
     {
-        using Vec = TVec;
-        using Set = TSet;
-        using Map = TMap;
+        using Vec = TVec<IK>;
+        using Set = TSet<IK>;
+        using Map = TMap<IK, PK>;
     };
 }
 
