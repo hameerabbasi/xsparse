@@ -7,16 +7,21 @@
 
 namespace xsparse::util
 {
-    template <class IK,
-              class PK,
-              template <typename> class TVec,
-              template <typename> class TSet,
-              template <typename, typename> class TMap>
+    template <template <class> class TVec,
+              template <class>
+              class TSet,
+              template <class, class>
+              class TMap>
     struct container_traits
     {
-        using Vec = TVec<IK>;
-        using Set = TSet<IK>;
-        using Map = TMap<IK, PK>;
+        template <class Elem>
+        using Vec = TVec<Elem>;
+
+        template <class Elem>
+        using Set = TSet<Elem>;
+
+        template <class Key, class Val>
+        using Map = TMap<Key, Val>;
     };
 }
 

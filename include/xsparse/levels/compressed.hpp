@@ -4,32 +4,36 @@
 #include <tuple>
 #include <utility>
 #include <vector>
+#include <unordered_map>
+#include <unordered_set>
 
 #include <xsparse/level_capabilities/coordinate_iterate.hpp>
+#include <xsparse/util/container_traits.hpp>
 
 namespace xsparse
 {
     namespace levels
     {
-        template <class LowerLevels, class IK, class PK, class PosContainer, class CrdContainer>
+        template <class LowerLevels,
+                  class IK,
+                  class PK,
+                  class ContainerTraits
+                  = util::container_traits<std::vector, std::unordered_set, std::unordered_map>>
         class compressed;
 
-        template <class... LowerLevels, class IK, class PK, class PosContainer, class CrdContainer>
-        class compressed<std::tuple<LowerLevels...>, IK, PK, PosContainer, CrdContainer>
+        template <class... LowerLevels, class IK, class PK, class ContainerTraits>
+        class compressed<std::tuple<LowerLevels...>, IK, PK, ContainerTraits>
             : public level_capabilities::coordinate_position_iterate<compressed,
                                                                      std::tuple<LowerLevels...>,
                                                                      IK,
                                                                      PK,
-                                                                     PosContainer,
-                                                                     CrdContainer>
+                                                                     ContainerTraits>
 
         {
-            using BaseTraits = util::base_traits<compressed,
-                                                 std::tuple<LowerLevels...>,
-                                                 IK,
-                                                 PK,
-                                                 PosContainer,
-                                                 CrdContainer>;
+            using BaseTraits = util::
+                base_traits<compressed, std::tuple<LowerLevels...>, IK, PK, ContainerTraits>;
+            using PosContainer = ContainerTraits::template Vec<PK>;
+            using CrdContainer = ContainerTraits::template Vec<IK>;
 
         public:
             compressed(IK size)
@@ -97,9 +101,9 @@ namespace xsparse
         };
     }  // namespace levels
 
-    template <class... LowerLevels, class IK, class PK, class PosContainer, class CrdContainer>
+    template <class... LowerLevels, class IK, class PK, class ContainerTraits>
     struct util::coordinate_position_trait<
-        levels::compressed<std::tuple<LowerLevels...>, IK, PK, PosContainer, CrdContainer>>
+        levels::compressed<std::tuple<LowerLevels...>, IK, PK, ContainerTraits>>
     {
         using Coordinate = IK;
         using Position = PK;
