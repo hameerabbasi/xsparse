@@ -7,6 +7,7 @@
 #include <unordered_set>
 #include <unordered_map>
 
+#include <xsparse/util/container_traits.hpp>
 #include <xsparse/level_capabilities/coordinate_iterate.hpp>
 
 namespace xsparse
@@ -31,7 +32,7 @@ namespace xsparse
         {
             using BaseTraits
                 = util::base_traits<singleton, std::tuple<LowerLevels...>, IK, PK, ContainerTraits>;
-            using CrdContainer = ContainerTraits::template Vec<PK>;
+            using CrdContainer = typename ContainerTraits::template Vec<PK>;
 
         public:
             singleton(IK size)

@@ -29,7 +29,7 @@ namespace xsparse
         {
             using BaseTraits
                 = util::base_traits<range, std::tuple<LowerLevels...>, IK, PK, ContainerTraits>;
-            using OffsetContainer = ContainerTraits::template Vec<PK>;
+            using OffsetContainer = typename ContainerTraits::template Vec<PK>;
 
         public:
             range(IK size_N, IK size_M)

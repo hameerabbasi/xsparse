@@ -9,6 +9,7 @@
 #include <unordered_map>
 
 #include <xsparse/util/base_traits.hpp>
+#include <xsparse/util/container_traits.hpp>
 #include <xtl/xiterator_base.hpp>
 
 namespace xsparse
@@ -28,7 +29,7 @@ namespace xsparse
             using BaseTraits
                 = util::base_traits<hashed, std::tuple<LowerLevels...>, IK, PK, ContainerTraits>;
             using CrdContainer
-                = ContainerTraits::template Vec<ContainerTraits::template Map<IK, PK>>;
+                = typename ContainerTraits::template Vec<typename ContainerTraits::template Map<IK, PK>>;
 
         public:
             class iteration_helper
@@ -40,7 +41,8 @@ namespace xsparse
                                                             typename BaseTraits::IK>);
 
             private:
-                ContainerTraits::template Map<BaseTraits::IK, BaseTraits::PK>& m_map;
+                using MapType = typename ContainerTraits::template Map<BaseTraits::IK, BaseTraits::PK>;
+                MapType& m_map;
 
             public:
                 class iterator;
@@ -56,7 +58,7 @@ namespace xsparse
                 {
                 private:
                     using wrapped_iterator_type
-                        = ContainerTraits::template Map<BaseTraits::IK,
+                        = typename ContainerTraits::template Map<BaseTraits::IK,
                                                         BaseTraits::PK>::const_iterator;
                     wrapped_iterator_type wrapped_it;
 

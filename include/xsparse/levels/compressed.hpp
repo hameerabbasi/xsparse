@@ -32,8 +32,8 @@ namespace xsparse
         {
             using BaseTraits = util::
                 base_traits<compressed, std::tuple<LowerLevels...>, IK, PK, ContainerTraits>;
-            using PosContainer = ContainerTraits::template Vec<PK>;
-            using CrdContainer = ContainerTraits::template Vec<IK>;
+            using PosContainer = typename ContainerTraits::template Vec<PK>;
+            using CrdContainer = typename ContainerTraits::template Vec<IK>;
 
         public:
             compressed(IK size)
