@@ -4,23 +4,32 @@
 #include <tuple>
 #include <utility>
 #include <optional>
+#include <vector>
+#include <unordered_set>
 #include <unordered_map>
 
 #include <xsparse/util/base_traits.hpp>
+#include <xsparse/util/container_traits.hpp>
 #include <xtl/xiterator_base.hpp>
 
 namespace xsparse
 {
     namespace levels
     {
-        template <class LowerLevels, class IK, class PK, class CrdContainer>
+        template <class LowerLevels,
+                  class IK,
+                  class PK,
+                  class ContainerTraits
+                  = util::container_traits<std::vector, std::unordered_set, std::unordered_map>>
         class hashed;
 
-        template <class... LowerLevels, class IK, class PK, class CrdContainer>
-        class hashed<std::tuple<LowerLevels...>, IK, PK, CrdContainer>
+        template <class... LowerLevels, class IK, class PK, class ContainerTraits>
+        class hashed<std::tuple<LowerLevels...>, IK, PK, ContainerTraits>
         {
             using BaseTraits
-                = util::base_traits<hashed, std::tuple<LowerLevels...>, IK, PK, CrdContainer>;
+                = util::base_traits<hashed, std::tuple<LowerLevels...>, IK, PK, ContainerTraits>;
+            using CrdContainer = typename ContainerTraits::template Vec<
+                typename ContainerTraits::template Map<IK, PK>>;
 
         public:
             class iteration_helper
@@ -32,7 +41,9 @@ namespace xsparse
                                                             typename BaseTraits::IK>);
 
             private:
-                std::unordered_map<typename BaseTraits::IK, typename BaseTraits::PK>& m_map;
+                typename ContainerTraits::template Map<typename BaseTraits::IK,
+                                                       typename BaseTraits::PK>
+                    m_map;
 
             public:
                 class iterator;
@@ -47,9 +58,9 @@ namespace xsparse
                 class iterator : public xtl::xbidirectional_iterator_base2<iteration_helper>
                 {
                 private:
-                    using wrapped_iterator_type =
-                        typename std::unordered_map<typename BaseTraits::IK,
-                                                    typename BaseTraits::PK>::const_iterator;
+                    using wrapped_iterator_type = typename ContainerTraits::template Map<
+                        typename BaseTraits::IK,
+                        typename BaseTraits::PK>::const_iterator;
                     wrapped_iterator_type wrapped_it;
 
                 public:
@@ -83,8 +94,8 @@ namespace xsparse
                 };
 
                 explicit inline iteration_helper(
-                    std::unordered_map<typename BaseTraits::IK, typename BaseTraits::PK>&
-                        map) noexcept
+                    typename ContainerTraits::template Map<typename BaseTraits::IK,
+                                                           typename BaseTraits::PK>& map) noexcept
                     : m_map(map)
                 {
                 }
@@ -145,9 +156,9 @@ namespace xsparse
         };
     }  // namespace levels
 
-    template <class... LowerLevels, class IK, class PK, class CrdContainer>
+    template <class... LowerLevels, class IK, class PK, class ContainerTraits>
     struct util::coordinate_position_trait<
-        levels::hashed<std::tuple<LowerLevels...>, IK, PK, CrdContainer>>
+        levels::hashed<std::tuple<LowerLevels...>, IK, PK, ContainerTraits>>
     {
         using Coordinate = IK;
         using Position = PK;

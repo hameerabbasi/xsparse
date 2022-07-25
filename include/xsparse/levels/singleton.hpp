@@ -3,27 +3,36 @@
 
 #include <tuple>
 #include <utility>
+#include <vector>
+#include <unordered_set>
+#include <unordered_map>
 
+#include <xsparse/util/container_traits.hpp>
 #include <xsparse/level_capabilities/coordinate_iterate.hpp>
 
 namespace xsparse
 {
     namespace levels
     {
-        template <class LowerLevels, class IK, class PK, class CrdContainer>
+        template <class LowerLevels,
+                  class IK,
+                  class PK,
+                  class ContainerTraits
+                  = util::container_traits<std::vector, std::unordered_set, std::unordered_map>>
         class singleton;
 
-        template <class... LowerLevels, class IK, class PK, class CrdContainer>
-        class singleton<std::tuple<LowerLevels...>, IK, PK, CrdContainer>
+        template <class... LowerLevels, class IK, class PK, class ContainerTraits>
+        class singleton<std::tuple<LowerLevels...>, IK, PK, ContainerTraits>
             : public level_capabilities::coordinate_position_iterate<singleton,
                                                                      std::tuple<LowerLevels...>,
                                                                      IK,
                                                                      PK,
-                                                                     CrdContainer>
+                                                                     ContainerTraits>
 
         {
             using BaseTraits
-                = util::base_traits<singleton, std::tuple<LowerLevels...>, IK, PK, CrdContainer>;
+                = util::base_traits<singleton, std::tuple<LowerLevels...>, IK, PK, ContainerTraits>;
+            using CrdContainer = typename ContainerTraits::template Vec<PK>;
 
         public:
             singleton(IK size)
@@ -65,9 +74,9 @@ namespace xsparse
         };
     }  // namespace levels
 
-    template <class... LowerLevels, class IK, class PK, class CrdContainer>
+    template <class... LowerLevels, class IK, class PK, class ContainerTraits>
     struct util::coordinate_position_trait<
-        levels::singleton<std::tuple<LowerLevels...>, IK, PK, CrdContainer>>
+        levels::singleton<std::tuple<LowerLevels...>, IK, PK, ContainerTraits>>
     {
         using Coordinate = IK;
         using Position = PK;

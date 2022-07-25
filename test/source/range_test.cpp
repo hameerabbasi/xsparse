@@ -21,12 +21,9 @@ TEST_CASE("Range-DIA")
 
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> d{ SIZE };
 
-    xsparse::levels::range<std::tuple<decltype(d)>, uintptr_t, uintptr_t, std::vector<int16_t>> r{
-        SIZE_N, SIZE_M, offset
-    };
-    xsparse::levels::
-        offset<std::tuple<decltype(r), decltype(d)>, uintptr_t, uintptr_t, std::vector<int16_t>>
-            o{ SIZE, offset };
+    xsparse::levels::range<std::tuple<decltype(d)>, uintptr_t, int16_t> r{ SIZE_N, SIZE_M, offset };
+    xsparse::levels::offset<std::tuple<decltype(r), decltype(d)>, uintptr_t, int16_t> o{ SIZE,
+                                                                                         offset };
 
     uintptr_t l1 = 0;
 
