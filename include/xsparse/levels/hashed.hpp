@@ -41,7 +41,7 @@ namespace xsparse
                                                             typename BaseTraits::IK>);
 
             private:
-                using MapType = typename ContainerTraits::template Map<BaseTraits::IK, BaseTraits::PK>;
+                using MapType = typename ContainerTraits::template Map<typename BaseTraits::IK, typename BaseTraits::PK>;
                 MapType& m_map;
 
             public:
@@ -58,8 +58,8 @@ namespace xsparse
                 {
                 private:
                     using wrapped_iterator_type
-                        = typename ContainerTraits::template Map<BaseTraits::IK,
-                                                        BaseTraits::PK>::const_iterator;
+                        = typename ContainerTraits::template Map<typename BaseTraits::IK,
+                                                        typename BaseTraits::PK>::const_iterator;
                     wrapped_iterator_type wrapped_it;
 
                 public:
