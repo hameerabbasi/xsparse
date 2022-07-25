@@ -7,10 +7,10 @@
 
 namespace xsparse::util
 {
-    template <template <class> class TVec,
-              template <class>
+    template <template <class...> class TVec,
+              template <class...>
               class TSet,
-              template <class, class>
+              template <class...>
               class TMap>
     struct container_traits
     {

@@ -28,8 +28,8 @@ namespace xsparse
         {
             using BaseTraits
                 = util::base_traits<hashed, std::tuple<LowerLevels...>, IK, PK, ContainerTraits>;
-            using CrdContainer
-                = typename ContainerTraits::template Vec<typename ContainerTraits::template Map<IK, PK>>;
+            using CrdContainer = typename ContainerTraits::template Vec<
+                typename ContainerTraits::template Map<IK, PK>>;
 
         public:
             class iteration_helper
@@ -41,8 +41,9 @@ namespace xsparse
                                                             typename BaseTraits::IK>);
 
             private:
-                using MapType = typename ContainerTraits::template Map<typename BaseTraits::IK, typename BaseTraits::PK>;
-                MapType& m_map;
+                typename ContainerTraits::template Map<typename BaseTraits::IK,
+                                                       typename BaseTraits::PK>
+                    m_map;
 
             public:
                 class iterator;
@@ -57,9 +58,9 @@ namespace xsparse
                 class iterator : public xtl::xbidirectional_iterator_base2<iteration_helper>
                 {
                 private:
-                    using wrapped_iterator_type
-                        = typename ContainerTraits::template Map<typename BaseTraits::IK,
-                                                        typename BaseTraits::PK>::const_iterator;
+                    using wrapped_iterator_type = typename ContainerTraits::template Map<
+                        typename BaseTraits::IK,
+                        typename BaseTraits::PK>::const_iterator;
                     wrapped_iterator_type wrapped_it;
 
                 public:
@@ -93,7 +94,8 @@ namespace xsparse
                 };
 
                 explicit inline iteration_helper(
-                    ContainerTraits::template Map<BaseTraits::IK, BaseTraits::PK>& map) noexcept
+                    typename ContainerTraits::template Map<typename BaseTraits::IK,
+                                                           typename BaseTraits::PK>& map) noexcept
                     : m_map(map)
                 {
                 }
