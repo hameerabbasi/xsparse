@@ -2,9 +2,14 @@
 
 #include <iostream>
 #include <vector>
+#include <unordered_map>
+#include <set>
+#include <map>
 
 #include <xsparse/levels/compressed.hpp>
 #include <xsparse/levels/singleton.hpp>
+
+#include <xsparse/util/container_traits.hpp>
 
 TEST_CASE("Singleton-COO")
 {
@@ -16,16 +21,9 @@ TEST_CASE("Singleton-COO")
     std::vector<uintptr_t> const crd0{ 0, 0, 1, 1, 3, 3, 3 };
     std::vector<uintptr_t> const crd1{ 0, 1, 0, 1, 0, 3, 4 };
 
-    xsparse::levels::compressed<std::tuple<>,
-                                uintptr_t,
-                                uintptr_t,
-                                std::vector<uintptr_t>,
-                                std::vector<uintptr_t>>
-        c{ SIZE, pos, crd0 };
+    xsparse::levels::compressed<std::tuple<>, uintptr_t, uintptr_t> c{ SIZE, pos, crd0 };
 
-    xsparse::levels::
-        singleton<std::tuple<decltype(c)>, uintptr_t, uintptr_t, std::vector<uintptr_t>>
-            s{ SIZE1, crd1 };
+    xsparse::levels::singleton<std::tuple<decltype(c)>, uintptr_t, uintptr_t> s{ SIZE1, crd1 };
 
     uintptr_t l1 = 0;
     for (auto const [i1, p1] : c.iter_helper(std::make_tuple(), ZERO))
@@ -57,20 +55,24 @@ TEST_CASE("Singleton-COO-3D")
     std::vector<uintptr_t> const crd1{ 0, 0, 2, 0, 2, 2, 3, 3 };
     std::vector<uintptr_t> const crd2{ 0, 1, 1, 1, 0, 1, 0, 1 };
 
-    xsparse::levels::compressed<std::tuple<>,
-                                uintptr_t,
-                                uintptr_t,
-                                std::vector<uintptr_t>,
-                                std::vector<uintptr_t>>
+    xsparse::levels::compressed<
+        std::tuple<>,
+        uintptr_t,
+        uintptr_t,
+        xsparse::util::container_traits<std::vector, std::set, std::unordered_map>>
         c{ SIZE, pos, crd0 };
 
-    xsparse::levels::
-        singleton<std::tuple<decltype(c)>, uintptr_t, uintptr_t, std::vector<uintptr_t>>
-            s{ SIZE1, crd1 };
+    xsparse::levels::singleton<std::tuple<decltype(c)>,
+                               uintptr_t,
+                               uintptr_t,
+                               xsparse::util::container_traits<std::vector, std::set, std::map>>
+        s{ SIZE1, crd1 };
 
-    xsparse::levels::
-        singleton<std::tuple<decltype(s)>, uintptr_t, uintptr_t, std::vector<uintptr_t>>
-            s1{ SIZE2, crd2 };
+    xsparse::levels::singleton<std::tuple<decltype(s)>,
+                               uintptr_t,
+                               uintptr_t,
+                               xsparse::util::container_traits<std::vector, std::set, std::map>>
+        s1{ SIZE2, crd2 };
 
     uintptr_t l1 = 0;
     for (auto const [i1, p1] : c.iter_helper(std::make_tuple(), ZERO))
@@ -112,16 +114,9 @@ TEST_CASE("Singleton-COO-Append")
     std::vector<uintptr_t> const crd0;
     std::vector<uintptr_t> const crd1;
 
-    xsparse::levels::compressed<std::tuple<>,
-                                uintptr_t,
-                                uintptr_t,
-                                std::vector<uintptr_t>,
-                                std::vector<uintptr_t>>
-        c{ SIZE, pos, crd0 };
+    xsparse::levels::compressed<std::tuple<>, uintptr_t, uintptr_t> c{ SIZE, pos, crd0 };
 
-    xsparse::levels::
-        singleton<std::tuple<decltype(c)>, uintptr_t, uintptr_t, std::vector<uintptr_t>>
-            s{ SIZE1, crd1 };
+    xsparse::levels::singleton<std::tuple<decltype(c)>, uintptr_t, uintptr_t> s{ SIZE1, crd1 };
 
     c.append_init(SIZE);
 

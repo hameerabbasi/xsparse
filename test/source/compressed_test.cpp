@@ -2,10 +2,15 @@
 
 #include <tuple>
 #include <vector>
+#include <list>
+#include <map>
+#include <set>
 
 #include <xsparse/levels/compressed.hpp>
 #include <xsparse/levels/dense.hpp>
 #include <xsparse/version.h>
+
+#include <xsparse/util/container_traits.hpp>
 
 TEST_CASE("Compressed-BaseCase")
 {
@@ -15,12 +20,7 @@ TEST_CASE("Compressed-BaseCase")
     std::vector<uintptr_t> const pos{ 0, 5 };
     std::vector<uintptr_t> const crd{ 20, 30, 50, 60, 70 };
 
-    xsparse::levels::compressed<std::tuple<>,
-                                uintptr_t,
-                                uintptr_t,
-                                std::vector<uintptr_t>,
-                                std::vector<uintptr_t>>
-        s{ SIZE, pos, crd };
+    xsparse::levels::compressed<std::tuple<>, uintptr_t, uintptr_t> s{ SIZE, pos, crd };
 
     uintptr_t l = 0;
     for (auto const [i, p] : s.iter_helper(std::make_tuple(), ZERO))
@@ -45,8 +45,7 @@ TEST_CASE("Compressed-CSR")
     xsparse::levels::compressed<std::tuple<decltype(d1)>,
                                 uintptr_t,
                                 uintptr_t,
-                                std::vector<uintptr_t>,
-                                std::vector<uintptr_t>>
+                                xsparse::util::container_traits<std::vector, std::set, std::map>>
         s2{ SIZE2, pos, crd };
 
 
@@ -79,17 +78,12 @@ TEST_CASE("Compressed-DCSR")
     std::vector<uintptr_t> const pos2{ 0, 2, 5, 9 };
     std::vector<uintptr_t> const crd2{ 20, 50, 30, 40, 70, 10, 60, 80, 90 };
 
-    xsparse::levels::compressed<std::tuple<>,
-                                uintptr_t,
-                                uintptr_t,
-                                std::vector<uintptr_t>,
-                                std::vector<uintptr_t>>
-        s1{ SIZE1, pos1, crd1 };
-    xsparse::levels::compressed<std::tuple<decltype(s1)>,
-                                uintptr_t,
-                                uintptr_t,
-                                std::vector<uintptr_t>,
-                                std::vector<uintptr_t>>
+    xsparse::levels::compressed<std::tuple<>, uintptr_t, uintptr_t> s1{ SIZE1, pos1, crd1 };
+    xsparse::levels::compressed<
+        std::tuple<decltype(s1)>,
+        uintptr_t,
+        uintptr_t,
+        xsparse::util::container_traits<std::vector, std::unordered_set, std::map>>
         s2{ SIZE2, pos2, crd2 };
 
 
@@ -124,12 +118,9 @@ TEST_CASE("Compressed-CSR-Append")
     std::vector<uintptr_t> crd;
 
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> d1{ SIZE1 };
-    xsparse::levels::compressed<std::tuple<decltype(d1)>,
-                                uintptr_t,
-                                uintptr_t,
-                                std::vector<uintptr_t>,
-                                std::vector<uintptr_t>>
-        s2{ SIZE2, pos, crd };
+    xsparse::levels::compressed<std::tuple<decltype(d1)>, uintptr_t, uintptr_t> s2{ SIZE2,
+                                                                                    pos,
+                                                                                    crd };
 
     s2.append_init(SIZE1);
 

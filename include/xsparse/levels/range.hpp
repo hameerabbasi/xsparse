@@ -6,23 +6,30 @@
 #include <xsparse/level_capabilities/coordinate_iterate.hpp>
 #include <tuple>
 
+#include <xsparse/util/container_traits.hpp>
+
 namespace xsparse
 {
     namespace levels
     {
-        template <class LowerLevels, class IK, class PK, class OffsetContainer>
+        template <class LowerLevels,
+                  class IK,
+                  class PK,
+                  class ContainerTraits
+                  = util::container_traits<std::vector, std::unordered_set, std::unordered_map>>
         class range;
 
-        template <class... LowerLevels, class IK, class PK, class OffsetContainer>
-        class range<std::tuple<LowerLevels...>, IK, PK, OffsetContainer>
+        template <class... LowerLevels, class IK, class PK, class ContainerTraits>
+        class range<std::tuple<LowerLevels...>, IK, PK, ContainerTraits>
             : public level_capabilities::coordinate_value_iterate<range,
                                                                   std::tuple<LowerLevels...>,
                                                                   IK,
                                                                   PK,
-                                                                  OffsetContainer>
+                                                                  ContainerTraits>
         {
             using BaseTraits
-                = util::base_traits<range, std::tuple<LowerLevels...>, IK, PK, OffsetContainer>;
+                = util::base_traits<range, std::tuple<LowerLevels...>, IK, PK, ContainerTraits>;
+            using OffsetContainer = ContainerTraits::template Vec<PK>;
 
         public:
             range(IK size_N, IK size_M)
@@ -67,9 +74,9 @@ namespace xsparse
         };
     }
 
-    template <class... LowerLevels, class IK, class PK, class OffsetContainer>
+    template <class... LowerLevels, class IK, class PK, class ContainerTraits>
     struct util::coordinate_position_trait<
-        levels::range<std::tuple<LowerLevels...>, IK, PK, OffsetContainer>>
+        levels::range<std::tuple<LowerLevels...>, IK, PK, ContainerTraits>>
     {
         using Coordinate = IK;
         using Position = PK;

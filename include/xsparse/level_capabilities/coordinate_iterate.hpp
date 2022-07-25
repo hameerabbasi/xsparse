@@ -169,7 +169,7 @@ namespace xsparse::level_capabilities
         private:
             typename BaseTraits::Level const& m_level;
             typename BaseTraits::I const m_i;
-            typename BaseTraits::IK m_pk_begin, m_pk_end;
+            typename BaseTraits::PK m_pk_begin, m_pk_end;
 
         public:
             class iterator;

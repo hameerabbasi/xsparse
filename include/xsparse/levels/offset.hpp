@@ -6,24 +6,31 @@
 #include <xsparse/util/base_traits.hpp>
 #include <xsparse/level_capabilities/coordinate_iterate.hpp>
 
+#include <xsparse/util/container_traits.hpp>
+
 namespace xsparse
 {
     namespace levels
     {
-        template <class LowerLevels, class IK, class PK, class OffsetContainer>
+        template <class LowerLevels,
+                  class IK,
+                  class PK,
+                  class ContainerTraits
+                  = util::container_traits<std::vector, std::unordered_set, std::unordered_map>>
         class offset;
 
-        template <class... LowerLevels, class IK, class PK, class OffsetContainer>
-        class offset<std::tuple<LowerLevels...>, IK, PK, OffsetContainer>
+        template <class... LowerLevels, class IK, class PK, class ContainerTraits>
+        class offset<std::tuple<LowerLevels...>, IK, PK, ContainerTraits>
             : public level_capabilities::coordinate_position_iterate<offset,
                                                                      std::tuple<LowerLevels...>,
                                                                      IK,
                                                                      PK,
-                                                                     OffsetContainer>
+                                                                     ContainerTraits>
 
         {
             using BaseTraits
-                = util::base_traits<offset, std::tuple<LowerLevels...>, IK, PK, OffsetContainer>;
+                = util::base_traits<offset, std::tuple<LowerLevels...>, IK, PK, ContainerTraits>;
+            using OffsetContainer = ContainerTraits::template Vec<PK>;
 
         public:
             offset(IK size)
@@ -62,9 +69,9 @@ namespace xsparse
         };
     }  // namespace levels
 
-    template <class... LowerLevels, class IK, class PK, class OffsetContainer>
+    template <class... LowerLevels, class IK, class PK, class ContainerTraits>
     struct util::coordinate_position_trait<
-        levels::offset<std::tuple<LowerLevels...>, IK, PK, OffsetContainer>>
+        levels::offset<std::tuple<LowerLevels...>, IK, PK, ContainerTraits>>
     {
         using Coordinate = IK;
         using Position = PK;

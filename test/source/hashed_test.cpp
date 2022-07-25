@@ -3,8 +3,11 @@
 #include <xsparse/levels/dense.hpp>
 #include <xsparse/levels/singleton.hpp>
 
+#include <xsparse/util/container_traits.hpp>
+
 #include <vector>
 #include <unordered_map>
+#include <set>
 
 TEST_CASE("Dense-Hashed")
 {
@@ -20,11 +23,7 @@ TEST_CASE("Dense-Hashed")
 
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> d{ SIZE0 };
 
-    xsparse::levels::hashed<std::tuple<decltype(d)>,
-                            uintptr_t,
-                            uintptr_t,
-                            std::vector<std::unordered_map<uintptr_t, uintptr_t>>>
-        h{ SIZE1, crd };
+    xsparse::levels::hashed<std::tuple<decltype(d)>, uintptr_t, uintptr_t> h{ SIZE1, crd };
 
     uintptr_t l1 = 0;
     for (auto const [i1, p1] : d.iter_helper(std::make_tuple(), ZERO))
@@ -59,16 +58,18 @@ TEST_CASE("Hashed-Hashed")
 
     std::vector<std::unordered_map<uintptr_t, uintptr_t>> const crd1{ umap2, umap3, umap4 };
 
-    xsparse::levels::hashed<std::tuple<>,
-                            uintptr_t,
-                            uintptr_t,
-                            std::vector<std::unordered_map<uintptr_t, uintptr_t>>>
+    xsparse::levels::hashed<
+        std::tuple<>,
+        uintptr_t,
+        uintptr_t,
+        xsparse::util::container_traits<std::vector, std::set, std::unordered_map>>
         h{ SIZE0, crd0 };
 
-    xsparse::levels::hashed<std::tuple<decltype(h)>,
-                            uintptr_t,
-                            uintptr_t,
-                            std::vector<std::unordered_map<uintptr_t, uintptr_t>>>
+    xsparse::levels::hashed<
+        std::tuple<decltype(h)>,
+        uintptr_t,
+        uintptr_t,
+        xsparse::util::container_traits<std::vector, std::set, std::unordered_map>>
         h1{ SIZE1, crd1 };
 
     uintptr_t l1 = 0;
@@ -99,15 +100,9 @@ TEST_CASE("Hashed-Singleton")
 
     std::vector<uintptr_t> const crd1{ 0, 3, 4 };
 
-    xsparse::levels::hashed<std::tuple<>,
-                            uintptr_t,
-                            uintptr_t,
-                            std::vector<std::unordered_map<uintptr_t, uintptr_t>>>
-        h{ SIZE0, crd0 };
+    xsparse::levels::hashed<std::tuple<>, uintptr_t, uintptr_t> h{ SIZE0, crd0 };
 
-    xsparse::levels::
-        singleton<std::tuple<decltype(h)>, uintptr_t, uintptr_t, std::vector<uintptr_t>>
-            s{ SIZE1, crd1 };
+    xsparse::levels::singleton<std::tuple<decltype(h)>, uintptr_t, uintptr_t> s{ SIZE1, crd1 };
 
     uintptr_t l1 = 0;
     for (auto const [i1, p1] : h.iter_helper(ZERO))
@@ -140,14 +135,13 @@ TEST_CASE("Hashed-Singleton-Dense")
     std::vector<std::unordered_map<uintptr_t, uintptr_t>> const crd0{ umap1 };
     std::vector<uintptr_t> const crd1 = { 0, 2, 0, 2, 3 };
 
-    xsparse::levels::hashed<std::tuple<>,
-                            uintptr_t,
-                            uintptr_t,
-                            std::vector<std::unordered_map<uintptr_t, uintptr_t>>>
+    xsparse::levels::hashed<
+        std::tuple<>,
+        uintptr_t,
+        uintptr_t,
+        xsparse::util::container_traits<std::vector, std::set, std::unordered_map>>
         h{ SIZE0, crd0 };
-    xsparse::levels::
-        singleton<std::tuple<decltype(h)>, uintptr_t, uintptr_t, std::vector<uintptr_t>>
-            s{ SIZE1, crd1 };
+    xsparse::levels::singleton<std::tuple<decltype(h)>, uintptr_t, uintptr_t> s{ SIZE1, crd1 };
     xsparse::levels::dense<std::tuple<decltype(s)>, uintptr_t, uintptr_t> d{ SIZE2 };
 
     uintptr_t l1 = 0;
@@ -199,11 +193,7 @@ TEST_CASE("Dense-Hashed-Insert")
 
     std::vector<std::unordered_map<uintptr_t, uintptr_t>> const crd;
 
-    xsparse::levels::hashed<std::tuple<decltype(d)>,
-                            uintptr_t,
-                            uintptr_t,
-                            std::vector<std::unordered_map<uintptr_t, uintptr_t>>>
-        h{ SIZE1, crd };
+    xsparse::levels::hashed<std::tuple<decltype(d)>, uintptr_t, uintptr_t> h{ SIZE1, crd };
 
     h.insert_init(SIZE0);
 
