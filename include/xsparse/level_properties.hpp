@@ -5,22 +5,19 @@
 #ifndef XSPARSE_LEVEL_PROPERTIES_HPP
 #define XSPARSE_LEVEL_PROPERTIES_HPP
 
-namespace xsparse::level_properties
+namespace xsparse
 {
-    class Full
+    template <bool Full, bool Ordered, bool Unique, bool Branchless, bool Compact>
+    class level_properties;
+
+    template <bool Full, bool Ordered, bool Unique, bool Branchless, bool Compact>
+    class level_properties
     {
-    };
-    class Ordered
-    {
-    };
-    class Unique
-    {
-    };
-    class Branchless
-    {
-    };
-    class Compact
-    {
+        constexpr static bool is_full = Full;
+        constexpr static bool is_ordered = Ordered;
+        constexpr static bool is_unique = Unique;
+        constexpr static bool is_branchless = Branchless;
+        constexpr static bool is_compact = Compact;
     };
 }
 

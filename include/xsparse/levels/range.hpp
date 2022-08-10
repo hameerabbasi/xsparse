@@ -7,6 +7,7 @@
 #include <tuple>
 
 #include <xsparse/util/container_traits.hpp>
+#include <xsparse/level_properties.hpp>
 
 namespace xsparse
 {
@@ -16,19 +17,32 @@ namespace xsparse
                   class IK,
                   class PK,
                   class ContainerTraits
-                  = util::container_traits<std::vector, std::unordered_set, std::unordered_map>>
+                  = util::container_traits<std::vector, std::unordered_set, std::unordered_map>,
+                  class LevelProperties = level_properties<false, true, true, false, false>>
         class range;
 
-        template <class... LowerLevels, class IK, class PK, class ContainerTraits>
-        class range<std::tuple<LowerLevels...>, IK, PK, ContainerTraits>
+        template <class... LowerLevels,
+                  class IK,
+                  class PK,
+                  class ContainerTraits,
+                  class LevelProperties>
+        class range<std::tuple<LowerLevels...>, IK, PK, ContainerTraits, LevelProperties>
             : public level_capabilities::coordinate_value_iterate<range,
                                                                   std::tuple<LowerLevels...>,
                                                                   IK,
                                                                   PK,
-                                                                  ContainerTraits>
+                                                                  ContainerTraits,
+                                                                  LevelProperties>
         {
-            using BaseTraits
-                = util::base_traits<range, std::tuple<LowerLevels...>, IK, PK, ContainerTraits>;
+            static_assert(LevelProperties::is_full == false);
+            static_assert(LevelProperties::is_branchless == false);
+            static_assert(LevelProperties::is_compact == false);
+            using BaseTraits = util::base_traits<range,
+                                                 std::tuple<LowerLevels...>,
+                                                 IK,
+                                                 PK,
+                                                 ContainerTraits,
+                                                 LevelProperties>;
             using OffsetContainer = typename ContainerTraits::template Vec<PK>;
 
         public:
@@ -74,9 +88,13 @@ namespace xsparse
         };
     }
 
-    template <class... LowerLevels, class IK, class PK, class ContainerTraits>
+    template <class... LowerLevels,
+              class IK,
+              class PK,
+              class ContainerTraits,
+              class LevelProperties>
     struct util::coordinate_position_trait<
-        levels::range<std::tuple<LowerLevels...>, IK, PK, ContainerTraits>>
+        levels::range<std::tuple<LowerLevels...>, IK, PK, ContainerTraits, LevelProperties>>
     {
         using Coordinate = IK;
         using Position = PK;

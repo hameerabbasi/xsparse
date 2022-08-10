@@ -4,6 +4,7 @@
 
 #include <xsparse/levels/dense.hpp>
 #include <xsparse/version.h>
+#include <xsparse/level_properties.hpp>
 
 TEST_CASE("Dense-BaseCase")
 {
@@ -28,7 +29,11 @@ TEST_CASE("Dense-2D")
     constexpr uintptr_t SIZE2 = 4;
     constexpr uint8_t ZERO = 0;
 
-    xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> d1{ SIZE1 };
+    xsparse::levels::dense<std::tuple<>,
+                           uintptr_t,
+                           uintptr_t,
+                           xsparse::level_properties<true, false, false, false, true>>
+        d1{ SIZE1 };
     xsparse::levels::dense<std::tuple<decltype(d1)>, uintptr_t, uintptr_t> d2{ SIZE2 };
 
 
@@ -57,7 +62,11 @@ TEST_CASE("Dense-2D-Size")
     constexpr uint8_t ZERO = 0;
 
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> d1{ SIZE1 };
-    xsparse::levels::dense<std::tuple<decltype(d1)>, uintptr_t, uintptr_t> d2{ SIZE2 };
+    xsparse::levels::dense<std::tuple<decltype(d1)>,
+                           uintptr_t,
+                           uintptr_t,
+                           xsparse::level_properties<true, false, true, false, true>>
+        d2{ SIZE2 };
 
     uintptr_t l1 = 0;
     for (auto const [i1, p1] : d1.iter_helper(std::make_tuple(), ZERO))

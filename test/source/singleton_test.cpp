@@ -10,6 +10,7 @@
 #include <xsparse/levels/singleton.hpp>
 
 #include <xsparse/util/container_traits.hpp>
+#include <xsparse/level_properties.hpp>
 
 TEST_CASE("Singleton-COO")
 {
@@ -71,7 +72,8 @@ TEST_CASE("Singleton-COO-3D")
     xsparse::levels::singleton<std::tuple<decltype(s)>,
                                uintptr_t,
                                uintptr_t,
-                               xsparse::util::container_traits<std::vector, std::set, std::map>>
+                               xsparse::util::container_traits<std::vector, std::set, std::map>,
+                               xsparse::level_properties<false, false, false, true, true>>
         s1{ SIZE2, crd2 };
 
     uintptr_t l1 = 0;

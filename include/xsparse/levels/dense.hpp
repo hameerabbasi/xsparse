@@ -4,21 +4,32 @@
 #include <utility>
 #include <xsparse/util/base_traits.hpp>
 #include <xsparse/level_capabilities/coordinate_iterate.hpp>
+#include <xsparse/level_properties.hpp>
 
 namespace xsparse
 {
     namespace levels
     {
-        template <class LowerLevels, class IK, class PK>
+        template <class LowerLevels,
+                  class IK,
+                  class PK,
+                  class LevelProperties = level_properties<true, true, true, false, true>>
         class dense;
 
-        template <class... LowerLevels, class IK, class PK>
-        class dense<std::tuple<LowerLevels...>, IK, PK>
-            : public level_capabilities::
-                  coordinate_value_iterate<dense, std::tuple<LowerLevels...>, IK, PK>
+        template <class... LowerLevels, class IK, class PK, class LevelProperties>
+        class dense<std::tuple<LowerLevels...>, IK, PK, LevelProperties>
+            : public level_capabilities::coordinate_value_iterate<dense,
+                                                                  std::tuple<LowerLevels...>,
+                                                                  IK,
+                                                                  PK,
+                                                                  LevelProperties>
 
         {
-            using BaseTraits = util::base_traits<dense, std::tuple<LowerLevels...>, IK, PK>;
+            static_assert(LevelProperties::is_full == true);
+            static_assert(LevelProperties::is_branchless == false);
+            static_assert(LevelProperties::is_compact == true);
+            using BaseTraits
+                = util::base_traits<dense, std::tuple<LowerLevels...>, IK, PK, LevelProperties>;
 
         public:
             dense(IK size)
@@ -49,8 +60,9 @@ namespace xsparse
         };
     }
 
-    template <class... LowerLevels, class IK, class PK>
-    struct util::coordinate_position_trait<levels::dense<std::tuple<LowerLevels...>, IK, PK>>
+    template <class... LowerLevels, class IK, class PK, class LevelProperties>
+    struct util::coordinate_position_trait<
+        levels::dense<std::tuple<LowerLevels...>, IK, PK, LevelProperties>>
     {
         using Coordinate = IK;
         using Position = PK;
