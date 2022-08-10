@@ -13,6 +13,7 @@ namespace xsparse
     template <bool Full, bool Ordered, bool Unique, bool Branchless, bool Compact>
     class level_properties
     {
+    public:
         constexpr static bool is_full = Full;
         constexpr static bool is_ordered = Ordered;
         constexpr static bool is_unique = Unique;
