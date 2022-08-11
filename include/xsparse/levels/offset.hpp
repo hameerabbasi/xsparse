@@ -35,9 +35,9 @@ namespace xsparse
                                                                      LevelProperties>
 
         {
-            static_assert(LevelProperties::is_full == false);
-            static_assert(LevelProperties::is_branchless == true);
-            static_assert(LevelProperties::is_compact == false);
+            static_assert(!LevelProperties::is_full);
+            static_assert(LevelProperties::is_branchless);
+            static_assert(!LevelProperties::is_compact);
             using BaseTraits = util::base_traits<offset,
                                                  std::tuple<LowerLevels...>,
                                                  IK,

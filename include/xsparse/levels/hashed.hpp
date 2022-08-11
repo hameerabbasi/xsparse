@@ -32,9 +32,9 @@ namespace xsparse
                   class LevelProperties>
         class hashed<std::tuple<LowerLevels...>, IK, PK, ContainerTraits, LevelProperties>
         {
-            static_assert(LevelProperties::is_ordered == false);
-            static_assert(LevelProperties::is_branchless == false);
-            static_assert(LevelProperties::is_compact == false);
+            static_assert(!LevelProperties::is_ordered);
+            static_assert(!LevelProperties::is_branchless);
+            static_assert(!LevelProperties::is_compact);
             using BaseTraits = util::base_traits<hashed,
                                                  std::tuple<LowerLevels...>,
                                                  IK,

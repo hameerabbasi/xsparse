@@ -37,8 +37,8 @@ namespace xsparse
                                                                      LevelProperties>
 
         {
-            static_assert(LevelProperties::is_branchless == true);
-            static_assert(LevelProperties::is_compact == true);
+            static_assert(LevelProperties::is_branchless);
+            static_assert(LevelProperties::is_compact);
             using BaseTraits = util::base_traits<singleton,
                                                  std::tuple<LowerLevels...>,
                                                  IK,
