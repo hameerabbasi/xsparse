@@ -11,6 +11,7 @@
 #include <xsparse/version.h>
 
 #include <xsparse/util/container_traits.hpp>
+#include <xsparse/level_properties.hpp>
 
 TEST_CASE("Compressed-BaseCase")
 {
@@ -45,7 +46,8 @@ TEST_CASE("Compressed-CSR")
     xsparse::levels::compressed<std::tuple<decltype(d1)>,
                                 uintptr_t,
                                 uintptr_t,
-                                xsparse::util::container_traits<std::vector, std::set, std::map>>
+                                xsparse::util::container_traits<std::vector, std::set, std::map>,
+                                xsparse::level_properties<true, false, false, false, true>>
         s2{ SIZE2, pos, crd };
 
 

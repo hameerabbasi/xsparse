@@ -4,6 +4,7 @@
 #include <xsparse/levels/singleton.hpp>
 
 #include <xsparse/util/container_traits.hpp>
+#include <xsparse/level_properties.hpp>
 
 #include <vector>
 #include <unordered_map>
@@ -62,7 +63,8 @@ TEST_CASE("Hashed-Hashed")
         std::tuple<>,
         uintptr_t,
         uintptr_t,
-        xsparse::util::container_traits<std::vector, std::set, std::unordered_map>>
+        xsparse::util::container_traits<std::vector, std::set, std::unordered_map>,
+        xsparse::level_properties<false, false, false, false, false>>
         h{ SIZE0, crd0 };
 
     xsparse::levels::hashed<
@@ -139,7 +141,8 @@ TEST_CASE("Hashed-Singleton-Dense")
         std::tuple<>,
         uintptr_t,
         uintptr_t,
-        xsparse::util::container_traits<std::vector, std::set, std::unordered_map>>
+        xsparse::util::container_traits<std::vector, std::set, std::unordered_map>,
+        xsparse::level_properties<true, false, false, false, false>>
         h{ SIZE0, crd0 };
     xsparse::levels::singleton<std::tuple<decltype(h)>, uintptr_t, uintptr_t> s{ SIZE1, crd1 };
     xsparse::levels::dense<std::tuple<decltype(s)>, uintptr_t, uintptr_t> d{ SIZE2 };
