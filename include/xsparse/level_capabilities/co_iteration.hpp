@@ -1,6 +1,3 @@
-#ifndef XSPARSE_CO_ITERATION_HPP
-#define XSPARSE_CO_ITERATION_HPP
-
 #include <vector>
 #include <tuple>
 
@@ -18,18 +15,16 @@ namespace xsparse::level_capabilities
         private:
             std::tuple<Is...> I;
             PK m_pkm1;
-            std::tuple<Levels...> levelsTuple;
+            std::tuple<Levels&...> levelsTuple;
             std::tuple<Levels::template LevelCapabilities::template iteration_helper...>
                 iterHelpers;
 
         public:
-            explicit inline coiteration_helper(std::tuple<Is...> i,
-                                               PK pkm1,
-                                               Levels&... levels)
-                : levelsTuple(std::make_tuple(levels...))
+            explicit inline coiteration_helper(std::tuple<Is...> i, PK pkm1, Levels&... levels)
+                : levelsTuple(std::tie(levels...))
                 , iterHelpers(std::apply([&](auto&... args)
                                          { return std::make_tuple(args.iter_helper(i, pkm1)...); },
-                                         this->levelsTuple))
+                                         this->levelsTuple)) noexcept
             {
             }
 
@@ -38,17 +33,21 @@ namespace xsparse::level_capabilities
             private:
                 coiteration_helper const& m_coiterHelper;
                 std::tuple<Levels::template LevelCapabilities::template iteration_helper::
-                               template iterator...> iterators;
+                               template iterator...>
+                    iterators;
                 IK min_ik;
 
             public:
                 using iterator_category = std::forward_iterator_tag;
                 using key_type = IK;
-                using pointer = std::tuple<IK, std::tuple<std::optional<Levels::template PK>...>>*;
-                using reference = std::tuple<IK, std::tuple<std::optional<Levels::template PK>...>>;
+                using reference = std::tuple<
+                    IK,
+                    std::tuple<std::optional<typename Levels::template BaseTraits::PK>...>>;
 
-                explicit inline iterator(coiteration_helper const& coiterHelper,
-                                         std::tuple<IterHelpers::template iterator...> it)
+                explicit inline iterator(
+                    coiteration_helper const& coiterHelper,
+                    std::tuple<Levels::template LevelCapabilities::template iteration_helper::
+                                   template iterator...> it) noexcept
                     : m_coiterHelper(coiterHelper)
                     , iterators(it)
                 {
@@ -60,21 +59,24 @@ namespace xsparse::level_capabilities
 
                 auto get_PKs()
                 {
-                    return std::apply([&](auto&... args) { return std::make_tuple(*locate(args)...); },
-                               this->iterators);
+                    return std::apply([&](auto&... args)
+                                      { return std::make_tuple(locate(args)...); },
+                                      this->iterators);
                 }
 
                 template <class iter>
                 auto locate(iter i)
                 {
-                    return (std::get<0>(*i) == min) ? std::optional<PK>(std::get<1>(*i))
-                                                    : std::nullopt;
+                    return (std::get<0>(*i) == min_ik)
+                               ? std::optional<std::tuple_element_t<1, decltype(*i)>>(
+                                   std::get<1>(*i))
+                               : std::nullopt;
                 }
 
                 template <class iter>
                 void advance_iter(iter& i)
                 {
-                    if (std::get<0>(*i) == min)
+                    if (std::get<0>(*i) == min_ik)
                     {
                         i = ++i;
                     }
@@ -83,27 +85,29 @@ namespace xsparse::level_capabilities
                 reference operator*() noexcept
                 {
                     std::apply([&](auto&&... args)
-                               { ((min = std::min(min, std::get<0>(*args))), ...); },
+                               { ((min_ik = std::min(min_ik, std::get<0>(*args))), ...); },
                                iterators);
                     auto PK_tuple = get_PKs();
-                    return { min, PK_tuple };
+                    return { min_ik, PK_tuple };
                 }
 
-                iterator& operator++()
+                iterator& operator++() noexcept
                 {
                     std::apply([&](auto&... args) { ((advance_iter(args)), ...); }, iterators);
-                    min = static_cast<IK>(std::get<0>(*std::get<0>(iterators)));
+                    min_ik = static_cast<IK>(std::get<0>(*std::get<0>(iterators)));
                     std::apply([&](auto&&... args)
-                               { ((min = std::min(min, std::get<0>(*args))), ...); },
+                               { ((min_ik = std::min(min_ik, std::get<0>(*args))), ...); },
                                iterators);
                     return *this;
                 }
 
-                friend bool operator==(const iterator& a, const iterator& b){
+                friend bool operator==(const iterator& a, const iterator& b) const noexcept
+                {
                     return a.iterators == b.iterators;
                 };
 
-                friend bool operator!=(const iterator& a, const iterator& b){
+                friend bool operator!=(const iterator& a, const iterator& b) const noexcept
+                {
                     return a.iterators != b.iterators;
                 };
             };
@@ -121,10 +125,10 @@ namespace xsparse::level_capabilities
             }
         };
 
-        coiteration_helper coiter_helper(std::tuple<Is...> i, PK pkm1, Levels... levels)
+        coiteration_helper coiter_helper(std::tuple<Is...> i, PK pkm1, Levels&... levels)
         {
             return coiteration_helper{ i, pkm1, levels... };
         }
     };
-
+}
 #endif
