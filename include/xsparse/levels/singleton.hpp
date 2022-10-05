@@ -39,13 +39,22 @@ namespace xsparse
         {
             static_assert(LevelProperties::is_branchless);
             static_assert(LevelProperties::is_compact);
+            using CrdContainer = typename ContainerTraits::template Vec<PK>;
+
+        public:
             using BaseTraits = util::base_traits<singleton,
                                                  std::tuple<LowerLevels...>,
                                                  IK,
                                                  PK,
                                                  ContainerTraits,
                                                  LevelProperties>;
-            using CrdContainer = typename ContainerTraits::template Vec<PK>;
+            using LevelCapabilities
+                = level_capabilities::coordinate_position_iterate<singleton,
+                                                                  std::tuple<LowerLevels...>,
+                                                                  IK,
+                                                                  PK,
+                                                                  ContainerTraits,
+                                                                  LevelProperties>;
 
         public:
             singleton(IK size)
