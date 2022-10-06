@@ -39,8 +39,7 @@ namespace xsparse::level_capabilities
             {
             private:
                 coiteration_helper const& m_coiterHelper;
-                std::tuple<Levels::template LevelCapabilities::template iteration_helper::
-                               template iterator...>
+                std::tuple<typename Levels::LevelCapabilities::iteration_helper::iterator...>
                     iterators;
                 IK min_ik;
 
@@ -64,14 +63,13 @@ namespace xsparse::level_capabilities
 
             public:
                 using iterator_category = std::forward_iterator_tag;
-                using reference = std::tuple<
-                    IK,
-                    std::tuple<std::optional<typename Levels::template BaseTraits::PK>...>>;
+                using reference = typename std::
+                    tuple<IK, std::tuple<std::optional<typename Levels::BaseTraits::PK>...>>;
 
                 explicit inline iterator(
                     coiteration_helper const& coiterHelper,
-                    std::tuple<Levels::template LevelCapabilities::template iteration_helper::
-                                   template iterator...> it)
+                    std::tuple<typename Levels::LevelCapabilities::iteration_helper::iterator...>
+                        it)
                     : m_coiterHelper(coiterHelper)
                     , iterators(it)
                 {
