@@ -48,12 +48,12 @@ TEST_CASE("Coiteration-Dense-Dense")
         CHECK(ik == l);
         if (i1 == l)
         {
-            CHECK(p1 == std::get<0>(pk_tuple));
+            CHECK(p1 == std::get<0>(pk_tuple).value());
             ++it1;
         }
         if (i2 == l)
         {
-            CHECK(p2 == std::get<1>(pk_tuple));
+            CHECK(p2 == std::get<1>(pk_tuple).value());
             ++it2;
         }
     }
@@ -99,17 +99,17 @@ TEST_CASE("Coiteration-Dense-Dense-Dense")
         CHECK(ik == l);
         if (i1 == l)
         {
-            CHECK(p1 == std::get<0>(pk_tuple));
+            CHECK(p1 == std::get<0>(pk_tuple).value());
             ++it1;
         }
         if (i2 == l)
         {
-            CHECK(p2 == std::get<1>(pk_tuple));
+            CHECK(p2 == std::get<1>(pk_tuple).value());
             ++it2;
         }
         if (i3 == l)
         {
-            CHECK(p3 == std::get<2>(pk_tuple));
+            CHECK(p3 == std::get<2>(pk_tuple).value());
             ++it3;
         }
     }
@@ -163,22 +163,22 @@ TEST_CASE("Coiteration-Singleton-Singleton-Dense-Dense")
         CHECK(ik == l);
         if (i1 == l)
         {
-            CHECK(p1 == std::get<0>(pk_tuple));
+            CHECK(p1 == std::get<0>(pk_tuple).value());
             ++it1;
         }
         if (i2 == l)
         {
-            CHECK(p2 == std::get<1>(pk_tuple));
+            CHECK(p2 == std::get<1>(pk_tuple).value());
             ++it2;
         }
         if (i3 == l)
         {
-            CHECK(p3 == std::get<2>(pk_tuple));
+            CHECK(p3 == std::get<2>(pk_tuple).value());
             ++it3;
         }
         if (i4 == l)
         {
-            CHECK(p4 == std::get<3>(pk_tuple));
+            CHECK(p4 == std::get<3>(pk_tuple).value());
             ++it4;
         }
     }
