@@ -132,12 +132,12 @@ namespace xsparse::level_capabilities
                     return *this;
                 }
 
-                inline bool operator!=(const iterator& other)
+                inline bool operator!=(iterator& other)
                 {
                     return !(*this == other);
                 };
 
-                inline bool operator==(const iterator& other)
+                inline bool operator==(iterator& other)
                 {
                     return m_coiterHelper.m_comparisonHelper(
                         compareHelper(iterators, other.iterators));

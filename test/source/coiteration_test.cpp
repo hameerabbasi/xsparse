@@ -42,16 +42,18 @@ TEST_CASE("Coiteration-Dense-Dense")
 
     for (auto const [ik, pk_tuple] : coiter.coiter_helper(fn, std::make_tuple(), ZERO, s1, s2))
     {
-        uintptr_t l = std::min(std::get<0>(*it1), std::get<0>(*it2));
+        auto [i1, p1] = *it1;
+        auto [i2, p2] = *it2;
+        uintptr_t l = std::min(i1, i2);
         CHECK(ik == l);
-        if (std::get<0>(*it1) == l)
+        if (i1 == l)
         {
-            CHECK(std::get<1>(*it1) == std::get<0>(pk_tuple));
+            CHECK(p1 == std::get<0>(pk_tuple));
             ++it1;
         }
-        if (std::get<0>(*it2) == l)
+        if (i2 == l)
         {
-            CHECK(std::get<1>(*it2) == std::get<1>(pk_tuple));
+            CHECK(p2 == std::get<1>(pk_tuple));
             ++it2;
         }
     }
@@ -89,21 +91,25 @@ TEST_CASE("Coiteration-Dense-Dense-Dense")
 
     for (auto const [ik, pk_tuple] : coiter.coiter_helper(fn, std::make_tuple(), ZERO, s1, s2, s3))
     {
-        uintptr_t l = std::min(std::get<0>(*it1), std::min(std::get<0>(*it2), std::get<0>(*it3)));
+        auto [i1, p1] = *it1;
+        auto [i2, p2] = *it2;
+        auto [i3, p3] = *it3;
+
+        uintptr_t l = std::min(i1, std::min(i2, i3));
         CHECK(ik == l);
-        if (std::get<0>(*it1) == l)
+        if (i1 == l)
         {
-            CHECK(std::get<1>(*it1) == std::get<0>(pk_tuple));
+            CHECK(p1 == std::get<0>(pk_tuple));
             ++it1;
         }
-        if (std::get<0>(*it2) == l)
+        if (i2 == l)
         {
-            CHECK(std::get<1>(*it2) == std::get<1>(pk_tuple));
+            CHECK(p2 == std::get<1>(pk_tuple));
             ++it2;
         }
-        if (std::get<0>(*it3) == l)
+        if (i3 == l)
         {
-            CHECK(std::get<1>(*it3) == std::get<2>(pk_tuple));
+            CHECK(p3 == std::get<2>(pk_tuple));
             ++it3;
         }
     }
@@ -148,27 +154,31 @@ TEST_CASE("Coiteration-Singleton-Singleton-Dense-Dense")
     for (auto const [ik, pk_tuple] :
          coiter.coiter_helper(fn, std::make_tuple(), ZERO, s1, s2, s3, s4))
     {
-        uintptr_t l = std::min(std::min(std::get<0>(*it1), std::get<0>(*it2)),
-                               std::min(std::get<0>(*it3), std::get<0>(*it4)));
+        auto [i1, p1] = *it1;
+        auto [i2, p2] = *it2;
+        auto [i3, p3] = *it3;
+        auto [i4, p4] = *it4;
+
+        uintptr_t l = std::min(std::min(i1, i2), std::min(i3, i4));
         CHECK(ik == l);
-        if (std::get<0>(*it1) == l)
+        if (i1 == l)
         {
-            CHECK(std::get<1>(*it1) == std::get<0>(pk_tuple));
+            CHECK(p1 == std::get<0>(pk_tuple));
             ++it1;
         }
-        if (std::get<0>(*it2) == l)
+        if (i2 == l)
         {
-            CHECK(std::get<1>(*it2) == std::get<1>(pk_tuple));
+            CHECK(p2 == std::get<1>(pk_tuple));
             ++it2;
         }
-        if (std::get<0>(*it3) == l)
+        if (i3 == l)
         {
-            CHECK(std::get<1>(*it3) == std::get<2>(pk_tuple));
+            CHECK(p3 == std::get<2>(pk_tuple));
             ++it3;
         }
-        if (std::get<0>(*it4) == l)
+        if (i4 == l)
         {
-            CHECK(std::get<1>(*it4) == std::get<3>(pk_tuple));
+            CHECK(p4 == std::get<3>(pk_tuple));
             ++it4;
         }
     }
