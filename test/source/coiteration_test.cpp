@@ -69,7 +69,7 @@ TEST_CASE("Coiteration-Dense-Dense-Dense")
 
     auto fn = [](std::tuple<bool, bool, bool> t) constexpr
     {
-        return std::get<0>(t) && std::get<1>(t) || std::get<2>(t);
+        return (std::get<0>(t) && std::get<1>(t)) || (std::get<2>(t));
     };
 
     xsparse::level_capabilities::Coiterate<std::function<bool(std::tuple<bool, bool, bool>)>,

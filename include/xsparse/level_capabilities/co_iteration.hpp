@@ -26,9 +26,9 @@ namespace xsparse::level_capabilities
                                                std::tuple<Is...>& i,
                                                PK& pkm1,
                                                Levels&... levels)
-                : m_levelsTuple(std::tie(levels...))
-                , m_i(std::move(i))
+                : m_i(std::move(i))
                 , m_pkm1(std::move(pkm1))
+                , m_levelsTuple(std::tie(levels...))
                 , m_comparisonHelper(f)
             {
                 static_assert(std::tuple_size_v<decltype(m_levelsTuple)> >= 2,
@@ -112,14 +112,14 @@ namespace xsparse::level_capabilities
                     return { min_ik, PK_tuple };
                 }
 
-                iterator operator++(int)
+                iterator operator++(int) const noexcept
                 {
                     iterator tmp = *this;
                     ++(*this);
                     return tmp;
                 }
 
-                iterator& operator++()
+                iterator& operator++() noexcept
                 {
                     std::apply([&](auto&&... args) { ((advance_iter(args)), ...); }, iterators);
 
