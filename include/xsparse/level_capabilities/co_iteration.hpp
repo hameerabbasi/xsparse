@@ -4,6 +4,7 @@
 #include <vector>
 #include <tuple>
 #include <algorithm>
+#include <climits>
 
 namespace xsparse::level_capabilities
 {
