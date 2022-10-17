@@ -5,6 +5,7 @@
 #include <tuple>
 #include <algorithm>
 #include <climits>
+#include <initializer_list>
 
 namespace xsparse::level_capabilities
 {
