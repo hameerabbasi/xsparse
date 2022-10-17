@@ -78,8 +78,8 @@ namespace xsparse::level_capabilities
                                                   std::index_sequence<I...>)
                 {
                     min_ik = std::min({ (std::get<I>(t1) != std::get<I>(t2))
-                                                                 ? std::get<0>(*std::get<I>(t1))
-                                                                 : min_ik... });
+                                            ? std::get<0>(*std::get<I>(t1))
+                                            : min_ik... });
                 }
 
             public:
