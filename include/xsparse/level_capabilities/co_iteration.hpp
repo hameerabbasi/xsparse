@@ -48,7 +48,7 @@ namespace xsparse::level_capabilities
             private:
                 template <typename... T1, typename... T2>
                 inline constexpr auto compareHelper(const std::tuple<T1...>& t1,
-                                                    const std::tuple<T2...>& t2)
+                                                    const std::tuple<T2...>& t2) const noexcept
                 {
                     static_assert(sizeof...(T1) == sizeof...(T2));
 
@@ -58,7 +58,7 @@ namespace xsparse::level_capabilities
                 template <typename... T1, typename... T2, std::size_t... I>
                 inline constexpr auto compare(const std::tuple<T1...>& t1,
                                               const std::tuple<T2...>& t2,
-                                              std::index_sequence<I...>)
+                                              std::index_sequence<I...>) const noexcept
                 {
                     return std::tuple{ std::get<I>(t1) == std::get<I>(t2)... };
                 }
@@ -157,12 +157,12 @@ namespace xsparse::level_capabilities
                     return *this;
                 }
 
-                inline bool operator!=(iterator const& other) noexcept
+                inline bool operator!=(iterator const& other) const noexcept
                 {
                     return !(*this == other);
                 };
 
-                inline bool operator==(iterator const& other) noexcept
+                inline bool operator==(iterator const& other) const noexcept
                 {
                     return m_coiterHelper.m_comparisonHelper(
                         compareHelper(iterators, other.iterators));
