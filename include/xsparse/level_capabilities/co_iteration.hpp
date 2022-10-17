@@ -5,7 +5,6 @@
 #include <tuple>
 #include <algorithm>
 #include <climits>
-#include <initializer_list>
 
 namespace xsparse::level_capabilities
 {
@@ -78,7 +77,7 @@ namespace xsparse::level_capabilities
                                                   const std::tuple<T2...>& t2,
                                                   std::index_sequence<I...>)
                 {
-                    min_ik = std::min(std::initializer_list{ (std::get<I>(t1) != std::get<I>(t2))
+                    min_ik = std::min({ (std::get<I>(t1) != std::get<I>(t2))
                                                                  ? std::get<0>(*std::get<I>(t1))
                                                                  : min_ik... });
                 }
