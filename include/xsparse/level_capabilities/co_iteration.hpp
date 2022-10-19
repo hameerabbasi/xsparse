@@ -14,27 +14,34 @@ namespace xsparse::level_capabilities
     template <class F, class IK, class PK, class... Levels, class... Is>
     class Coiterate<F, IK, PK, std::tuple<Levels...>, std::tuple<Is...>>
     {
+    private:
+        std::tuple<Is...> const m_i;
+        PK const m_pkm1;
+        std::tuple<Levels&...> const m_levelsTuple;
+
+    public:
+        explicit inline Coiterate(std::tuple<Is...> i, PK pkm1, Levels&... levels) noexcept
+            : m_i(std::move(i))
+            , m_pkm1(std::move(pkm1))
+            , m_levelsTuple(std::tie(levels...))
+        {
+        }
+
     public:
         class coiteration_helper
         {
         public:
-            std::tuple<Is...> const m_i;
-            PK const m_pkm1;
-            std::tuple<Levels&...> const m_levelsTuple;
             F const m_comparisonHelper;
+            std::tuple<typename Levels::LevelCapabilities::iteration_helper...> m_iterHelpers;
 
         public:
-            explicit inline coiteration_helper(F f,
-                                               std::tuple<Is...>& i,
-                                               PK& pkm1,
-                                               Levels&... levels) noexcept
-                : m_i(std::move(i))
-                , m_pkm1(std::move(pkm1))
-                , m_levelsTuple(std::tie(levels...))
-                , m_comparisonHelper(f)
+            explicit inline coiteration_helper(
+                F f,
+                std::tuple<typename Levels::LevelCapabilities::iteration_helper...>
+                    iterHelpers) noexcept
+                : m_comparisonHelper(f)
+                , m_iterHelpers(iterHelpers)
             {
-                static_assert(std::tuple_size_v<decltype(m_levelsTuple)> >= 2,
-                              "Tuple size should be at least 2");
             }
 
             class iterator
@@ -93,16 +100,11 @@ namespace xsparse::level_capabilities
                         it) noexcept
                     : m_coiterHelper(coiterHelper)
                     , iterators(it)
-                    , min_ik(INT_MAX)
                 {
-                    auto ends = std::apply(
-                        [&](auto&... args) {
-                            return std::tuple(
-                                args.iter_helper(m_coiterHelper.m_i, m_coiterHelper.m_pkm1)
-                                    .end()...);
-                        },
-                        m_coiterHelper.m_levelsTuple);
-                    min_helper(iterators, ends);
+                    min_ik = INT_MAX;
+                    min_helper(iterators,
+                               std::apply([&](auto&... args) { return std::tuple(args.end()...); },
+                                          m_coiterHelper.m_iterHelpers));
                 }
 
                 inline auto get_PKs() const noexcept
@@ -146,55 +148,48 @@ namespace xsparse::level_capabilities
                 inline iterator& operator++() noexcept
                 {
                     std::apply([&](auto&... args) { ((advance_iter(args)), ...); }, iterators);
-                    auto ends = std::apply(
-                        [&](auto&... args) {
-                            return std::tuple(
-                                args.iter_helper(m_coiterHelper.m_i, m_coiterHelper.m_pkm1)
-                                    .end()...);
-                        },
-                        m_coiterHelper.m_levelsTuple);
-                    min_helper(iterators, ends);
+                    min_helper(iterators,
+                               std::apply([&](auto&... args) { return std::tuple(args.end()...); },
+                                          m_coiterHelper.m_iterHelpers));
                     return *this;
                 }
 
                 inline bool operator!=(iterator const& other) const noexcept
                 {
-                    return !(*this == other);
+                    return !m_coiterHelper.m_comparisonHelper(
+                        compareHelper(iterators, other.iterators));
                 };
 
                 inline bool operator==(iterator const& other) const noexcept
                 {
-                    return m_coiterHelper.m_comparisonHelper(
-                        compareHelper(iterators, other.iterators));
+                    return !(*this != other);
                 };
             };
 
             inline iterator begin() const noexcept
             {
-                auto static a = std::apply(
-                    [&](auto&... args)
-                    { return std::tuple(args.iter_helper(this->m_i, this->m_pkm1)...); },
-                    this->m_levelsTuple);
-                auto f = [&](auto&... args) { return std::tuple(args.begin()...); };
-
-                return iterator{ *this, std::apply(f, a) };
+                return iterator{ *this,
+                                 std::apply([&](auto&... args)
+                                            { return std::tuple(args.begin()...); },
+                                            this->m_iterHelpers) };
             }
 
             inline iterator end() const noexcept
             {
-                auto static a = std::apply(
-                    [&](auto&... args)
-                    { return std::tuple(args.iter_helper(this->m_i, this->m_pkm1)...); },
-                    this->m_levelsTuple);
-
-                auto f = [&](auto&... args) { return std::tuple(args.end()...); };
-                return iterator{ *this, std::apply(f, a) };
+                return iterator{ *this,
+                                 std::apply([&](auto&... args)
+                                            { return std::tuple(args.end()...); },
+                                            this->m_iterHelpers) };
             }
         };
 
-        coiteration_helper coiter_helper(F f, std::tuple<Is...> i, PK pkm1, Levels&... levels)
+        coiteration_helper coiter_helper(F f)
         {
-            return coiteration_helper{ f, i, pkm1, levels... };
+            auto static iterHelpers
+                = std::apply([&](auto&... args)
+                             { return std::tuple(args.iter_helper(this->m_i, this->m_pkm1)...); },
+                             this->m_levelsTuple);
+            return coiteration_helper{ f, iterHelpers };
         }
     };
 }
