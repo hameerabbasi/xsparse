@@ -15,15 +15,11 @@ namespace xsparse::level_capabilities
     class Coiterate<F, IK, PK, std::tuple<Levels...>, std::tuple<Is...>>
     {
     private:
-        std::tuple<Is...> const m_i;
-        PK const m_pkm1;
         std::tuple<Levels&...> const m_levelsTuple;
 
     public:
-        explicit inline Coiterate(std::tuple<Is...> i, PK pkm1, Levels&... levels) noexcept
-            : m_i(std::move(i))
-            , m_pkm1(std::move(pkm1))
-            , m_levelsTuple(std::tie(levels...))
+        explicit inline Coiterate(Levels&... levels) noexcept
+            : m_levelsTuple(std::tie(levels...))
         {
         }
 
@@ -31,16 +27,24 @@ namespace xsparse::level_capabilities
         class coiteration_helper
         {
         public:
+            Coiterate const& m_coiterate;
             F const m_comparisonHelper;
+            std::tuple<Is...> const m_i;
+            PK const m_pkm1;
             std::tuple<typename Levels::LevelCapabilities::iteration_helper...> m_iterHelpers;
 
         public:
-            explicit inline coiteration_helper(
-                F f,
-                std::tuple<typename Levels::LevelCapabilities::iteration_helper...>
-                    iterHelpers) noexcept
-                : m_comparisonHelper(f)
-                , m_iterHelpers(iterHelpers)
+            explicit inline coiteration_helper(Coiterate const& coiterate,
+                                               F f,
+                                               std::tuple<Is...> i,
+                                               PK pkm1) noexcept
+                : m_coiterate(coiterate)
+                , m_comparisonHelper(f)
+                , m_i(std::move(i))
+                , m_pkm1(std::move(pkm1))
+                , m_iterHelpers(std::apply([&](auto&... args)
+                                           { return std::tuple(args.iter_helper(i, pkm1)...); },
+                                           coiterate.m_levelsTuple))
             {
             }
 
@@ -183,13 +187,9 @@ namespace xsparse::level_capabilities
             }
         };
 
-        coiteration_helper coiter_helper(F f)
+        coiteration_helper coiter_helper(F f, std::tuple<Is...> i, PK pkm1)
         {
-            auto static iterHelpers
-                = std::apply([&](auto&... args)
-                             { return std::tuple(args.iter_helper(this->m_i, this->m_pkm1)...); },
-                             this->m_levelsTuple);
-            return coiteration_helper{ f, iterHelpers };
+            return coiteration_helper{ *this, f, i, pkm1 };
         }
     };
 }
