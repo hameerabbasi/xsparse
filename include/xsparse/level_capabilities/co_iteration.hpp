@@ -26,7 +26,7 @@ namespace xsparse::level_capabilities
             if (![](auto const& first, auto const&... rest)
                 { return ((first == rest) && ...); }(levels.size()...))
             {
-                throw std::runtime_error("level sizes should be same");
+                throw std::invalid_argument("level sizes should be same");
             }
         }
 
