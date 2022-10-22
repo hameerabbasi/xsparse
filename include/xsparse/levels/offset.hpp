@@ -86,6 +86,11 @@ namespace xsparse
                 return static_cast<IK>(std::get<0>(i) + m_offset[std::get<1>(i)]);
             }
 
+            inline IK size() const noexcept
+            {
+                return m_size;
+            }
+
         private:
             IK m_size;
             OffsetContainer m_offset;

@@ -31,7 +31,7 @@ TEST_CASE("Coiteration-Dense-Dense")
                                            uintptr_t,
                                            std::tuple<decltype(s1), decltype(s2)>,
                                            std::tuple<>>
-        coiter(s1, s2);
+        coiter(fn, s1, s2);
 
     auto it_helper1 = s1.iter_helper(std::make_tuple(), ZERO);
     auto it1 = it_helper1.begin();
@@ -41,7 +41,7 @@ TEST_CASE("Coiteration-Dense-Dense")
     auto end1 = it_helper1.end();
     auto end2 = it_helper2.end();
 
-    for (auto const [ik, pk_tuple] : coiter.coiter_helper(fn, std::make_tuple(), ZERO))
+    for (auto const [ik, pk_tuple] : coiter.coiter_helper(std::make_tuple(), ZERO))
     {
         auto [i1, p1] = *it1;
         auto [i2, p2] = *it2;
@@ -67,7 +67,7 @@ TEST_CASE("Coiteration-Dense-Dense-Dense")
 
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s1{ 5 };
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s2{ 5 };
-    xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s3{ 4 };
+    xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s3{ 5 };
 
     auto fn = [](std::tuple<bool, bool, bool> t) constexpr
     {
@@ -79,7 +79,7 @@ TEST_CASE("Coiteration-Dense-Dense-Dense")
                                            uintptr_t,
                                            std::tuple<decltype(s1), decltype(s2), decltype(s3)>,
                                            std::tuple<>>
-        coiter(s1, s2, s3);
+        coiter(fn, s1, s2, s3);
 
     auto it_helper1 = s1.iter_helper(std::make_tuple(), ZERO);
     auto it1 = it_helper1.begin();
@@ -92,7 +92,7 @@ TEST_CASE("Coiteration-Dense-Dense-Dense")
     auto end2 = it_helper2.end();
     auto end3 = it_helper3.end();
 
-    for (auto const [ik, pk_tuple] : coiter.coiter_helper(fn, std::make_tuple(), ZERO))
+    for (auto const [ik, pk_tuple] : coiter.coiter_helper(std::make_tuple(), ZERO))
     {
         auto [i1, p1] = *it1;
         auto [i2, p2] = *it2;
@@ -126,9 +126,9 @@ TEST_CASE("Coiteration-Singleton-Singleton-Dense-Dense")
     std::vector<uintptr_t> const crd1{ 1, 2, 3, 4 };
     std::vector<uintptr_t> const crd2{ 4, 5, 8 };
 
-    xsparse::levels::singleton<std::tuple<>, uintptr_t, uintptr_t> s1{ 4, crd1 };
-    xsparse::levels::singleton<std::tuple<>, uintptr_t, uintptr_t> s2{ 3, crd2 };
-    xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s3{ 4 };
+    xsparse::levels::singleton<std::tuple<>, uintptr_t, uintptr_t> s1{ 5, crd1 };
+    xsparse::levels::singleton<std::tuple<>, uintptr_t, uintptr_t> s2{ 5, crd2 };
+    xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s3{ 5 };
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s4{ 5 };
 
     auto fn = [](std::tuple<bool, bool, bool, bool> t) constexpr
@@ -142,7 +142,7 @@ TEST_CASE("Coiteration-Singleton-Singleton-Dense-Dense")
         uintptr_t,
         std::tuple<decltype(s1), decltype(s2), decltype(s3), decltype(s4)>,
         std::tuple<>>
-        coiter(s1, s2, s3, s4);
+        coiter(fn, s1, s2, s3, s4);
 
     auto it_helper1 = s1.iter_helper(std::make_tuple(), ZERO);
     auto it1 = it_helper1.begin();
@@ -158,7 +158,7 @@ TEST_CASE("Coiteration-Singleton-Singleton-Dense-Dense")
     auto end3 = it_helper3.end();
     auto end4 = it_helper4.end();
 
-    for (auto const [ik, pk_tuple] : coiter.coiter_helper(fn, std::make_tuple(), ZERO))
+    for (auto const [ik, pk_tuple] : coiter.coiter_helper(std::make_tuple(), ZERO))
     {
         if (it1 != end1 && it2 != end2 && it3 != end3 && it4 != end4)
         {

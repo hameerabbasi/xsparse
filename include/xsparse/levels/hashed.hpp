@@ -165,6 +165,11 @@ namespace xsparse
                 m_crd[pkm1][ik] = pk;
             }
 
+            inline IK size() const noexcept
+            {
+                return m_size;
+            }
+
         private:
             IK m_size;
             CrdContainer m_crd;

@@ -116,6 +116,11 @@ namespace xsparse
                 }
             }
 
+            inline IK size() const noexcept
+            {
+                return m_size;
+            }
+
         private:
             IK m_size;
             PosContainer m_pos;

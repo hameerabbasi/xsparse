@@ -63,6 +63,11 @@ namespace xsparse
                 return szkm1 * m_size;
             }
 
+            inline IK size() const noexcept
+            {
+                return m_size;
+            }
+
         private:
             IK m_size;
         };

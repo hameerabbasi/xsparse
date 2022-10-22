@@ -4,7 +4,7 @@
 #include <vector>
 #include <tuple>
 #include <algorithm>
-#include <climits>
+#include <stdexcept>
 
 namespace xsparse::level_capabilities
 {
@@ -16,11 +16,18 @@ namespace xsparse::level_capabilities
     {
     private:
         std::tuple<Levels&...> const m_levelsTuple;
+        F const m_comparisonHelper;
 
     public:
-        explicit inline Coiterate(Levels&... levels) noexcept
+        explicit inline Coiterate(F f, Levels&... levels)
             : m_levelsTuple(std::tie(levels...))
+            , m_comparisonHelper(f)
         {
+            if (![](auto const& first, auto const&... rest)
+                { return ((first == rest) && ...); }(levels.size()...))
+            {
+                throw std::runtime_error("level sizes should be same");
+            }
         }
 
     public:
@@ -28,18 +35,15 @@ namespace xsparse::level_capabilities
         {
         public:
             Coiterate const& m_coiterate;
-            F const m_comparisonHelper;
             std::tuple<Is...> const m_i;
             PK const m_pkm1;
             std::tuple<typename Levels::LevelCapabilities::iteration_helper...> m_iterHelpers;
 
         public:
             explicit inline coiteration_helper(Coiterate const& coiterate,
-                                               F f,
                                                std::tuple<Is...> i,
                                                PK pkm1) noexcept
                 : m_coiterate(coiterate)
-                , m_comparisonHelper(f)
                 , m_i(std::move(i))
                 , m_pkm1(std::move(pkm1))
                 , m_iterHelpers(std::apply([&](auto&... args)
@@ -105,7 +109,6 @@ namespace xsparse::level_capabilities
                     : m_coiterHelper(coiterHelper)
                     , iterators(it)
                 {
-                    min_ik = INT_MAX;
                     min_helper(iterators,
                                std::apply([&](auto&... args) { return std::tuple(args.end()...); },
                                           m_coiterHelper.m_iterHelpers));
@@ -160,7 +163,7 @@ namespace xsparse::level_capabilities
 
                 inline bool operator!=(iterator const& other) const noexcept
                 {
-                    return !m_coiterHelper.m_comparisonHelper(
+                    return !m_coiterHelper.m_coiterate.m_comparisonHelper(
                         compareHelper(iterators, other.iterators));
                 };
 
@@ -187,9 +190,9 @@ namespace xsparse::level_capabilities
             }
         };
 
-        coiteration_helper coiter_helper(F f, std::tuple<Is...> i, PK pkm1)
+        coiteration_helper coiter_helper(std::tuple<Is...> i, PK pkm1)
         {
-            return coiteration_helper{ *this, f, i, pkm1 };
+            return coiteration_helper{ *this, i, pkm1 };
         }
     };
 }

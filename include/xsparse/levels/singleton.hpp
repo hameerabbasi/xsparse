@@ -90,8 +90,15 @@ namespace xsparse
                 m_crd.push_back(ik);
             }
 
+            inline IK size() const noexcept
+            {
+                return m_size;
+            }
+
         private:
             IK m_size;
+
+        private:
             CrdContainer m_crd;
         };
     }  // namespace levels
