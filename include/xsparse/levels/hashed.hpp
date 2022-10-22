@@ -35,14 +35,16 @@ namespace xsparse
             static_assert(!LevelProperties::is_ordered);
             static_assert(!LevelProperties::is_branchless);
             static_assert(!LevelProperties::is_compact);
+            using CrdContainer = typename ContainerTraits::template Vec<
+                typename ContainerTraits::template Map<IK, PK>>;
+
+        public:
             using BaseTraits = util::base_traits<hashed,
                                                  std::tuple<LowerLevels...>,
                                                  IK,
                                                  PK,
                                                  ContainerTraits,
                                                  LevelProperties>;
-            using CrdContainer = typename ContainerTraits::template Vec<
-                typename ContainerTraits::template Map<IK, PK>>;
 
         public:
             class iteration_helper
@@ -161,6 +163,11 @@ namespace xsparse
             inline void insert_coord(typename BaseTraits::PKM1 pkm1, PK pk, IK ik) noexcept
             {
                 m_crd[pkm1][ik] = pk;
+            }
+
+            inline IK size() const noexcept
+            {
+                return m_size;
             }
 
         private:

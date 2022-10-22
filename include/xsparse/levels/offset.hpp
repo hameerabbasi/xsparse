@@ -38,13 +38,22 @@ namespace xsparse
             static_assert(!LevelProperties::is_full);
             static_assert(LevelProperties::is_branchless);
             static_assert(!LevelProperties::is_compact);
+            using OffsetContainer = typename ContainerTraits::template Vec<PK>;
+
+        public:
             using BaseTraits = util::base_traits<offset,
                                                  std::tuple<LowerLevels...>,
                                                  IK,
                                                  PK,
                                                  ContainerTraits,
                                                  LevelProperties>;
-            using OffsetContainer = typename ContainerTraits::template Vec<PK>;
+            using LevelCapabilities
+                = level_capabilities::coordinate_position_iterate<offset,
+                                                                  std::tuple<LowerLevels...>,
+                                                                  IK,
+                                                                  PK,
+                                                                  ContainerTraits,
+                                                                  LevelProperties>;
 
         public:
             offset(IK size)
@@ -75,6 +84,11 @@ namespace xsparse
                 static_assert(std::tuple_size_v<decltype(i)> >= 2,
                               "Tuple size should at least be 2");
                 return static_cast<IK>(std::get<0>(i) + m_offset[std::get<1>(i)]);
+            }
+
+            inline IK size() const noexcept
+            {
+                return m_size;
             }
 
         private:

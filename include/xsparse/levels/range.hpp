@@ -37,13 +37,22 @@ namespace xsparse
             static_assert(!LevelProperties::is_full);
             static_assert(!LevelProperties::is_branchless);
             static_assert(!LevelProperties::is_compact);
+            using OffsetContainer = typename ContainerTraits::template Vec<PK>;
+
+        public:
             using BaseTraits = util::base_traits<range,
                                                  std::tuple<LowerLevels...>,
                                                  IK,
                                                  PK,
                                                  ContainerTraits,
                                                  LevelProperties>;
-            using OffsetContainer = typename ContainerTraits::template Vec<PK>;
+            using LevelCapabilities
+                = level_capabilities::coordinate_value_iterate<range,
+                                                               std::tuple<LowerLevels...>,
+                                                               IK,
+                                                               PK,
+                                                               ContainerTraits,
+                                                               LevelProperties>;
 
         public:
             range(IK size_N, IK size_M)

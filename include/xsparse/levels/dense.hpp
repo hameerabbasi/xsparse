@@ -28,6 +28,14 @@ namespace xsparse
             static_assert(LevelProperties::is_full);
             static_assert(!LevelProperties::is_branchless);
             static_assert(LevelProperties::is_compact);
+
+        public:
+            using LevelCapabilities
+                = level_capabilities::coordinate_value_iterate<dense,
+                                                               std::tuple<LowerLevels...>,
+                                                               IK,
+                                                               PK,
+                                                               LevelProperties>;
             using BaseTraits
                 = util::base_traits<dense, std::tuple<LowerLevels...>, IK, PK, LevelProperties>;
 
@@ -53,6 +61,11 @@ namespace xsparse
             inline IK size(typename BaseTraits::IK szkm1) const noexcept
             {
                 return szkm1 * m_size;
+            }
+
+            inline IK size() const noexcept
+            {
+                return m_size;
             }
 
         private:
