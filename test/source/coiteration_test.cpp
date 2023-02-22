@@ -21,10 +21,7 @@ TEST_CASE("Coiteration-Dense-Dense")
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s1{ 5 };
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s2{ 5 };
 
-    auto fn = [](std::tuple<bool, bool> t) constexpr
-    {
-        return std::get<0>(t) && std::get<1>(t);
-    };
+    auto fn = [](std::tuple<bool, bool> t) constexpr { return std::get<0>(t) && std::get<1>(t); };
 
     xsparse::level_capabilities::Coiterate<std::function<bool(std::tuple<bool, bool>)>,
                                            uintptr_t,
@@ -70,9 +67,7 @@ TEST_CASE("Coiteration-Dense-Dense-Dense")
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s3{ 5 };
 
     auto fn = [](std::tuple<bool, bool, bool> t) constexpr
-    {
-        return (std::get<0>(t) && std::get<1>(t)) || (std::get<2>(t));
-    };
+    { return (std::get<0>(t) && std::get<1>(t)) || (std::get<2>(t)); };
 
     xsparse::level_capabilities::Coiterate<std::function<bool(std::tuple<bool, bool, bool>)>,
                                            uintptr_t,
@@ -132,9 +127,7 @@ TEST_CASE("Coiteration-Singleton-Singleton-Dense-Dense")
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s4{ 5 };
 
     auto fn = [](std::tuple<bool, bool, bool, bool> t) constexpr
-    {
-        return (std::get<0>(t) || std::get<2>(t)) || (std::get<1>(t) || std::get<3>(t));
-    };
+    { return (std::get<0>(t) || std::get<2>(t)) || (std::get<1>(t) || std::get<3>(t)); };
 
     xsparse::level_capabilities::Coiterate<
         std::function<bool(std::tuple<bool, bool, bool, bool>)>,
