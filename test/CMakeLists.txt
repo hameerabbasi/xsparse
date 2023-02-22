@@ -15,7 +15,7 @@ include(../cmake/tools.cmake)
 
 include(../cmake/CPM.cmake)
 
-CPMAddPackage("gh:onqtam/doctest#2.4.5")
+CPMAddPackage("gh:doctest/doctest#v2.4.9")
 CPMAddPackage("gh:TheLartians/Format.cmake@1.7.0")
 
 if(TEST_INSTALLED_VERSION)
