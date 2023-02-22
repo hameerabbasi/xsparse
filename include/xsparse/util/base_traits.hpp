@@ -1,6 +1,7 @@
 #ifndef XSPARSE_UTIL_BASE_TRAITS_HPP
 #define XSPARSE_UTIL_BASE_TRAITS_HPP
 #include <tuple>
+#include <cstdint>
 
 namespace xsparse::util
 {
