@@ -7,7 +7,22 @@
 #include <stdexcept>
 
 namespace xsparse::level_capabilities
-{
+{   
+    /*
+    The class template for Coiteration of level formats.
+    
+    Uses a generic function object F to compare elements 
+    from different sequences at the same position and returns a tuple of the 
+    minimum index and the corresponding elements from each sequence.
+
+    Parameters
+    ----------
+    F : a function object that is used to compare two elements from different ranges.
+    IK : the type of the first element of each range.
+    PK : the type of the second element of each range.
+    Levels : a tuple of level formats, where each level is itself a tuple of elements to be iterated.
+    Is : a tuple of indices that is used to keep track of the current position in each level.
+    */ 
     template <class F, class IK, class PK, class Levels, class Is>
     class Coiterate;
 
@@ -61,6 +76,25 @@ namespace xsparse::level_capabilities
                 IK min_ik;
 
             private:
+                template <typename... T1, typename... T2>
+                inline constexpr auto compareVector(const std::vector<T1...>& v1, const std::vector<T2...>& v2) const noexcept
+                {
+                    if (v1.size() != v2.size()) {
+                        return 0;
+                    }
+
+                    // Check the length of the vectors
+                    int cmp = 0;
+
+                    for (int i = 0; i < v1.size(); i++) {
+                        cmp = compareHelper(v1[i], v2[i]);
+                        if (cmp != 1) {
+                            return cmp;
+                        }
+                    }
+                    return cmp;
+                }
+
                 template <typename... T1, typename... T2>
                 inline constexpr auto compareHelper(const std::tuple<T1...>& t1,
                                                     const std::tuple<T2...>& t2) const noexcept
