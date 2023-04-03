@@ -40,12 +40,6 @@ namespace xsparse::util
             // first element if `sizeof...(LowerLevels) == 0`.
             // is in place.
             std::tuple<position_t<LowerLevels>..., bool>>;
-        
-        // New type alias to represent the parent level
-        using ParentLevel = typename std::conditional<
-            sizeof...(LowerLevels) == 0,
-            std::nullptr_t,
-            T<LowerLevels...>>::type;
     };
 }
 

@@ -3,6 +3,8 @@
 #include <tuple>
 #include <vector>
 #include <functional>
+#include <set>
+#include <unordered_map>
 
 #include <xsparse/levels/compressed.hpp>
 #include <xsparse/levels/dense.hpp>
@@ -14,8 +16,6 @@
 #include <xsparse/level_properties.hpp>
 #include <xsparse/level_capabilities/co_iteration.hpp>
 #include <xsparse/level_capabilities/coordinate_iterate.hpp>
-
-#include <set>
 
 TEST_CASE("Coiteration-Dense-Dense")
 {

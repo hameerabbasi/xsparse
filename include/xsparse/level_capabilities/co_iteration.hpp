@@ -82,25 +82,6 @@ namespace xsparse::level_capabilities
 
             private:
                 template <typename... T1, typename... T2>
-                inline constexpr auto compareVector(const std::vector<T1...>& v1, const std::vector<T2...>& v2) const noexcept
-                {
-                    if (v1.size() != v2.size()) {
-                        return 0;
-                    }
-
-                    // Check the length of the vectors
-                    int cmp = 0;
-
-                    for (int i = 0; i < v1.size(); i++) {
-                        cmp = compareHelper(v1[i], v2[i]);
-                        if (cmp != 1) {
-                            return cmp;
-                        }
-                    }
-                    return cmp;
-                }
-
-                template <typename... T1, typename... T2>
                 inline constexpr auto compareHelper(const std::tuple<T1...>& t1,
                                                     const std::tuple<T2...>& t2) const noexcept
                 {
