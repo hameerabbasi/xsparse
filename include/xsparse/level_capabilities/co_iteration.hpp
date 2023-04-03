@@ -8,7 +8,7 @@
 
 namespace xsparse::level_capabilities
 {   
-    /*
+/*
     The class template for Coiteration of level formats.
     
     Uses a generic function object F to compare elements 
@@ -17,11 +17,16 @@ namespace xsparse::level_capabilities
 
     Parameters
     ----------
-    F : a function object that is used to compare two elements from different ranges.
-    IK : the type of the first element of each range.
-    PK : the type of the second element of each range.
-    Levels : a tuple of level formats, where each level is itself a tuple of elements to be iterated.
-    Is : a tuple of indices that is used to keep track of the current position in each level.
+    F : class
+        A function object that is used to compare two elements from different ranges.
+    IK : class
+        The type of the first element of each range.
+    PK : class
+        The type of the second element of each range.
+    Levels : Tuple of class
+        A tuple of level formats, where each level is itself a tuple of elements to be iterated.
+    Is : Tuple of class
+        A tuple of indices that is used to keep track of the current position in each level.
     */ 
     template <class F, class IK, class PK, class Levels, class Is>
     class Coiterate;
