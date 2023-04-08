@@ -3,7 +3,7 @@
 #include <tuple>
 #include <vector>
 #include <functional>
-#include <set>
+#include <unordered_set>
 #include <unordered_map>
 
 #include <xsparse/levels/compressed.hpp>
