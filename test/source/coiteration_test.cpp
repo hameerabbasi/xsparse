@@ -210,7 +210,7 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
         std::tuple<>,
         uintptr_t,
         uintptr_t,
-        xsparse::util::container_traits<std::vector, std::set, std::unordered_map>,
+        xsparse::util::container_traits<std::vector, std::unordered_set, std::unordered_map>,
         xsparse::level_properties<false, false, false, false, false>>
         h { 5, crd0 };
 
