@@ -7,27 +7,27 @@
 #include <stdexcept>
 
 namespace xsparse::level_capabilities
-{   
-/*
-    The class template for Coiteration of level formats.
-    
-    Uses a generic function object F to compare elements 
-    from different sequences at the same position and returns a tuple of the 
-    minimum index and the corresponding elements from each sequence.
+{
+    /*
+        The class template for Coiteration of level formats.
 
-    Parameters
-    ----------
-    F : class
-        A function object that is used to compare two elements from different ranges.
-    IK : class
-        The type of the first element of each range.
-    PK : class
-        The type of the second element of each range.
-    Levels : Tuple of class
-        A tuple of level formats, where each level is itself a tuple of elements to be iterated.
-    Is : Tuple of class
-        A tuple of indices that is used to keep track of the current position in each level.
-    */ 
+        Uses a generic function object F to compare elements
+        from different sequences at the same position and returns a tuple of the
+        minimum index and the corresponding elements from each sequence.
+
+        Parameters
+        ----------
+        F : class
+            A function object that is used to compare two elements from different ranges.
+        IK : class
+            The type of the first element of each range.
+        PK : class
+            The type of the second element of each range.
+        Levels : Tuple of class
+            A tuple of level formats, where each level is itself a tuple of elements to be iterated.
+        Is : Tuple of class
+            A tuple of indices that is used to keep track of the current position in each level.
+        */
     template <class F, class IK, class PK, class Levels, class Is>
     class Coiterate;
 
@@ -49,6 +49,15 @@ namespace xsparse::level_capabilities
                 throw std::invalid_argument("level sizes should be same");
             }
         }
+
+        // TODO: if any of the levels are not sorted, and has locate, then we will do a check
+        // on the conjunctive merge;
+        // do this upon compile time;
+        // w/ a constexpr function
+        // given levels that not sorted, but have locate, do a check that they are only part
+        // of a conjunctive merge with another level; constexpr function that returns a bool
+        // -> create a tuple of booleans and write a constexpr functino that returns True/False
+        // staticAssert over that
 
     public:
         class coiteration_helper

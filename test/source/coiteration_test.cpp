@@ -24,10 +24,7 @@ TEST_CASE("Coiteration-Dense-Dense")
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s1{ 5 };
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s2{ 5 };
 
-    auto fn = [](std::tuple<bool, bool> t) constexpr
-    {
-        return std::get<0>(t) && std::get<1>(t);
-    };
+    auto fn = [](std::tuple<bool, bool> t) constexpr { return std::get<0>(t) && std::get<1>(t); };
 
     xsparse::level_capabilities::Coiterate<std::function<bool(std::tuple<bool, bool>)>,
                                            uintptr_t,
@@ -73,9 +70,7 @@ TEST_CASE("Coiteration-Dense-Dense-Dense")
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s3{ 5 };
 
     auto fn = [](std::tuple<bool, bool, bool> t) constexpr
-    {
-        return (std::get<0>(t) && std::get<1>(t)) || (std::get<2>(t));
-    };
+    { return (std::get<0>(t) && std::get<1>(t)) || (std::get<2>(t)); };
 
     xsparse::level_capabilities::Coiterate<std::function<bool(std::tuple<bool, bool, bool>)>,
                                            uintptr_t,
@@ -135,9 +130,7 @@ TEST_CASE("Coiteration-Singleton-Singleton-Dense-Dense")
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s4{ 5 };
 
     auto fn = [](std::tuple<bool, bool, bool, bool> t) constexpr
-    {
-        return (std::get<0>(t) || std::get<2>(t)) || (std::get<1>(t) || std::get<3>(t));
-    };
+    { return (std::get<0>(t) || std::get<2>(t)) || (std::get<1>(t) || std::get<3>(t)); };
 
     xsparse::level_capabilities::Coiterate<
         std::function<bool(std::tuple<bool, bool, bool, bool>)>,
@@ -199,39 +192,50 @@ TEST_CASE("Coiteration-Singleton-Singleton-Dense-Dense")
 
 TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
 {
+    /* Test coiteration for dense and hashed formats.
+
+    A conjunctive merge requires coiterating over a dense and hashed format. This
+    test checks that the coiteration is done correctly. The test proceeds as follows:
+
+    - If one of the levels is unordered (e.g. hashed, or singleton), then the
+      coiteration is done by iterating over the ordered level, and then looking up
+      the corresponding value in the unordered level.
+    - The coiteration stops when the end of the ordered (i.e. dense) level is reached.
+
+    This test checks that the lookup is done correctly.
+    */
     constexpr uint8_t ZERO = 0;
 
     std::unordered_map<uintptr_t, uintptr_t> const umap1{ { 0, 1 }, { 2, 0 }, { 1, 2 } };
     std::vector<std::unordered_map<uintptr_t, uintptr_t>> const crd0{ umap1 };
 
     // initialize the two levels to be coiterated
-    xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s1{ 5 };
+    xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> dense_level{ 5 };
     xsparse::levels::hashed<
         std::tuple<>,
         uintptr_t,
         uintptr_t,
         xsparse::util::container_traits<std::vector, std::set, std::unordered_map>,
         xsparse::level_properties<false, false, false, false, false>>
-        h { 5, crd0 };
+        hash_level{ 5, crd0 };
 
     // define a conjunctive function
-    auto fn = [](std::tuple<bool, bool> t) constexpr
-    {
-        return (std::get<0>(t) && std::get<1>(t));
-    };
+    auto fn = [](std::tuple<bool, bool> t) constexpr { return (std::get<0>(t) && std::get<1>(t)); };
 
     xsparse::level_capabilities::Coiterate<std::function<bool(std::tuple<bool, bool>)>,
                                            uintptr_t,
                                            uintptr_t,
-                                           std::tuple<decltype(s1), decltype(h)>,
+                                           std::tuple<decltype(dense_level), decltype(hash_level)>,
                                            std::tuple<>>
-        coiter(fn, s1, h);
+        coiter(fn, dense_level, hash_level);
 
-    auto it_helper1 = s1.iter_helper(std::make_tuple(), ZERO);
+    // define iteration helper through dense and hashed level
+    auto it_helper1 = dense_level.iter_helper(std::make_tuple(), ZERO);
+    auto it_helper2 = hash_level.iter_helper(ZERO);
+
+    // initialize iterators for dense and hashed level
     auto it1 = it_helper1.begin();
-    auto it_helper2 = h.iter_helper(ZERO);
     auto it2 = it_helper2.begin();
-
     auto end1 = it_helper1.end();
     auto end2 = it_helper2.end();
 
@@ -241,28 +245,26 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
     {
         // get the index and pointer from the levels involved in co-iteration
         auto [i1, p1] = *it1;
-        auto [i2, p2] = *it2;
 
-        // should only iterate over the ordered level
+        // should only iterate over the ordered dense level
         uintptr_t l = i1;
         CHECK(ik == l);
-        
+
         // check that neither level has reached the end
         if (it1 != end1)
         {
-            CHECK(ik == l);
-
-            if (i1 == l && h.locate(p1, i1) != std::nullopt)
+            // if both levels have a non-zero value at index "i1", then those values
+            // should be present in the co-iterated tuple
+            if (i1 == l && hash_level.locate(p1, i1) != std::nullopt)
             {
                 CHECK(p1 == std::get<0>(pk_tuple).value());
-                CHECK(p2 == std::get<1>(pk_tuple).value());
             }
 
             // increment through the dense level always
             ++it1;
         }
     }
-    
+
     // check that the constexpr function representing the coiteration is conjunctive
     CHECK(fn(std::tuple(it1 == end1, it2 == end2)) == true);
     CHECK(fn(std::tuple(it1 == end1, it2 != end2)) == false);

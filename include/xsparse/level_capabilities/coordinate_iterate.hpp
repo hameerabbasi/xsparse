@@ -141,6 +141,7 @@ namespace xsparse::level_capabilities
         };
 
         iteration_helper iter_helper(typename BaseTraits::I i, typename BaseTraits::PKM1 pkm1)
+        /*Create an instance of iteration_helper that manages the iteration process.*/
         {
             return iteration_helper{ *static_cast<typename BaseTraits::Level*>(this), i, pkm1 };
         }
