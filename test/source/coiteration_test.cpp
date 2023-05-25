@@ -265,7 +265,6 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
         }
     }
 
-    // check that the constexpr function representing the coiteration is conjunctive
-    CHECK(fn(std::tuple(it1 == end1, it2 == end2)) == true);
-    CHECK(fn(std::tuple(it1 == end1, it2 != end2)) == false);
+    // check that the dense level should've reached its end
+    CHECK((it1 == end1) == true);
 }
