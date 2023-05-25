@@ -6,28 +6,40 @@
 #include <algorithm>
 #include <stdexcept>
 
+#include <xsparse/level_capabilities/locate.hpp>
+
 namespace xsparse::level_capabilities
 {
     /*
-        The class template for Coiteration of level formats.
+    The class template for Coiteration of level formats.
 
-        Uses a generic function object F to compare elements
-        from different sequences at the same position and returns a tuple of the
-        minimum index and the corresponding elements from each sequence.
+    Uses a generic function object F to compare elements
+    from different sequences at the same position and returns a tuple of the
+    minimum index and the corresponding elements from each sequence.
 
-        Parameters
-        ----------
-        F : class
-            A function object that is used to compare two elements from different ranges.
-        IK : class
-            The type of the first element of each range.
-        PK : class
-            The type of the second element of each range.
-        Levels : Tuple of class
-            A tuple of level formats, where each level is itself a tuple of elements to be iterated.
-        Is : Tuple of class
-            A tuple of indices that is used to keep track of the current position in each level.
-        */
+    Parameters
+    ----------
+    F : class
+        A function object that is used to compare two elements from different ranges.
+    IK : class
+        The type of the first element of each range.
+    PK : class
+        The type of the second element of each range.
+    Levels : Tuple of class
+        A tuple of level formats, where each level is itself a tuple of elements to be iterated.
+    Is : Tuple of class
+        A tuple of indices that is used to keep track of the current position in each level.
+
+    Notes
+    -----
+    Coiteration is only allowed through tuples of levels if the following criterion is met:
+    If:
+        1. the levels are all ordered (i.e. has the `is_ordered == True` property)
+        2. if any of the level are do not have the is_ordered property, it must have the locate
+            function, else return False. Then do a check that `m_comparisonHelper` defines
+            a conjunctive merge (i.e. AND operation).
+    Otherwise, coiteration is not allowed.
+    */
     template <class F, class IK, class PK, class Levels, class Is>
     class Coiterate;
 
@@ -48,16 +60,28 @@ namespace xsparse::level_capabilities
             {
                 throw std::invalid_argument("level sizes should be same");
             }
+
+            if (!meet_criteria(f, levels...))
+            {
+                throw std::invalid_argument("levels do not meet coiteration criteria");
+            }
         }
 
-        // TODO: if any of the levels are not sorted, and has locate, then we will do a check
-        // on the conjunctive merge;
-        // do this upon compile time;
-        // w/ a constexpr function
-        // given levels that not sorted, but have locate, do a check that they are only part
-        // of a conjunctive merge with another level; constexpr function that returns a bool
-        // -> create a tuple of booleans and write a constexpr functino that returns True/False
-        // staticAssert over that
+        // Check if the levels meet the criteria.
+        static constexpr bool meet_criteria(F f, Levels&... levels)
+        {
+            // check that all the levels are ordered
+            constexpr bool all_ordered = std::conjunction_v<levels.is_ordered...>;
+
+            // check if any has `locate` function
+            constexpr bool any_locate = std::disjunction_v<has_locate_v<levels...>...>;
+
+            // check function for coiteration comparison is conjunctive
+            constexpr bool is_conjunctive_merge
+                = std::is_same_v<bool, decltype(f(std::declval<bool>(), std::declval<bool>()))>;
+
+            return all_ordered || (any_locate && is_conjunctive_merge);
+        }
 
     public:
         class coiteration_helper
@@ -90,6 +114,24 @@ namespace xsparse::level_capabilities
                 IK min_ik;
 
             private:
+                // Function to check if the levels meet the criteria for coiteration
+                template <typename... T1, typename... T2>
+                static constexpr bool meet_criteria()
+                {
+                    constexpr bool all_ordered
+                        = std::conjunction_v<typename LowerLevels::is_ordered...>;
+                    constexpr bool any_locate
+                        = std::disjunction_v<level_capabilities::locate::has_locate_v<
+                            typename Levels::LevelCapabilities>...>;
+
+                    constexpr bool any_locate = std::disjunction_v<
+                        std::is_invocable<decltype(&typename LowerLevels::locate),
+                                          typename LowerLevels::PKM1,
+                                          typename LowerLevels::IK>...>;
+
+                    return all_ordered || (any_locate && sizeof...(LowerLevels) == 2);
+                }
+
                 template <typename... T1, typename... T2>
                 inline constexpr auto compareHelper(const std::tuple<T1...>& t1,
                                                     const std::tuple<T2...>& t2) const noexcept
