@@ -3,7 +3,7 @@
 #include <tuple>
 #include <vector>
 #include <functional>
-#include <set>
+#include <unordered_set>
 #include <unordered_map>
 
 #include <xsparse/levels/compressed.hpp>
@@ -215,7 +215,7 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
         std::tuple<>,
         uintptr_t,
         uintptr_t,
-        xsparse::util::container_traits<std::vector, std::set, std::unordered_map>,
+        xsparse::util::container_traits<std::vector, std::unordered_set, std::unordered_map>,
         xsparse::level_properties<false, false, false, false, false>>
         hash_level{ 5, crd0 };
 
