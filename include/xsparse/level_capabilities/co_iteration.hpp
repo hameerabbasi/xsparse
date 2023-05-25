@@ -114,24 +114,6 @@ namespace xsparse::level_capabilities
                 IK min_ik;
 
             private:
-                // Function to check if the levels meet the criteria for coiteration
-                template <typename... T1, typename... T2>
-                static constexpr bool meet_criteria()
-                {
-                    constexpr bool all_ordered
-                        = std::conjunction_v<typename LowerLevels::is_ordered...>;
-                    constexpr bool any_locate
-                        = std::disjunction_v<level_capabilities::locate::has_locate_v<
-                            typename Levels::LevelCapabilities>...>;
-
-                    constexpr bool any_locate = std::disjunction_v<
-                        std::is_invocable<decltype(&typename LowerLevels::locate),
-                                          typename LowerLevels::PKM1,
-                                          typename LowerLevels::IK>...>;
-
-                    return all_ordered || (any_locate && sizeof...(LowerLevels) == 2);
-                }
-
                 template <typename... T1, typename... T2>
                 inline constexpr auto compareHelper(const std::tuple<T1...>& t1,
                                                     const std::tuple<T2...>& t2) const noexcept
