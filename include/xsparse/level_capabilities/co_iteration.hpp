@@ -47,13 +47,15 @@ namespace xsparse::level_capabilities
     class Coiterate<F, IK, PK, std::tuple<Levels...>, std::tuple<Is...>>
     {
     private:
-        std::tuple<Levels&...> const m_levelsTuple;
-        F const m_comparisonHelper;
+        std::tuple<Levels&...> const m_levelsTuple;     // tuple of levels
+        F const m_comparisonHelper;                     // comparison function
+        std::tuple<std::size_t...> m_orderedIndices;    // indices of ordered levels in `m_levelsTuple`
 
     public:
         explicit inline Coiterate(F f, Levels&... levels)
             : m_levelsTuple(std::tie(levels...))
             , m_comparisonHelper(f)
+            , m_orderedIndices(meet_criteria(f, levels...))
         {
             if (![](auto const& first, auto const&... rest)
                 { return ((first == rest) && ...); }(levels.size()...))
@@ -61,26 +63,36 @@ namespace xsparse::level_capabilities
                 throw std::invalid_argument("level sizes should be same");
             }
 
-            if (!meet_criteria(f, levels...))
+            if (std::tuple_size_v<decltype(m_orderedIndices)> == 0)
             {
                 throw std::invalid_argument("levels do not meet coiteration criteria");
             }
         }
 
         // Check if the levels meet the criteria.
-        static constexpr bool meet_criteria(F f, Levels&... levels)
+        static constexpr auto meet_criteria(F f, Levels&... levels)
         {
-            // check that all the levels are ordered
             constexpr bool all_ordered = std::conjunction_v<levels.is_ordered...>;
-
-            // check if any has `locate` function
             constexpr bool any_locate = std::disjunction_v<has_locate_v<levels...>...>;
-
-            // check function for coiteration comparison is conjunctive
             constexpr bool is_conjunctive_merge
                 = std::is_same_v<bool, decltype(f(std::declval<bool>(), std::declval<bool>()))>;
 
-            return all_ordered || (any_locate && is_conjunctive_merge);
+            // return a index sequence of the ordered levels
+            if constexpr (all_ordered)
+            {
+                return std::index_sequence<Is...>{};
+            }
+            else if constexpr (any_locate && is_conjunctive_merge)
+            {
+                return std::index_sequence<(Levels::is_ordered ? Is : -1)...>{};
+            }
+            else
+            {
+                // levels do not meet coiteration criteria because either:
+                // i) not all levels are ordered, or 
+                // ii) one of the levels does not have the locate function
+                return std::index_sequence<>{};
+            }
         }
 
     public:
@@ -91,6 +103,7 @@ namespace xsparse::level_capabilities
             std::tuple<Is...> const m_i;
             PK const m_pkm1;
             std::tuple<typename Levels::LevelCapabilities::iteration_helper...> m_iterHelpers;
+            std::tuple<std::size_t...> const& m_orderedIndices;  // Reference to ordered indices
 
         public:
             explicit inline coiteration_helper(Coiterate const& coiterate,
@@ -102,6 +115,7 @@ namespace xsparse::level_capabilities
                 , m_iterHelpers(std::apply([&](auto&... args)
                                            { return std::tuple(args.iter_helper(i, pkm1)...); },
                                            coiterate.m_levelsTuple))
+                , m_orderedIndices(coiterate.m_orderedIndices)
             {
             }
 
