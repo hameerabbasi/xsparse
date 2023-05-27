@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.14...3.22)
 
 # ---- Project ----
 
@@ -28,14 +28,14 @@ CPMAddPackage("gh:TheLartians/PackageProject.cmake@1.8.0")
 
 CPMAddPackage(
   NAME fmt
-  GIT_TAG 7.1.3
+  GIT_TAG 9.1.0
   GITHUB_REPOSITORY fmtlib/fmt
   OPTIONS "FMT_INSTALL YES" # create an installable target
 )
 
 CPMAddPackage(
   NAME xtl
-  GIT_TAG 0.7.3
+  GIT_TAG 0.7.5
   GITHUB_REPOSITORY xtensor-stack/xtl
   OPTIONS "XTL_INSTALL YES" # create an installable target
 )
@@ -52,7 +52,6 @@ file(GLOB_RECURSE sources CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/source/
 # Note: for header-only libraries change all PUBLIC flags to INTERFACE and create an interface
 # target: add_library(${PROJECT_NAME} INTERFACE)
 add_library(${PROJECT_NAME} INTERFACE ${headers} ${sources})
-
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 20)
 
 # being a cross-platform target, we enforce standards conformance on MSVC
@@ -83,6 +82,6 @@ packageProject(
   INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include
   INCLUDE_DESTINATION include/${PROJECT_NAME}-${PROJECT_VERSION}
   VERSION_HEADER "${VERSION_HEADER_LOCATION}"
-  COMPATIBILITY SameMinorVersion
-  DEPENDENCIES "fmt 7.1.3; xtl 0.7.3"
+  COMPATIBILITY SameMajorVersion
+  DEPENDENCIES "fmt 9.1.0; xtl 0.7.5"
 )
