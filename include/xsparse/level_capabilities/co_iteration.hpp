@@ -17,15 +17,15 @@ namespace xsparse::level_capabilities
      * from different sequences at the same position and returns a tuple of the
      * minimum index and the corresponding elements from each sequence.
      *
-     * @param[in] F : class
-     * A function object that is used to compare elements from different ranges.
-     * @param[in] IK : class The type of the first element of each range.
-     * @param[in] PK : class The type of the second element of each range.
-     * @param[in] Levels : Tuple of class
-     * A tuple of level formats, where each level is itself a tuple of elements
+     * @tparam F - A function object that is used to compare elements from different ranges.
+     * Its input is a tuple of booleans corresponding to each of the levels. The output is a boolean
+     * that is the result of the function.
+     * @tparam IK - The type of the first element of each range.
+     * @tparam PK - The type of the second element of each range.
+     * @tparam Levels - A tuple of level formats, where each level is itself a tuple of elements
      * to be iterated.
-     * @param[in] Is : Tuple of class
-     * A tuple of indices that is used to keep track of the current position in each level.
+     * @tparam Is - A tuple of indices that is used to keep track of the current position in each
+     * level.
      *
      * @note Coiteration is only allowed through tuples of levels if the following criterion is met:
      * If:
@@ -34,7 +34,9 @@ namespace xsparse::level_capabilities
      * function, else return False. Then do a check that `m_comparisonHelper` defines
      * a conjunctive merge (i.e. AND operation).
      * Otherwise, coiteration is not allowed.
-     **/
+     *
+     * This check is done automatically in the constructor, via the function `
+     */
     template <class F, class IK, class PK, class Levels, class Is>
     class Coiterate;
 
@@ -44,14 +46,11 @@ namespace xsparse::level_capabilities
     private:
         std::tuple<Levels&...> const m_levelsTuple;  // tuple of levels
         F const m_comparisonHelper;                  // comparison function
-        std::tuple<std::size_t...>
-            m_orderedIndices;  // indices of ordered levels in `m_levelsTuple`
 
     public:
         explicit inline Coiterate(F f, Levels&... levels)
             : m_levelsTuple(std::tie(levels...))
             , m_comparisonHelper(f)
-            , m_orderedIndices(meet_criteria(f, levels...))
         {
             if (![](auto const& first, auto const&... rest)
                 { return ((first == rest) && ...); }(levels.size()...))
@@ -59,36 +58,80 @@ namespace xsparse::level_capabilities
                 throw std::invalid_argument("level sizes should be same");
             }
 
-            if (std::tuple_size_v<decltype(m_orderedIndices)> == 0)
+            // check that the levels meet the coiteration criteria
+            meet_criteria(f, levels...);
+        }
+
+        static constexpr void meet_criteria(F f, Levels&... levels)
+        /**
+         * @brief Check that function, f, and levels meet the coiteration criteria.
+         *
+         * @tparam F - A function object that is used to compare elements from different ranges.
+         * @tparam Levels - A tuple of level formats, where each level is itself a tuple of elements
+         *
+         * @note If:
+         * 1. the levels are all ordered (i.e. has the `is_ordered == True` property)
+         * 2. if any of the level are do not have the is_ordered property, it must have the locate
+         * function, else return False. Then do a check that `m_comparisonHelper` defines
+         * a conjunctive merge (i.e. AND operation).
+         *
+         * Otherwise, raise a static_assert error.
+         */
+        {
+            constexpr bool all_ordered_or_has_locate
+                = ((std::decay_t<decltype(levels)>::is_ordered
+                    || has_locate_v<std::decay_t<decltype(levels)>>) &&...);
+
+            // all unordered level should have locate function defined
+            static_assert(all_ordered_or_has_locate,
+                          "Unordered levels must have the locate function");
+
+            // get the number of unordered levels and the total number of combinations we need to
+            // check
+            constexpr auto num_unordered_levels = std::size_t{ (!levels.is_ordered + ...) };
+            constexpr auto total_combinations = (1 << num_unordered_levels);
+
+            // check that the total number of combinations of unordered levels is not too large
+            static_assert(total_combinations == (1 << num_unordered_levels),
+                          "Overflow: Too many unordered levels");
+
+            // for each combination of unordered levels evaluated to true/false,
+            // check that the function object `f` returns false
+            for (std::size_t i = 0; i < total_combinations; ++i)
             {
-                throw std::invalid_argument("levels do not meet coiteration criteria");
+                // constexpr auto combination = std::array<bool, sizeof...(Levels)>{
+                // ((levels.is_ordered) ? false : (i & (1 << (num_unordered_levels - 1 -
+                // (!levels.is_ordered + ...)))) != 0)... };
+                constexpr auto combination = std::array<bool, sizeof...(Levels)>{
+                    [i](auto&& level)
+                    {
+                        if constexpr (level.is_ordered)
+                            return false;
+                        else
+                            return (i >> (num_unordered_levels - 1 - !level.is_ordered)) & 1;
+                    }(levels)...
+                };
+                static_assert(!std::apply(f, combination),
+                              "Invalid combination of levels and function: f(...) is not false");
             }
         }
 
-        // Check if the levels meet the criteria.
-        static constexpr auto meet_criteria(F f, Levels&... levels)
+        constexpr auto ordered_levels(Levels&... levels)
+        /**
+         * @brief Compute a tuple of true/false indicating ordered/unordered levels.
+         *
+         * @details If all levels are ordered, return a tuple of true. If any of the levels
+         * are unordered, return a tuple of true/false, where the true/false indicates
+         * ordered/unordered levels. Also does a compiler-time check that the levels meet the
+         * coiteration criteria given the function object `f`.
+         *
+         * @tparam F - A function object that is used to compare elements from different ranges.
+         * @tparam Levels - A tuple of level formats, where each level is itself a tuple of elements
+         *
+         * @return A tuple of true/false indicating ordered/unordered levels.
+         */
         {
-            constexpr bool all_ordered = std::conjunction_v<levels.is_ordered...>;
-            constexpr bool any_locate = std::disjunction_v<has_locate_v<levels...>...>;
-            constexpr bool is_conjunctive_merge
-                = std::is_same_v<bool, decltype(f(std::declval<bool>(), std::declval<bool>()))>;
-
-            // return a index sequence of the ordered levels
-            if constexpr (all_ordered)
-            {
-                return std::index_sequence<Is...>{};
-            }
-            else if constexpr (any_locate && is_conjunctive_merge)
-            {
-                return std::index_sequence<(Levels::is_ordered ? Is : -1)...>{};
-            }
-            else
-            {
-                // levels do not meet coiteration criteria because either:
-                // i) not all levels are ordered, or
-                // ii) one of the levels does not have the locate function
-                return std::index_sequence<>{};
-            }
+            return std::make_tuple(levels.is_ordered...);
         }
 
     public:
@@ -99,7 +142,6 @@ namespace xsparse::level_capabilities
             std::tuple<Is...> const m_i;
             PK const m_pkm1;
             std::tuple<typename Levels::LevelCapabilities::iteration_helper...> m_iterHelpers;
-            std::tuple<std::size_t...> const& m_orderedIndices;  // Reference to ordered indices
 
         public:
             explicit inline coiteration_helper(Coiterate const& coiterate,
@@ -111,7 +153,6 @@ namespace xsparse::level_capabilities
                 , m_iterHelpers(std::apply([&](auto&... args)
                                            { return std::tuple(args.iter_helper(i, pkm1)...); },
                                            coiterate.m_levelsTuple))
-                , m_orderedIndices(coiterate.m_orderedIndices)
             {
             }
 

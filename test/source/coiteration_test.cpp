@@ -192,18 +192,19 @@ TEST_CASE("Coiteration-Singleton-Singleton-Dense-Dense")
 
 TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
 {
-    /* Test coiteration for dense and hashed formats.
-
-    A conjunctive merge requires coiterating over a dense and hashed format. This
-    test checks that the coiteration is done correctly. The test proceeds as follows:
-
-    - If one of the levels is unordered (e.g. hashed, or singleton), then the
-      coiteration is done by iterating over the ordered level, and then looking up
-      the corresponding value in the unordered level.
-    - The coiteration stops when the end of the ordered (i.e. dense) level is reached.
-
-    This test checks that the lookup is done correctly.
-    */
+    /**
+     * @brief Test coiteration for dense and hashed formats when function is conjunctive.
+     *
+     * A conjunctive merge requires coiterating over a dense and hashed format. This
+     * test checks that the coiteration is done correctly. The test proceeds as follows:
+     *
+     * - If one of the levels is unordered (e.g. hashed, or singleton), then the
+     * coiteration is done by iterating over the ordered level, and then looking up
+     * the corresponding value in the unordered level.
+     * - The coiteration stops when the end of the ordered (i.e. dense) level is reached.
+     *
+     * This test checks that the lookup is done correctly.
+     */
     constexpr uint8_t ZERO = 0;
 
     std::unordered_map<uintptr_t, uintptr_t> const umap1{ { 0, 1 }, { 2, 0 }, { 1, 2 } };
@@ -220,13 +221,14 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
         hash_level{ 5, crd0 };
 
     // define a conjunctive function
-    auto fn = [](std::tuple<bool, bool> t) constexpr { return (std::get<0>(t) && std::get<1>(t)); };
+    auto fn = [](std::tuple<bool, bool> t) constexpr { return (std::get<0>(t) && std::get<1>(t));
+    };
 
     xsparse::level_capabilities::Coiterate<std::function<bool(std::tuple<bool, bool>)>,
                                            uintptr_t,
                                            uintptr_t,
-                                           std::tuple<decltype(dense_level), decltype(hash_level)>,
-                                           std::tuple<>>
+                                           std::tuple<decltype(dense_level),
+                                           decltype(hash_level)>, std::tuple<>>
         coiter(fn, dense_level, hash_level);
 
     // define iteration helper through dense and hashed level
@@ -236,7 +238,8 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
     auto it1 = it_helper1.begin();
     auto end1 = it_helper1.end();
 
-    // when co-iterating over levels that are unordered (i.e. hashed), then we use locate to check
+    // when co-iterating over levels that are unordered (i.e. hashed), then we use locate to
+    check
     // if the index exists in the hashed level. If not, then we skip it.
     for (auto const [ik, pk_tuple] : coiter.coiter_helper(std::make_tuple(), ZERO))
     {
