@@ -10,36 +10,31 @@
 
 namespace xsparse::level_capabilities
 {
-    /*
-    The class template for Coiteration of level formats.
-
-    Uses a generic function object F to compare elements
-    from different sequences at the same position and returns a tuple of the
-    minimum index and the corresponding elements from each sequence.
-
-    Parameters
-    ----------
-    F : class
-        A function object that is used to compare two elements from different ranges.
-    IK : class
-        The type of the first element of each range.
-    PK : class
-        The type of the second element of each range.
-    Levels : Tuple of class
-        A tuple of level formats, where each level is itself a tuple of elements to be iterated.
-    Is : Tuple of class
-        A tuple of indices that is used to keep track of the current position in each level.
-
-    Notes
-    -----
-    Coiteration is only allowed through tuples of levels if the following criterion is met:
-    If:
-        1. the levels are all ordered (i.e. has the `is_ordered == True` property)
-        2. if any of the level are do not have the is_ordered property, it must have the locate
-            function, else return False. Then do a check that `m_comparisonHelper` defines
-            a conjunctive merge (i.e. AND operation).
-    Otherwise, coiteration is not allowed.
-    */
+    /**
+     * @brief The class template for Coiteration of level formats.
+     *
+     * @details Uses a generic function object F to compare elements
+     * from different sequences at the same position and returns a tuple of the
+     * minimum index and the corresponding elements from each sequence.
+     *
+     * @param[in] F : class
+     * A function object that is used to compare elements from different ranges.
+     * @param[in] IK : class The type of the first element of each range.
+     * @param[in] PK : class The type of the second element of each range.
+     * @param[in] Levels : Tuple of class
+     * A tuple of level formats, where each level is itself a tuple of elements
+     * to be iterated.
+     * @param[in] Is : Tuple of class
+     * A tuple of indices that is used to keep track of the current position in each level.
+     *
+     * @note Coiteration is only allowed through tuples of levels if the following criterion is met:
+     * If:
+     * 1. the levels are all ordered (i.e. has the `is_ordered == True` property)
+     * 2. if any of the level are do not have the is_ordered property, it must have the locate
+     * function, else return False. Then do a check that `m_comparisonHelper` defines
+     * a conjunctive merge (i.e. AND operation).
+     * Otherwise, coiteration is not allowed.
+     **/
     template <class F, class IK, class PK, class Levels, class Is>
     class Coiterate;
 
@@ -47,9 +42,10 @@ namespace xsparse::level_capabilities
     class Coiterate<F, IK, PK, std::tuple<Levels...>, std::tuple<Is...>>
     {
     private:
-        std::tuple<Levels&...> const m_levelsTuple;     // tuple of levels
-        F const m_comparisonHelper;                     // comparison function
-        std::tuple<std::size_t...> m_orderedIndices;    // indices of ordered levels in `m_levelsTuple`
+        std::tuple<Levels&...> const m_levelsTuple;  // tuple of levels
+        F const m_comparisonHelper;                  // comparison function
+        std::tuple<std::size_t...>
+            m_orderedIndices;  // indices of ordered levels in `m_levelsTuple`
 
     public:
         explicit inline Coiterate(F f, Levels&... levels)
@@ -89,7 +85,7 @@ namespace xsparse::level_capabilities
             else
             {
                 // levels do not meet coiteration criteria because either:
-                // i) not all levels are ordered, or 
+                // i) not all levels are ordered, or
                 // ii) one of the levels does not have the locate function
                 return std::index_sequence<>{};
             }
