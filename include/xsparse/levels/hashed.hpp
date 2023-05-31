@@ -45,7 +45,7 @@ namespace xsparse
                                                  PK,
                                                  ContainerTraits,
                                                  LevelProperties>;
-            using LevelProperty = LevelProperties;  // Expose LevelProperties as a public attribute
+
         public:
             class iteration_helper
             {
@@ -129,6 +129,12 @@ namespace xsparse
             iteration_helper iter_helper(typename BaseTraits::PKM1 pkm1)
             {
                 return iteration_helper{ this->m_crd[pkm1] };
+            }
+
+            // Function to access the LevelProperties object
+            constexpr LevelProperties LevelProperty() const
+            {
+                return LevelProperties{};
             }
 
             hashed(IK size)

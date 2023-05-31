@@ -54,7 +54,7 @@ namespace xsparse
                                                                   PK,
                                                                   ContainerTraits,
                                                                   LevelProperties>;
-            using LevelProperty = LevelProperties;  // Expose LevelProperties as a public attribute
+
         public:
             offset(IK size)
                 : m_size(std::move(size))
@@ -72,6 +72,12 @@ namespace xsparse
                 : m_size(std::move(size))
                 , m_offset(offset)
             {
+            }
+
+            // Function to access the LevelProperties object
+            constexpr LevelProperties LevelProperty() const
+            {
+                return LevelProperties{};
             }
 
             inline std::pair<PK, PK> pos_bounds(typename BaseTraits::PKM1 pkm1) const noexcept

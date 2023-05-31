@@ -56,8 +56,14 @@ namespace xsparse
                                                                   PK,
                                                                   ContainerTraits,
                                                                   LevelProperties>;
-            using LevelProperty = LevelProperties;  // Expose LevelProperties as a public attribute
+
         public:
+            // Function to access the LevelProperties object
+            constexpr LevelProperties LevelProperty() const
+            {
+                return LevelProperties{};
+            }
+
             compressed(IK size)
                 : m_size(std::move(size))
                 , m_pos()
