@@ -40,6 +40,12 @@ namespace xsparse
                 = util::base_traits<dense, std::tuple<LowerLevels...>, IK, PK, LevelProperties>;
             using LevelProperty = LevelProperties;  // Expose LevelProperties as a public attribute
         public:
+            // Function to access the LevelProperties object
+            const LevelProperties LevelProperty() const
+            {
+                return LevelProperties{};
+            }
+
             dense(IK size)
                 : m_size(std::move(size))
             {

@@ -31,10 +31,10 @@ namespace xsparse::level_capabilities
         }
 
         // Function to get the is_ordered properties of the levels as a tuple of booleans
-        constexpr auto ordered_levels() const noexcept {
-            return std::apply([](auto&... levels) {
-                return std::tuple{levels.is_ordered...};
-            }, m_levelsTuple);
+        constexpr auto ordered_levels() const noexcept
+        {
+            return std::apply([](auto&... levels) { return std::tuple{ levels.is_ordered... }; },
+                              m_levelsTuple);
         }
 
     public:

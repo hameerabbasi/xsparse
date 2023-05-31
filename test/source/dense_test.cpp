@@ -21,6 +21,9 @@ TEST_CASE("Dense-BaseCase")
         ++loop;
     }
     CHECK(loop == SIZE);
+
+    // Check basic properties of all dense levels
+    CHECK(d.LevelProperty().is_full);
 }
 
 TEST_CASE("Dense-2D")
