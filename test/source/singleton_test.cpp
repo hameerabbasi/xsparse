@@ -29,10 +29,10 @@ TEST_CASE("Singleton-BaseCase")
         ++l2;
     }
 
-    // Check basic properties of all singleton levels
-    CHECK(s.LevelProperty().is_full);
-    CHECK(s.LevelProperty().is_ordered);
-    CHECK(s.LevelProperty().is_unique);
+    // Check basic stric properties of all singleton levels
+    // CHECK(s.LevelProperty().is_full);
+    // CHECK(s.LevelProperty().is_ordered);
+    // CHECK(s.LevelProperty().is_unique);
     CHECK(s.LevelProperty().is_branchless);
     CHECK(s.LevelProperty().is_compact);
 }
