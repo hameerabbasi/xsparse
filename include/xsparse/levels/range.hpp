@@ -53,7 +53,7 @@ namespace xsparse
                                                                PK,
                                                                ContainerTraits,
                                                                LevelProperties>;
-
+            using LevelProperty = LevelProperties;  // Expose LevelProperties as a public attribute
         public:
             range(IK size_N, IK size_M)
                 : m_size_N(std::move(size_N))

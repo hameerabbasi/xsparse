@@ -45,7 +45,7 @@ namespace xsparse
                                                  PK,
                                                  ContainerTraits,
                                                  LevelProperties>;
-
+            using LevelProperty = LevelProperties;  // Expose LevelProperties as a public attribute
         public:
             class iteration_helper
             {
