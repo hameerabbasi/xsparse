@@ -28,6 +28,7 @@ namespace xsparse
             static_assert(LevelProperties::is_full);
             static_assert(!LevelProperties::is_branchless);
             static_assert(LevelProperties::is_compact);
+            static_assert(LevelProperties::is_ordered);
 
         public:
             using LevelCapabilities

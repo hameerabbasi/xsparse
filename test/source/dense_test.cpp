@@ -37,7 +37,7 @@ TEST_CASE("Dense-2D")
     xsparse::levels::dense<std::tuple<>,
                            uintptr_t,
                            uintptr_t,
-                           xsparse::level_properties<true, false, false, false, true>>
+                           xsparse::level_properties<true, true, false, false, true>>
         d1{ SIZE1 };
     xsparse::levels::dense<std::tuple<decltype(d1)>, uintptr_t, uintptr_t> d2{ SIZE2 };
 
@@ -70,7 +70,7 @@ TEST_CASE("Dense-2D-Size")
     xsparse::levels::dense<std::tuple<decltype(d1)>,
                            uintptr_t,
                            uintptr_t,
-                           xsparse::level_properties<true, false, true, false, true>>
+                           xsparse::level_properties<true, true, true, false, true>>
         d2{ SIZE2 };
 
     uintptr_t l1 = 0;
