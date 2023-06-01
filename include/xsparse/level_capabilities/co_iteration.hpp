@@ -59,64 +59,64 @@ namespace xsparse::level_capabilities
             }
 
             // check that the levels meet the coiteration criteria
-            meet_criteria(f, levels...);
+            // meet_criteria(f, levels...);
         }
 
-        static constexpr void meet_criteria(F f, Levels&... levels)
-        /**
-         * @brief Check that function, f, and levels meet the coiteration criteria.
-         *
-         * @tparam F - A function object that is used to compare elements from different ranges.
-         * @tparam Levels - A tuple of level formats, where each level is itself a tuple of elements
-         *
-         * @note If:
-         * 1. the levels are all ordered (i.e. has the `is_ordered == True` property)
-         * 2. if any of the level are do not have the is_ordered property, it must have the locate
-         * function, else return False. Then do a check that `m_comparisonHelper` defines
-         * a conjunctive merge (i.e. AND operation).
-         *
-         * Otherwise, raise a static_assert error.
-         */
-        {
-            constexpr bool all_ordered_or_has_locate
-                = ((std::decay_t<decltype(levels)>::is_ordered
-                    || has_locate_v<std::decay_t<decltype(levels)>>) &&...);
+        // static constexpr void meet_criteria(F f, Levels&... levels)
+        // /**
+        //  * @brief Check that function, f, and levels meet the coiteration criteria.
+        //  *
+        //  * @tparam F - A function object that is used to compare elements from different ranges.
+        //  * @tparam Levels - A tuple of level formats, where each level is itself a tuple of elements
+        //  *
+        //  * @note If:
+        //  * 1. the levels are all ordered (i.e. has the `is_ordered == True` property)
+        //  * 2. if any of the level are do not have the is_ordered property, it must have the locate
+        //  * function, else return False. Then do a check that `m_comparisonHelper` defines
+        //  * a conjunctive merge (i.e. AND operation).
+        //  *
+        //  * Otherwise, raise a static_assert error.
+        //  */
+        // {
+        //     constexpr bool all_ordered_or_has_locate
+        //         = ((std::decay_t<decltype(levels)>::is_ordered
+        //             || has_locate_v<std::decay_t<decltype(levels)>>) &&...);
 
-            // all unordered level should have locate function defined
-            static_assert(all_ordered_or_has_locate,
-                          "Unordered levels must have the locate function");
+        //     // all unordered level should have locate function defined
+        //     static_assert(all_ordered_or_has_locate,
+        //                   "Unordered levels must have the locate function");
 
-            // get the number of unordered levels and the total number of combinations we need to
-            // check
-            constexpr auto num_unordered_levels = std::size_t{ (!levels.is_ordered + ...) };
-            constexpr auto total_combinations = (1 << num_unordered_levels);
+        //     // get the number of unordered levels and the total number of combinations we need to
+        //     // check
+        //     constexpr auto num_unordered_levels = std::size_t{ (!levels.is_ordered + ...) };
+        //     constexpr auto total_combinations = (1 << num_unordered_levels);
 
-            // check that the total number of combinations of unordered levels is not too large
-            static_assert(total_combinations == (1 << num_unordered_levels),
-                          "Overflow: Too many unordered levels");
+        //     // check that the total number of combinations of unordered levels is not too large
+        //     static_assert(total_combinations == (1 << num_unordered_levels),
+        //                   "Overflow: Too many unordered levels");
 
-            // for each combination of unordered levels evaluated to true/false,
-            // check that the function object `f` returns false
-            for (std::size_t i = 0; i < total_combinations; ++i)
-            {
-                // constexpr auto combination = std::array<bool, sizeof...(Levels)>{
-                // ((levels.is_ordered) ? false : (i & (1 << (num_unordered_levels - 1 -
-                // (!levels.is_ordered + ...)))) != 0)... };
-                constexpr auto combination = std::array<bool, sizeof...(Levels)>{
-                    [i](auto&& level)
-                    {
-                        if constexpr (level.is_ordered)
-                            return false;
-                        else
-                            return (i >> (num_unordered_levels - 1 - !level.is_ordered)) & 1;
-                    }(levels)...
-                };
-                static_assert(!std::apply(f, combination),
-                              "Invalid combination of levels and function: f(...) is not false");
-            }
-        }
+        //     // for each combination of unordered levels evaluated to true/false,
+        //     // check that the function object `f` returns false
+        //     for (std::size_t i = 0; i < total_combinations; ++i)
+        //     {
+        //         // constexpr auto combination = std::array<bool, sizeof...(Levels)>{
+        //         // ((levels.is_ordered) ? false : (i & (1 << (num_unordered_levels - 1 -
+        //         // (!levels.is_ordered + ...)))) != 0)... };
+        //         constexpr auto combination = std::array<bool, sizeof...(Levels)>{
+        //             [i](auto&& level)
+        //             {
+        //                 if constexpr (level.is_ordered)
+        //                     return false;
+        //                 else
+        //                     return (i >> (num_unordered_levels - 1 - !level.is_ordered)) & 1;
+        //             }(levels)...
+        //         };
+        //         static_assert(!std::apply(f, combination),
+        //                       "Invalid combination of levels and function: f(...) is not false");
+        //     }
+        // }
 
-        constexpr auto ordered_levels(Levels&... levels)
+        constexpr auto ordered_levels() const noexcept
         /**
          * @brief Compute a tuple of true/false indicating ordered/unordered levels.
          *
@@ -131,7 +131,9 @@ namespace xsparse::level_capabilities
          * @return A tuple of true/false indicating ordered/unordered levels.
          */
         {
-            return std::make_tuple(levels.is_ordered...);
+            return std::apply([](const auto&... levels) {
+                return std::make_tuple(levels.level_property().is_ordered...);
+            }, m_levelsTuple);
         }
 
     public:
