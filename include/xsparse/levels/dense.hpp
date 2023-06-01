@@ -28,6 +28,7 @@ namespace xsparse
             static_assert(LevelProperties::is_full);
             static_assert(!LevelProperties::is_branchless);
             static_assert(LevelProperties::is_compact);
+            static_assert(LevelProperties::is_ordered);
 
         public:
             using LevelCapabilities
@@ -40,6 +41,12 @@ namespace xsparse
                 = util::base_traits<dense, std::tuple<LowerLevels...>, IK, PK, LevelProperties>;
 
         public:
+            // Function to access the LevelProperties object
+            constexpr LevelProperties level_property() const
+            {
+                return LevelProperties{};
+            }
+
             dense(IK size)
                 : m_size(std::move(size))
             {

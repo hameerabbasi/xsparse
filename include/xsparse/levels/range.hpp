@@ -76,6 +76,12 @@ namespace xsparse
             {
             }
 
+            // Function to access the LevelProperties object
+            constexpr LevelProperties level_property() const
+            {
+                return LevelProperties{};
+            }
+
             inline std::pair<IK, IK> coord_bounds(typename BaseTraits::I i) const noexcept
             {
                 static_assert(std::tuple_size_v<decltype(i)> >= 1,

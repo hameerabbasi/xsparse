@@ -74,6 +74,12 @@ namespace xsparse
             {
             }
 
+            // Function to access the LevelProperties object
+            constexpr LevelProperties level_property() const
+            {
+                return LevelProperties{};
+            }
+
             inline std::pair<PK, PK> pos_bounds(typename BaseTraits::PKM1 pkm1) const noexcept
             {
                 return { static_cast<PK>(pkm1), static_cast<PK>(pkm1 + 1) };

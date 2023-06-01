@@ -131,6 +131,12 @@ namespace xsparse
                 return iteration_helper{ this->m_crd[pkm1] };
             }
 
+            // Function to access the LevelProperties object
+            constexpr LevelProperties level_property() const
+            {
+                return LevelProperties{};
+            }
+
             hashed(IK size)
                 : m_size(std::move(size))
                 , m_crd()
