@@ -59,62 +59,56 @@ namespace xsparse::level_capabilities
             }
 
             // check that the levels meet the coiteration criteria
-            // meet_criteria(f, levels...);
+            meet_criteria();
         }
 
-        // static constexpr void meet_criteria(F f, Levels&... levels)
-        // /**
-        //  * @brief Check that function, f, and levels meet the coiteration criteria.
-        //  *
-        //  * @tparam F - A function object that is used to compare elements from different ranges.
-        //  * @tparam Levels - A tuple of level formats, where each level is itself a tuple of elements
-        //  *
-        //  * @note If:
-        //  * 1. the levels are all ordered (i.e. has the `is_ordered == True` property)
-        //  * 2. if any of the level are do not have the is_ordered property, it must have the locate
-        //  * function, else return False. Then do a check that `m_comparisonHelper` defines
-        //  * a conjunctive merge (i.e. AND operation).
-        //  *
-        //  * Otherwise, raise a static_assert error.
-        //  */
+        template <std::size_t I, class... Args>
+        constexpr bool check_combinations(Args&&... args)
+        {
+            if constexpr (I == sizeof(m_levelsTuple))
+            {
+                // All combinations checked, verify the comparisonHelper result
+                return !m_comparisonHelper(std::forward<Args>(args)...);
+            }
+            else if constexpr (std::get<I>(std::tuple<Is...>{}) && !std::get<I>(m_levelsTuple).level_property().is_ordered)
+            {
+                // Unordered level, check all combinations of true/false
+                return check_combinations<I + 1>(std::forward<Args>(args)..., false) &&
+                    check_combinations<I + 1>(std::forward<Args>(args)..., true);
+            }
+            else
+            {
+                // Ordered level, always pass false to comparisonHelper
+                return check_combinations<I + 1>(std::forward<Args>(args)..., false);
+            }
+        }
+
+        // constexpr bool meet_criteria_helper()
         // {
-        //     constexpr bool all_ordered_or_has_locate
-        //         = ((std::decay_t<decltype(levels)>::is_ordered
-        //             || has_locate_v<std::decay_t<decltype(levels)>>) &&...);
-
-        //     // all unordered level should have locate function defined
-        //     static_assert(all_ordered_or_has_locate,
-        //                   "Unordered levels must have the locate function");
-
-        //     // get the number of unordered levels and the total number of combinations we need to
-        //     // check
-        //     constexpr auto num_unordered_levels = std::size_t{ (!levels.is_ordered + ...) };
-        //     constexpr auto total_combinations = (1 << num_unordered_levels);
-
-        //     // check that the total number of combinations of unordered levels is not too large
-        //     static_assert(total_combinations == (1 << num_unordered_levels),
-        //                   "Overflow: Too many unordered levels");
-
-        //     // for each combination of unordered levels evaluated to true/false,
-        //     // check that the function object `f` returns false
-        //     for (std::size_t i = 0; i < total_combinations; ++i)
-        //     {
-        //         // constexpr auto combination = std::array<bool, sizeof...(Levels)>{
-        //         // ((levels.is_ordered) ? false : (i & (1 << (num_unordered_levels - 1 -
-        //         // (!levels.is_ordered + ...)))) != 0)... };
-        //         constexpr auto combination = std::array<bool, sizeof...(Levels)>{
-        //             [i](auto&& level)
-        //             {
-        //                 if constexpr (level.is_ordered)
-        //                     return false;
-        //                 else
-        //                     return (i >> (num_unordered_levels - 1 - !level.is_ordered)) & 1;
-        //             }(levels)...
-        //         };
-        //         static_assert(!std::apply(f, combination),
-        //                       "Invalid combination of levels and function: f(...) is not false");
-        //     }
+        //     return ((std::get<Levels>(m_levelsTuple).level_property().is_ordered || has_locate_v<decltype(std::get<Levels>(m_levelsTuple))>) && ...);
         // }
+
+        constexpr void meet_criteria()
+        /**
+         * @brief Check that function, f, and levels meet the coiteration criteria.
+         *
+         * @note If:
+         * 1. the levels are all ordered (i.e. the `is_ordered == True` level property)
+         * 2. if any of the level are do not have the `is_ordered` property, it must have the locate
+         * function, else return False.
+         *
+         * Otherwise, raise a static_assert error.
+         */
+        {
+            // constexpr bool first_criteria_met = meet_criteria_helper();
+            // static_assert(
+            //     first_criteria_met,
+            //     "Coiteration not met because all levels must be either ordered, or have the locate function."
+            // );
+
+            constexpr bool criteria_met = check_combinations<0>();
+            static_assert(criteria_met, "Coiteration criteria not met because not conjunctive merge among the unordered levels");
+        }
 
         constexpr auto ordered_levels() const noexcept
         /**
