@@ -42,7 +42,7 @@ namespace xsparse
 
         public:
             // Function to access the LevelProperties object
-            constexpr LevelProperties LevelProperty() const
+            constexpr LevelProperties level_property() const
             {
                 return LevelProperties{};
             }

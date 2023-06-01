@@ -30,11 +30,11 @@ TEST_CASE("Singleton-BaseCase")
     }
 
     // Check basic stric properties of all singleton levels
-    // CHECK(s.LevelProperty().is_full);
-    // CHECK(s.LevelProperty().is_ordered);
-    // CHECK(s.LevelProperty().is_unique);
-    CHECK(s.LevelProperty().is_branchless);
-    CHECK(s.LevelProperty().is_compact);
+    // CHECK(s.level_property().is_full);
+    // CHECK(s.level_property().is_ordered);
+    // CHECK(s.level_property().is_unique);
+    CHECK(s.level_property().is_branchless);
+    CHECK(s.level_property().is_compact);
 }
 
 TEST_CASE("Singleton-COO")

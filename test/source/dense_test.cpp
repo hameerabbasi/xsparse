@@ -23,9 +23,9 @@ TEST_CASE("Dense-BaseCase")
     CHECK(loop == SIZE);
 
     // Check basic strict properties of all dense levels
-    CHECK(d.LevelProperty().is_full);
-    CHECK(!d.LevelProperty().is_branchless);
-    CHECK(d.LevelProperty().is_compact);
+    CHECK(d.level_property().is_full);
+    CHECK(!d.level_property().is_branchless);
+    CHECK(d.level_property().is_compact);
 }
 
 TEST_CASE("Dense-2D")
