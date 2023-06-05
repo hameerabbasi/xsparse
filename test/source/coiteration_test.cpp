@@ -227,14 +227,13 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
         hash_level{ 5, crd0 };
 
     // define a conjunctive function
-    auto fn = [](std::tuple<bool, bool> t) constexpr { return (std::get<0>(t) && std::get<1>(t));
-    };
+    auto fn = [](std::tuple<bool, bool> t) constexpr { return (std::get<0>(t) && std::get<1>(t)); };
 
     xsparse::level_capabilities::Coiterate<std::function<bool(std::tuple<bool, bool>)>,
                                            uintptr_t,
                                            uintptr_t,
-                                           std::tuple<decltype(dense_level),
-                                           decltype(hash_level)>, std::tuple<>>
+                                           std::tuple<decltype(dense_level), decltype(hash_level)>,
+                                           std::tuple<>>
         coiter(fn, dense_level, hash_level);
 
     // define iteration helper through dense and hashed level

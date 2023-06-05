@@ -57,57 +57,6 @@ namespace xsparse::level_capabilities
             {
                 throw std::invalid_argument("level sizes should be same");
             }
-
-            // check that the levels meet the coiteration criteria
-            meet_criteria();
-        }
-
-        template <std::size_t I, class... Args>
-        constexpr bool check_combinations(Args&&... args)
-        {
-            if constexpr (I == sizeof(m_levelsTuple))
-            {
-                // All combinations checked, verify the comparisonHelper result
-                return !m_comparisonHelper(std::forward<Args>(args)...);
-            }
-            else if constexpr (std::get<I>(std::tuple<Is...>{}) && !std::get<I>(m_levelsTuple).level_property().is_ordered)
-            {
-                // Unordered level, check all combinations of true/false
-                return check_combinations<I + 1>(std::forward<Args>(args)..., false) &&
-                    check_combinations<I + 1>(std::forward<Args>(args)..., true);
-            }
-            else
-            {
-                // Ordered level, always pass false to comparisonHelper
-                return check_combinations<I + 1>(std::forward<Args>(args)..., false);
-            }
-        }
-
-        // constexpr bool meet_criteria_helper()
-        // {
-        //     return ((std::get<Levels>(m_levelsTuple).level_property().is_ordered || has_locate_v<decltype(std::get<Levels>(m_levelsTuple))>) && ...);
-        // }
-
-        constexpr void meet_criteria()
-        /**
-         * @brief Check that function, f, and levels meet the coiteration criteria.
-         *
-         * @note If:
-         * 1. the levels are all ordered (i.e. the `is_ordered == True` level property)
-         * 2. if any of the level are do not have the `is_ordered` property, it must have the locate
-         * function, else return False.
-         *
-         * Otherwise, raise a static_assert error.
-         */
-        {
-            // constexpr bool first_criteria_met = meet_criteria_helper();
-            // static_assert(
-            //     first_criteria_met,
-            //     "Coiteration not met because all levels must be either ordered, or have the locate function."
-            // );
-
-            constexpr bool criteria_met = check_combinations<0>();
-            static_assert(criteria_met, "Coiteration criteria not met because not conjunctive merge among the unordered levels");
         }
 
         constexpr auto ordered_levels() const noexcept
@@ -119,15 +68,15 @@ namespace xsparse::level_capabilities
          * ordered/unordered levels. Also does a compiler-time check that the levels meet the
          * coiteration criteria given the function object `f`.
          *
-         * @tparam F - A function object that is used to compare elements from different ranges.
-         * @tparam Levels - A tuple of level formats, where each level is itself a tuple of elements
-         *
          * @return A tuple of true/false indicating ordered/unordered levels.
          */
         {
-            return std::apply([](const auto&... levels) {
-                return std::make_tuple(levels.level_property().is_ordered...);
-            }, m_levelsTuple);
+            return std::apply(
+                [](const auto&... levels) {
+                    return std::make_tuple(
+                        std::decay_t<decltype(levels)>::LevelProperties::is_ordered...);
+                },
+                m_levelsTuple);
         }
 
     public:
