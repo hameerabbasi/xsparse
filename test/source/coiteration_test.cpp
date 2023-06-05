@@ -211,7 +211,7 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
      *
      * This test checks that the lookup is done correctly.
      */
-    // constexpr uint8_t ZERO = 0;
+    constexpr uint8_t ZERO = 0;
 
     std::unordered_map<uintptr_t, uintptr_t> const umap1{ { 0, 1 }, { 2, 0 }, { 1, 2 } };
     std::vector<std::unordered_map<uintptr_t, uintptr_t>> const crd0{ umap1 };
@@ -236,6 +236,8 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
                                            std::tuple<>>
         coiter(fn, dense_level, hash_level);
 
+    auto test = coiter.coiter_helper(std::make_tuple(), ZERO)
+    
     // define iteration helper through dense and hashed level
     // auto it_helper1 = dense_level.iter_helper(std::make_tuple(), ZERO);
 
