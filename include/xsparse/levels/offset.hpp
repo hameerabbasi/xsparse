@@ -18,26 +18,26 @@ namespace xsparse
                   class PK,
                   class ContainerTraits
                   = util::container_traits<std::vector, std::unordered_set, std::unordered_map>,
-                  class LevelProperties = level_properties<false, true, true, true, false>>
+                  class _LevelProperties = level_properties<false, true, true, true, false>>
         class offset;
 
         template <class... LowerLevels,
                   class IK,
                   class PK,
                   class ContainerTraits,
-                  class LevelProperties>
-        class offset<std::tuple<LowerLevels...>, IK, PK, ContainerTraits, LevelProperties>
+                  class _LevelProperties>
+        class offset<std::tuple<LowerLevels...>, IK, PK, ContainerTraits, _LevelProperties>
             : public level_capabilities::coordinate_position_iterate<offset,
                                                                      std::tuple<LowerLevels...>,
                                                                      IK,
                                                                      PK,
                                                                      ContainerTraits,
-                                                                     LevelProperties>
+                                                                     _LevelProperties>
 
         {
-            static_assert(!LevelProperties::is_full);
-            static_assert(LevelProperties::is_branchless);
-            static_assert(!LevelProperties::is_compact);
+            static_assert(!_LevelProperties::is_full);
+            static_assert(_LevelProperties::is_branchless);
+            static_assert(!_LevelProperties::is_compact);
             using OffsetContainer = typename ContainerTraits::template Vec<PK>;
 
         public:
@@ -46,14 +46,15 @@ namespace xsparse
                                                  IK,
                                                  PK,
                                                  ContainerTraits,
-                                                 LevelProperties>;
+                                                 _LevelProperties>;
             using LevelCapabilities
                 = level_capabilities::coordinate_position_iterate<offset,
                                                                   std::tuple<LowerLevels...>,
                                                                   IK,
                                                                   PK,
                                                                   ContainerTraits,
-                                                                  LevelProperties>;
+                                                                  _LevelProperties>;
+            using LevelProperties = _LevelProperties;
 
         public:
             offset(IK size)
@@ -72,12 +73,6 @@ namespace xsparse
                 : m_size(std::move(size))
                 , m_offset(offset)
             {
-            }
-
-            // Function to access the LevelProperties object
-            constexpr LevelProperties level_property() const
-            {
-                return LevelProperties{};
             }
 
             inline std::pair<PK, PK> pos_bounds(typename BaseTraits::PKM1 pkm1) const noexcept
@@ -107,9 +102,9 @@ namespace xsparse
               class IK,
               class PK,
               class ContainerTraits,
-              class LevelProperties>
+              class _LevelProperties>
     struct util::coordinate_position_trait<
-        levels::offset<std::tuple<LowerLevels...>, IK, PK, ContainerTraits, LevelProperties>>
+        levels::offset<std::tuple<LowerLevels...>, IK, PK, ContainerTraits, _LevelProperties>>
     {
         using Coordinate = IK;
         using Position = PK;

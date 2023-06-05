@@ -20,25 +20,25 @@ namespace xsparse
                   class PK,
                   class ContainerTraits
                   = util::container_traits<std::vector, std::unordered_set, std::unordered_map>,
-                  class LevelProperties = level_properties<true, true, true, true, true>>
+                  class _LevelProperties = level_properties<true, true, true, true, true>>
         class singleton;
 
         template <class... LowerLevels,
                   class IK,
                   class PK,
                   class ContainerTraits,
-                  class LevelProperties>
-        class singleton<std::tuple<LowerLevels...>, IK, PK, ContainerTraits, LevelProperties>
+                  class _LevelProperties>
+        class singleton<std::tuple<LowerLevels...>, IK, PK, ContainerTraits, _LevelProperties>
             : public level_capabilities::coordinate_position_iterate<singleton,
                                                                      std::tuple<LowerLevels...>,
                                                                      IK,
                                                                      PK,
                                                                      ContainerTraits,
-                                                                     LevelProperties>
+                                                                     _LevelProperties>
 
         {
-            static_assert(LevelProperties::is_branchless);
-            static_assert(LevelProperties::is_compact);
+            static_assert(_LevelProperties::is_branchless);
+            static_assert(_LevelProperties::is_compact);
             using CrdContainer = typename ContainerTraits::template Vec<PK>;
 
         public:
@@ -47,14 +47,15 @@ namespace xsparse
                                                  IK,
                                                  PK,
                                                  ContainerTraits,
-                                                 LevelProperties>;
+                                                 _LevelProperties>;
             using LevelCapabilities
                 = level_capabilities::coordinate_position_iterate<singleton,
                                                                   std::tuple<LowerLevels...>,
                                                                   IK,
                                                                   PK,
                                                                   ContainerTraits,
-                                                                  LevelProperties>;
+                                                                  _LevelProperties>;
+            using LevelProperties = _LevelProperties;
 
         public:
             singleton(IK size)
@@ -73,12 +74,6 @@ namespace xsparse
                 : m_size(std::move(size))
                 , m_crd(crd)
             {
-            }
-
-            // Function to access the LevelProperties object
-            constexpr LevelProperties level_property() const
-            {
-                return LevelProperties{};
             }
 
             inline std::pair<PK, PK> pos_bounds(typename BaseTraits::PKM1 pkm1) const noexcept
@@ -113,9 +108,9 @@ namespace xsparse
               class IK,
               class PK,
               class ContainerTraits,
-              class LevelProperties>
+              class _LevelProperties>
     struct util::coordinate_position_trait<
-        levels::singleton<std::tuple<LowerLevels...>, IK, PK, ContainerTraits, LevelProperties>>
+        levels::singleton<std::tuple<LowerLevels...>, IK, PK, ContainerTraits, _LevelProperties>>
     {
         using Coordinate = IK;
         using Position = PK;
