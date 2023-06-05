@@ -13,22 +13,22 @@ namespace xsparse
         template <class LowerLevels,
                   class IK,
                   class PK,
-                  class LevelProperties = level_properties<true, true, true, false, true>>
+                  class _LevelProperties = level_properties<true, true, true, false, true>>
         class dense;
 
-        template <class... LowerLevels, class IK, class PK, class LevelProperties>
-        class dense<std::tuple<LowerLevels...>, IK, PK, LevelProperties>
+        template <class... LowerLevels, class IK, class PK, class _LevelProperties>
+        class dense<std::tuple<LowerLevels...>, IK, PK, _LevelProperties>
             : public level_capabilities::coordinate_value_iterate<dense,
                                                                   std::tuple<LowerLevels...>,
                                                                   IK,
                                                                   PK,
-                                                                  LevelProperties>
+                                                                  _LevelProperties>
 
         {
-            static_assert(LevelProperties::is_full);
-            static_assert(!LevelProperties::is_branchless);
-            static_assert(LevelProperties::is_compact);
-            static_assert(LevelProperties::is_ordered);
+            static_assert(_LevelProperties::is_full);
+            static_assert(!_LevelProperties::is_branchless);
+            static_assert(_LevelProperties::is_compact);
+            static_assert(_LevelProperties::is_ordered);
 
         public:
             using LevelCapabilities
@@ -36,17 +36,12 @@ namespace xsparse
                                                                std::tuple<LowerLevels...>,
                                                                IK,
                                                                PK,
-                                                               LevelProperties>;
+                                                               _LevelProperties>;
             using BaseTraits
-                = util::base_traits<dense, std::tuple<LowerLevels...>, IK, PK, LevelProperties>;
+                = util::base_traits<dense, std::tuple<LowerLevels...>, IK, PK, _LevelProperties>;
+            using LevelProperties = _LevelProperties;
 
         public:
-            // Function to access the LevelProperties object
-            constexpr LevelProperties level_property() const
-            {
-                return LevelProperties{};
-            }
-
             dense(IK size)
                 : m_size(std::move(size))
             {
@@ -80,9 +75,9 @@ namespace xsparse
         };
     }
 
-    template <class... LowerLevels, class IK, class PK, class LevelProperties>
+    template <class... LowerLevels, class IK, class PK, class _LevelProperties>
     struct util::coordinate_position_trait<
-        levels::dense<std::tuple<LowerLevels...>, IK, PK, LevelProperties>>
+        levels::dense<std::tuple<LowerLevels...>, IK, PK, _LevelProperties>>
     {
         using Coordinate = IK;
         using Position = PK;

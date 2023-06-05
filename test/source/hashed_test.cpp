@@ -36,11 +36,9 @@ TEST_CASE("Hashed-BaseCase")
     CHECK(l2 == crd[0].size());
 
     // Check basic stric properties of all hashed levels
-    // CHECK(!h.level_property().is_full);
-    CHECK(!h.level_property().is_ordered);
-    // CHECK(!h.level_property().is_unique);
-    CHECK(!h.level_property().is_branchless);
-    CHECK(!h.level_property().is_compact);
+    CHECK(!decltype(h)::LevelProperties::is_ordered);
+    CHECK(!decltype(h)::LevelProperties::is_branchless);
+    CHECK(!decltype(h)::LevelProperties::is_compact);
 }
 
 TEST_CASE("Dense-Hashed")

@@ -50,16 +50,12 @@ TEST_CASE("Range-DIA")
     CHECK(l1 == SIZE);
 
     // Check basic stric properties of all range levels
-    CHECK(!r.level_property().is_full);
-    // CHECK(r.level_property().is_ordered);
-    // CHECK(r.level_property().is_unique);
-    CHECK(!r.level_property().is_branchless);
-    CHECK(!r.level_property().is_compact);
+    CHECK(!decltype(r)::LevelProperties::is_full);
+    CHECK(!decltype(r)::LevelProperties::is_branchless);
+    CHECK(!decltype(r)::LevelProperties::is_compact);
 
     // Check basic properties of all offset levels
-    CHECK(!o.level_property().is_full);
-    // CHECK(o.level_property().is_ordered);
-    // CHECK(o.level_property().is_unique);
-    CHECK(o.level_property().is_branchless);
-    CHECK(!o.level_property().is_compact);
+    CHECK(!decltype(o)::LevelProperties::is_full);
+    CHECK(decltype(o)::LevelProperties::is_branchless);
+    CHECK(!decltype(o)::LevelProperties::is_compact);
 }
