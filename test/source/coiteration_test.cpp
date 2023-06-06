@@ -61,7 +61,7 @@ TEST_CASE("Coiteration-Dense-Dense")
     CHECK(fn(std::tuple(it1 == end1, it2 == end2)) == true);
 
     // Check the ordered levels
-    CHECK(coiter.ordered_levels() == std::make_tuple(true, true));
+    CHECK(coiter.ordered_level_mask() == std::make_tuple(true, true));
 }
 
 TEST_CASE("Coiteration-Dense-Dense-Dense")
@@ -193,7 +193,7 @@ TEST_CASE("Coiteration-Singleton-Singleton-Dense-Dense")
     CHECK(fn(std::tuple(it1 == end1, it2 == end2, it3 == end3, it4 == end4)) == true);
 
     // Check the ordered levels
-    CHECK(coiter.ordered_levels() == std::make_tuple(true, true, true, true));
+    CHECK(coiter.ordered_level_mask() == std::make_tuple(true, true, true, true));
 }
 
 TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")

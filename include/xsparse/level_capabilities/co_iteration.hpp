@@ -59,7 +59,7 @@ namespace xsparse::level_capabilities
             }
         }
 
-        constexpr auto ordered_levels() const noexcept
+        constexpr auto ordered_level_mask() const noexcept
         /**
          * @brief Compute a tuple of true/false indicating ordered/unordered levels.
          *
