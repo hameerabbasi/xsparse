@@ -10,6 +10,37 @@
 #include <unordered_map>
 #include <set>
 
+TEST_CASE("Hashed-BaseCase")
+{
+    constexpr uintptr_t SIZE0 = 3;
+    constexpr uint8_t ZERO = 0;
+
+    std::unordered_map<uintptr_t, uintptr_t> const umap1{ { 5, 2 }, { 6, 1 }, { 4, 0 } };
+    std::vector<std::unordered_map<uintptr_t, uintptr_t>> const crd{ umap1 };
+
+    xsparse::levels::hashed<
+        std::tuple<>,
+        uintptr_t,
+        uintptr_t,
+        xsparse::util::container_traits<std::vector, std::set, std::unordered_map>,
+        xsparse::level_properties<false, false, false, false, false>>
+        h{ SIZE0, crd };
+
+    // check iterating through a hashed level
+    uintptr_t l2 = 0;
+    for (auto const [i2, p2] : h.iter_helper(ZERO))
+    {
+        CHECK(crd[0].at(i2) == p2);
+        ++l2;
+    }
+    CHECK(l2 == crd[0].size());
+
+    // Check basic stric properties of all hashed levels
+    CHECK(!decltype(h)::LevelProperties::is_ordered);
+    CHECK(!decltype(h)::LevelProperties::is_branchless);
+    CHECK(!decltype(h)::LevelProperties::is_compact);
+}
+
 TEST_CASE("Dense-Hashed")
 {
     constexpr uintptr_t SIZE0 = 3;

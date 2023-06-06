@@ -31,6 +31,10 @@ TEST_CASE("Compressed-BaseCase")
         ++l;
     }
     CHECK(l == pos.back());
+
+    // Check basic strict properties of all compressed levels
+    CHECK(!decltype(s)::LevelProperties::is_branchless);
+    CHECK(decltype(s)::LevelProperties::is_compact);
 }
 
 TEST_CASE("Compressed-CSR")

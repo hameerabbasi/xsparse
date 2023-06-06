@@ -12,6 +12,28 @@
 #include <xsparse/util/container_traits.hpp>
 #include <xsparse/level_properties.hpp>
 
+
+TEST_CASE("Singleton-BaseCase")
+{
+    constexpr uintptr_t SIZE = 20;
+    constexpr uint8_t ZERO = 0;
+    std::vector<uintptr_t> const crd1{ 0, 1, 0, 1, 0, 3, 4 };
+
+    xsparse::levels::singleton<std::tuple<>, uintptr_t, uintptr_t> s{ SIZE, crd1 };
+
+    uintptr_t l2 = 0;
+    for (auto const [i2, p2] : s.iter_helper(std::make_tuple(), ZERO))
+    {
+        CHECK(l2 == p2);
+        CHECK(crd1[l2] == i2);
+        ++l2;
+    }
+
+    // Check basic stric properties of all singleton levels
+    CHECK(decltype(s)::LevelProperties::is_branchless);
+    CHECK(decltype(s)::LevelProperties::is_compact);
+}
+
 TEST_CASE("Singleton-COO")
 {
     constexpr uintptr_t SIZE = 100;

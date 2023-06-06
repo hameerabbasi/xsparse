@@ -22,19 +22,19 @@ namespace xsparse
                   class PK,
                   class ContainerTraits
                   = util::container_traits<std::vector, std::unordered_set, std::unordered_map>,
-                  class LevelProperties = level_properties<true, false, true, false, false>>
+                  class _LevelProperties = level_properties<true, false, true, false, false>>
         class hashed;
 
         template <class... LowerLevels,
                   class IK,
                   class PK,
                   class ContainerTraits,
-                  class LevelProperties>
-        class hashed<std::tuple<LowerLevels...>, IK, PK, ContainerTraits, LevelProperties>
+                  class _LevelProperties>
+        class hashed<std::tuple<LowerLevels...>, IK, PK, ContainerTraits, _LevelProperties>
         {
-            static_assert(!LevelProperties::is_ordered);
-            static_assert(!LevelProperties::is_branchless);
-            static_assert(!LevelProperties::is_compact);
+            static_assert(!_LevelProperties::is_ordered);
+            static_assert(!_LevelProperties::is_branchless);
+            static_assert(!_LevelProperties::is_compact);
             using CrdContainer = typename ContainerTraits::template Vec<
                 typename ContainerTraits::template Map<IK, PK>>;
 
@@ -44,7 +44,8 @@ namespace xsparse
                                                  IK,
                                                  PK,
                                                  ContainerTraits,
-                                                 LevelProperties>;
+                                                 _LevelProperties>;
+            using LevelProperties = _LevelProperties;
 
         public:
             class iteration_helper
@@ -180,9 +181,9 @@ namespace xsparse
               class IK,
               class PK,
               class ContainerTraits,
-              class LevelProperties>
+              class _LevelProperties>
     struct util::coordinate_position_trait<
-        levels::hashed<std::tuple<LowerLevels...>, IK, PK, ContainerTraits, LevelProperties>>
+        levels::hashed<std::tuple<LowerLevels...>, IK, PK, ContainerTraits, _LevelProperties>>
     {
         using Coordinate = IK;
         using Position = PK;

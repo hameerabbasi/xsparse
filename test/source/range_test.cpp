@@ -10,6 +10,7 @@
 
 #include <iostream>
 
+
 TEST_CASE("Range-DIA")
 {
     constexpr uintptr_t SIZE = 4;
@@ -47,4 +48,14 @@ TEST_CASE("Range-DIA")
         ++l1;
     }
     CHECK(l1 == SIZE);
+
+    // Check basic stric properties of all range levels
+    CHECK(!decltype(r)::LevelProperties::is_full);
+    CHECK(!decltype(r)::LevelProperties::is_branchless);
+    CHECK(!decltype(r)::LevelProperties::is_compact);
+
+    // Check basic properties of all offset levels
+    CHECK(!decltype(o)::LevelProperties::is_full);
+    CHECK(decltype(o)::LevelProperties::is_branchless);
+    CHECK(!decltype(o)::LevelProperties::is_compact);
 }
