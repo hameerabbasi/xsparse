@@ -30,6 +30,12 @@ namespace xsparse
                   class ContainerTraits,
                   class _LevelProperties>
         class hashed<std::tuple<LowerLevels...>, IK, PK, ContainerTraits, _LevelProperties>
+            : public level_capabilities::coordinate_pos_locate_iterate<hashed,
+                                                                       std::tuple<LowerLevels...>,
+                                                                       IK,
+                                                                       PK,
+                                                                       ContainerTraits,
+                                                                       _LevelProperties>
         {
             static_assert(!_LevelProperties::is_ordered);
             static_assert(!_LevelProperties::is_branchless);
