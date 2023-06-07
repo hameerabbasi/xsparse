@@ -59,25 +59,70 @@ namespace xsparse::level_capabilities
             }
         }
 
-        constexpr auto ordered_level_mask() const noexcept
+        template <std::size_t I>
+        consteval bool is_level_ordered() const noexcept
+        /**
+         * @brief Check if a single level is ordered or not at index I.
+         */
+        {
+            return std::decay_t<decltype(std::get<I>(m_levelsTuple))>::LevelProperties::is_ordered;
+        }
+
+        template <std::size_t... I>
+        consteval auto ordered_level_mask_impl(std::index_sequence<I...>) const noexcept
+        /**
+         * @brief Template recursion to construct tuples of true/false indicating ordered/unordered levels.
+         */
+        {
+            return std::make_tuple(is_level_ordered<I>()...);
+        }
+
+        consteval auto ordered_level_mask() const noexcept
         /**
          * @brief Compute a tuple of true/false indicating ordered/unordered levels.
          *
          * @details If all levels are ordered, return a tuple of true. If any of the levels
          * are unordered, return a tuple of true/false, where the true/false indicates
          * ordered/unordered levels. Also does a compiler-time check that the levels meet the
-         * coiteration criteria given the function object `f`.
+         * coiteration criteria given the function object `f`. This function IS compiler-evaluated.
          *
          * @return A tuple of true/false indicating ordered/unordered levels.
          */
         {
-            return std::apply(
-                [](const auto&... levels) {
-                    return std::make_tuple(
-                        std::decay_t<decltype(levels)>::LevelProperties::is_ordered...);
-                },
-                m_levelsTuple);
+            return ordered_level_mask_impl(std::index_sequence_for<Levels...>());
         }
+
+        // template <typename Tuple, int Index = 0>
+        // consteval auto filter(Tuple t)
+        // /**
+        //  * @brief Helper function to recursively filter out the levels that are ordered.
+        //  */
+        // {
+        //     constexpr auto tup_size = std::tuple_size_v<decltype(t())>;
+
+        //     if constexpr(Index == tup_size)
+        //         return std::tuple<>{};
+        //     else {
+        //         constexpr auto v = std::get<Index>(t());
+        //         if constexpr(v) {
+        //             constexpr auto level = std::get<Index>(m_levelsTuple);
+        //             return std::tuple_cat(std::tuple(level), filter<Tuple, 1+Index>(t));
+        //         } else {
+        //             return filter<Tuple, 1+Index>(t);
+        //         }
+        //     }
+        // }
+
+        // constexpr auto ordered_levels() const noexcept
+        // /**
+        //  * @brief Compute a tuple of the ordered levels in Coiterate.
+        //  * 
+        //  * @return A tuple of the ordered levels in Coiterate.
+        //  */
+        // {
+        //     constexpr auto levels = filter([&] {return ordered_level_mask();});
+        //     return levels;
+        // }
 
     public:
         class coiteration_helper
@@ -87,7 +132,13 @@ namespace xsparse::level_capabilities
             std::tuple<Is...> const m_i;
             PK const m_pkm1;
             std::tuple<typename Levels::LevelCapabilities::iteration_helper...> m_iterHelpers;
-
+            // pull out first element of tuple and rest via unpacking...
+            // -> if level is not ordered, static_assert to make sure has locate_v and also 
+            //    static_assert over F(false,...) and F(true,, ...)
+            // -> if level is ordered, static_assert to make sure is_ordered is true and
+            //     stati_ciassert over F(false, ...)
+            // have a tuple of only ordered levels stored as reference
+            //      -> and then add in locate
         public:
             explicit inline coiteration_helper(Coiterate const& coiterate,
                                                std::tuple<Is...> i,
@@ -105,6 +156,7 @@ namespace xsparse::level_capabilities
             {
             private:
                 coiteration_helper const& m_coiterHelper;
+                // TODO: add LevelCapabilities to hashed levels
                 std::tuple<typename Levels::LevelCapabilities::iteration_helper::iterator...>
                     iterators;
                 IK min_ik;
@@ -172,6 +224,8 @@ namespace xsparse::level_capabilities
 
                 template <class iter>
                 inline auto locate(iter i) const noexcept
+                // TODO: if consteval: locate over unordered levels (using is_ordered) and 
+                // deref other levels aka what is already here.
                 {
                     return (std::get<0>(*i) == min_ik)
                                ? std::optional<std::tuple_element_t<1, decltype(*i)>>(
@@ -182,6 +236,9 @@ namespace xsparse::level_capabilities
                 template <class iter>
                 inline void advance_iter(iter& i) const noexcept
                 {
+                    // TODO: anything that fails a conjunctive check, we must
+                    // have is_ordered and we iterate into, otherwise we can
+                    // locate into it. -> optimization for conjunctive operations
                     if (static_cast<IK>(std::get<0>(*i)) == min_ik)
                     {
                         ++i;

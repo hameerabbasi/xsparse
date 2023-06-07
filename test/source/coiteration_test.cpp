@@ -194,6 +194,7 @@ TEST_CASE("Coiteration-Singleton-Singleton-Dense-Dense")
 
     // Check the ordered levels
     CHECK(coiter.ordered_level_mask() == std::make_tuple(true, true, true, true));
+    // CHECK(coiter.ordered_levels() == std::make_tuple(s1, s2, s3, s4));
 }
 
 TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")

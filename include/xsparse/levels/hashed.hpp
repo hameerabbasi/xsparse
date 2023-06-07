@@ -9,6 +9,7 @@
 #include <unordered_map>
 
 #include <xsparse/util/base_traits.hpp>
+#include <xsparse/level_capabilities/coordinate_iterate.hpp>
 #include <xsparse/util/container_traits.hpp>
 #include <xsparse/level_properties.hpp>
 #include <xtl/xiterator_base.hpp>
@@ -31,6 +32,11 @@ namespace xsparse
                   class ContainerTraits,
                   class _LevelProperties>
         class hashed<std::tuple<LowerLevels...>, IK, PK, ContainerTraits, _LevelProperties>
+            : public level_capabilities::coordinate_value_iterate<hashed,
+                                                                     std::tuple<LowerLevels...>,
+                                                                     IK,
+                                                                     PK,
+                                                                     _LevelProperties>
         {
             static_assert(!_LevelProperties::is_ordered);
             static_assert(!_LevelProperties::is_branchless);
@@ -39,99 +45,23 @@ namespace xsparse
                 typename ContainerTraits::template Map<IK, PK>>;
 
         public:
+            using LevelCapabilities
+                = level_capabilities::locate_position_iterate<hashed,
+                                                                 std::tuple<LowerLevels...>,
+                                                                 IK,
+                                                                 PK,
+                                                                 ContainerTraits,
+                                                                 _LevelProperties>;
             using BaseTraits = util::base_traits<hashed,
                                                  std::tuple<LowerLevels...>,
                                                  IK,
                                                  PK,
                                                  ContainerTraits,
                                                  _LevelProperties>;
+
             using LevelProperties = _LevelProperties;
 
         public:
-            class iteration_helper
-            {
-                static_assert(std::is_nothrow_invocable_r_v<std::optional<typename BaseTraits::PK>,
-                                                            decltype(&BaseTraits::Level::locate),
-                                                            typename BaseTraits::Level&,
-                                                            typename BaseTraits::PKM1,
-                                                            typename BaseTraits::IK>);
-
-            private:
-                typename ContainerTraits::template Map<typename BaseTraits::IK,
-                                                       typename BaseTraits::PK>
-                    m_map;
-
-            public:
-                class iterator;
-                using value_type =
-                    typename std::pair<typename BaseTraits::IK, typename BaseTraits::PK>;
-                using difference_type = typename std::make_signed_t<typename BaseTraits::PK>;
-                using pointer =
-                    typename std::pair<typename BaseTraits::IK, typename BaseTraits::PK>*;
-                using reference = std::pair<typename BaseTraits::IK, typename BaseTraits::PK>;
-                using iterator_type = iterator;
-
-                class iterator : public xtl::xbidirectional_iterator_base2<iteration_helper>
-                {
-                private:
-                    using wrapped_iterator_type = typename ContainerTraits::template Map<
-                        typename BaseTraits::IK,
-                        typename BaseTraits::PK>::const_iterator;
-                    wrapped_iterator_type wrapped_it;
-
-                public:
-                    explicit inline iterator(wrapped_iterator_type wrapped) noexcept
-                        : wrapped_it(wrapped)
-                    {
-                    }
-
-                    inline std::tuple<typename BaseTraits::IK, typename BaseTraits::PK> operator*()
-                        const noexcept
-                    {
-                        return { wrapped_it->first, wrapped_it->second };
-                    }
-
-                    inline bool operator==(const iterator& other) const noexcept
-                    {
-                        return wrapped_it == other.wrapped_it;
-                    }
-
-                    inline iterator& operator++() noexcept
-                    {
-                        ++wrapped_it;
-                        return *this;
-                    }
-
-                    inline iterator& operator--() noexcept
-                    {
-                        --wrapped_it;
-                        return *this;
-                    }
-                };
-
-                explicit inline iteration_helper(
-                    typename ContainerTraits::template Map<typename BaseTraits::IK,
-                                                           typename BaseTraits::PK>& map) noexcept
-                    : m_map(map)
-                {
-                }
-
-                inline iterator_type begin() const noexcept
-                {
-                    return iterator_type{ m_map.begin() };
-                }
-
-                inline iterator_type end() const noexcept
-                {
-                    return iterator_type{ m_map.end() };
-                }
-            };
-
-            iteration_helper iter_helper(typename BaseTraits::PKM1 pkm1)
-            {
-                return iteration_helper{ this->m_crd[pkm1] };
-            }
-
             hashed(IK size)
                 : m_size(std::move(size))
                 , m_crd()

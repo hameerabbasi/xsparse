@@ -151,7 +151,7 @@ namespace xsparse::level_capabilities
     class coordinate_position_iterate
     {
         using BaseTraits = util::base_traits<T, IK, PK, LowerLevels...>;
-
+        
     public:
         class iteration_helper
         {
@@ -270,6 +270,101 @@ namespace xsparse::level_capabilities
             return iteration_helper{ *static_cast<typename BaseTraits::Level*>(this), i, pkm1 };
         }
     };
+
+    template <template <class...> class T, class IK, class PK, class... LowerLevels>
+    class locate_position_iterate
+    {
+        using BaseTraits = util::base_traits<T, IK, PK, LowerLevels...>;
+
+        public:
+            class iteration_helper
+            {
+                static_assert(std::is_nothrow_invocable_r_v<std::optional<typename BaseTraits::PK>,
+                                                            decltype(&BaseTraits::Level::locate),
+                                                            typename BaseTraits::Level&,
+                                                            typename BaseTraits::PKM1,
+                                                            typename BaseTraits::IK>);
+
+            private:
+                typename BaseTraits::Level const& m_level;
+                typename BaseTraits::I const m_i;
+                typename BaseTraits::PKM1 const m_pkm1;
+                typename BaseTraits::IK m_ik_begin, m_ik_end;
+
+            public:
+                class iterator;
+                using value_type =
+                    typename std::pair<typename BaseTraits::IK, typename BaseTraits::PK>;
+                using difference_type = typename std::make_signed_t<typename BaseTraits::PK>;
+                using pointer =
+                    typename std::pair<typename BaseTraits::IK, typename BaseTraits::PK>*;
+                using reference = std::pair<typename BaseTraits::IK, typename BaseTraits::PK>;
+                using iterator_type = iterator;
+
+                class iterator : public xtl::xbidirectional_iterator_base2<iteration_helper>
+                {
+
+                private:
+                    iteration_helper const& m_iterHelper;
+                    typename BaseTraits::IK m_ik;
+                    // using wrapped_iterator_type = typename ContainerTraits::template Map<
+                    //     typename BaseTraits::IK,
+                    //     typename BaseTraits::PK>::const_iterator;
+                    // wrapped_iterator_type m_iterHelper;
+
+                public:
+                    explicit inline iterator(iteration_helper iterationHelper) noexcept
+                        : m_iterHelper(iterationHelper)
+                        , m_ik(ik)
+                    {
+                    }
+
+                    inline std::tuple<typename BaseTraits::IK, typename BaseTraits::PK> operator*()
+                        const noexcept
+                    {
+                        return { m_iterHelper->first, m_iterHelper->second };
+                    }
+
+                    inline bool operator==(const iterator& other) const noexcept
+                    {
+                        return m_iterHelper == other.m_iterHelper;
+                    }
+
+                    inline iterator& operator++() noexcept
+                    {
+                        ++m_iterHelper;
+                        return *this;
+                    }
+
+                    inline iterator& operator--() noexcept
+                    {
+                        --m_iterHelper;
+                        return *this;
+                    }
+                };
+
+                explicit inline iteration_helper(typename BaseTraits::IK const& ik
+                                                 typename BaseTraits::PK const& pk map) noexcept
+                    : m_map(map)
+                {
+                }
+
+                inline iterator_type begin() const noexcept
+                {
+                    return iterator_type{ m_map.begin() };
+                }
+
+                inline iterator_type end() const noexcept
+                {
+                    return iterator_type{ m_map.end() };
+                }
+            };
+
+            iteration_helper iter_helper(typename BaseTraits::PKM1 pkm1)
+            {
+                return iteration_helper{ this->m_crd[pkm1] };
+            }
+    }
 }
 
 #endif  // XSPARSE_COORDINATE_ITERATE_HPP
