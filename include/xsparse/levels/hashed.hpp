@@ -45,6 +45,7 @@ namespace xsparse
                                                  PK,
                                                  ContainerTraits,
                                                  _LevelProperties>;
+            using 
             using LevelProperties = _LevelProperties;
 
         public:
