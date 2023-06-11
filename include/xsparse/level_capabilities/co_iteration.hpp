@@ -35,7 +35,7 @@ namespace xsparse::level_capabilities
      *
      * This check is done automatically in the constructor, via the function `
      */
-    
+
     template <class F, class IK, class PK, class Levels, class Is>
     class Coiterate;
 
@@ -70,7 +70,8 @@ namespace xsparse::level_capabilities
         template <std::size_t... I>
         consteval auto ordered_level_mask_impl(std::index_sequence<I...>) const noexcept
         /**
-         * @brief Template recursion to construct tuples of true/false indicating ordered/unordered levels.
+         * @brief Template recursion to construct tuples of true/false indicating ordered/unordered
+         * levels.
          */
         {
             return std::make_tuple(is_level_ordered<I>()...);
