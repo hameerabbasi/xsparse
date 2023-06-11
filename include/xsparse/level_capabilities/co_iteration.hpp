@@ -8,6 +8,34 @@
 
 namespace xsparse::level_capabilities
 {
+    /**
+     * @brief The class template for Coiteration of level formats.
+     *
+     * @details Uses a generic function object F to compare elements
+     * from different sequences at the same position and returns a tuple of the
+     * minimum index and the corresponding elements from each sequence.
+     *
+     * @tparam F - A function object that is used to compare elements from different ranges.
+     * Its input is a tuple of booleans corresponding to each of the levels. The output is a boolean
+     * that is the result of the function.
+     * @tparam IK - The type of the first element of each range.
+     * @tparam PK - The type of the second element of each range.
+     * @tparam Levels - A tuple of level formats, where each level is itself a tuple of elements
+     * to be iterated.
+     * @tparam Is - A tuple of indices that is used to keep track of the current position in each
+     * level.
+     *
+     * @note Coiteration is only allowed through tuples of levels if the following criterion is met:
+     * If:
+     * 1. the levels are all ordered (i.e. has the `is_ordered == True` property)
+     * 2. if any of the level are do not have the is_ordered property, it must have the locate
+     * function, else return False. Then do a check that `m_comparisonHelper` defines
+     * a conjunctive merge (i.e. AND operation).
+     * Otherwise, coiteration is not allowed.
+     *
+     * This check is done automatically in the constructor, via the function `
+     */
+    
     template <class F, class IK, class PK, class Levels, class Is>
     class Coiterate;
 
@@ -30,9 +58,38 @@ namespace xsparse::level_capabilities
             }
         }
 
-        // boolean mask compile-time func for ordered levels
+        template <std::size_t I>
+        consteval bool is_level_ordered() const noexcept
+        /**
+         * @brief Check if a single level is ordered or not at index I.
+         */
+        {
+            return std::decay_t<decltype(std::get<I>(m_levelsTuple))>::LevelProperties::is_ordered;
+        }
 
-        // a tuple of all the ordered levels?
+        template <std::size_t... I>
+        consteval auto ordered_level_mask_impl(std::index_sequence<I...>) const noexcept
+        /**
+         * @brief Template recursion to construct tuples of true/false indicating ordered/unordered levels.
+         */
+        {
+            return std::make_tuple(is_level_ordered<I>()...);
+        }
+
+        consteval auto ordered_level_mask() const noexcept
+        /**
+         * @brief Compute a tuple of true/false indicating ordered/unordered levels.
+         *
+         * @details If all levels are ordered, return a tuple of true. If any of the levels
+         * are unordered, return a tuple of true/false, where the true/false indicates
+         * ordered/unordered levels. Also does a compiler-time check that the levels meet the
+         * coiteration criteria given the function object `f`. This function IS compiler-evaluated.
+         *
+         * @return A tuple of true/false indicating ordered/unordered levels.
+         */
+        {
+            return ordered_level_mask_impl(std::index_sequence_for<Levels...>());
+        }
 
     public:
         class coiteration_helper
