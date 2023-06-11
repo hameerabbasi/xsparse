@@ -28,7 +28,7 @@ TEST_CASE("Hashed-BaseCase")
 
     // check iterating through a hashed level
     uintptr_t l2 = 0;
-    for (auto const [i2, p2] : h.iter_helper(ZERO))
+    for (auto const [i2, p2] : h.iter_helper(std::tuple(), ZERO))
     {
         CHECK(crd[0].at(i2) == p2);
         ++l2;
@@ -63,7 +63,7 @@ TEST_CASE("Dense-Hashed")
         CHECK(l1 == i1);
         CHECK(l1 == p1);
         uintptr_t l2 = 0;
-        for (auto const [i2, p2] : h.iter_helper(p1))
+        for (auto const [i2, p2] : h.iter_helper(i1, p1))
         {
             CHECK(crd[l1].at(i2) == p2);
             ++l2;
@@ -106,11 +106,11 @@ TEST_CASE("Hashed-Hashed")
         h1{ SIZE1, crd1 };
 
     uintptr_t l1 = 0;
-    for (auto const [i1, p1] : h.iter_helper(ZERO))
+    for (auto const [i1, p1] : h.iter_helper(std::tuple(), ZERO))
     {
         CHECK(crd0[ZERO].at(i1) == p1);
         uintptr_t l2 = 0;
-        for (auto const [i2, p2] : h1.iter_helper(p1))
+        for (auto const [i2, p2] : h1.iter_helper(i1, p1))
         {
             CHECK(crd1[p1].at(i2) == p2);
             ++l2;
@@ -138,7 +138,7 @@ TEST_CASE("Hashed-Singleton")
     xsparse::levels::singleton<std::tuple<decltype(h)>, uintptr_t, uintptr_t> s{ SIZE1, crd1 };
 
     uintptr_t l1 = 0;
-    for (auto const [i1, p1] : h.iter_helper(ZERO))
+    for (auto const [i1, p1] : h.iter_helper(std::tuple(), ZERO))
     {
         CHECK(crd0[ZERO].at(i1) == p1);
         uintptr_t l2 = p1;
@@ -179,7 +179,7 @@ TEST_CASE("Hashed-Singleton-Dense")
     xsparse::levels::dense<std::tuple<decltype(s)>, uintptr_t, uintptr_t> d{ SIZE2 };
 
     uintptr_t l1 = 0;
-    for (auto const [i1, p1] : h.iter_helper(ZERO))
+    for (auto const [i1, p1] : h.iter_helper(std::tuple(), ZERO))
     {
         CHECK(crd0[ZERO].at(i1) == p1);
         uintptr_t l2 = p1;
@@ -247,7 +247,7 @@ TEST_CASE("Dense-Hashed-Insert")
         CHECK(l1 == i1);
         CHECK(l1 == p1);
         uintptr_t l2 = 0;
-        for (auto const [i2, p2] : h.iter_helper(p1))
+        for (auto const [i2, p2] : h.iter_helper(i1, p1))
         {
             CHECK(crd_holder[l1].at(i2) == p2);
             ++l2;

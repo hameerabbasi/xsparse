@@ -30,6 +30,10 @@ namespace xsparse::level_capabilities
             }
         }
 
+        // boolean mask compile-time func for ordered levels
+
+        // a tuple of all the ordered levels?
+
     public:
         class coiteration_helper
         {
@@ -37,7 +41,7 @@ namespace xsparse::level_capabilities
             Coiterate const& m_coiterate;
             std::tuple<Is...> const m_i;
             PK const m_pkm1;
-            std::tuple<typename Levels::LevelCapabilities::iteration_helper...> m_iterHelpers;
+            std::tuple<typename Levels::iteration_helper...> m_iterHelpers;
 
         public:
             explicit inline coiteration_helper(Coiterate const& coiterate,
@@ -56,8 +60,7 @@ namespace xsparse::level_capabilities
             {
             private:
                 coiteration_helper const& m_coiterHelper;
-                std::tuple<typename Levels::LevelCapabilities::iteration_helper::iterator...>
-                    iterators;
+                std::tuple<typename Levels::iteration_helper::iterator...> iterators;
                 IK min_ik;
 
             private:
@@ -104,8 +107,7 @@ namespace xsparse::level_capabilities
 
                 explicit inline iterator(
                     coiteration_helper const& coiterHelper,
-                    std::tuple<typename Levels::LevelCapabilities::iteration_helper::iterator...>
-                        it) noexcept
+                    std::tuple<typename Levels::iteration_helper::iterator...> it) noexcept
                     : m_coiterHelper(coiterHelper)
                     , iterators(it)
                 {
