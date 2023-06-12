@@ -214,7 +214,9 @@ namespace xsparse::level_capabilities
 
                 inline iterator& operator++() noexcept
                 {
-                    std::apply([&](auto&... args) { ((advance_iter(args)), ...); }, iterators);
+                    // TODO: Loop over the iterators and advance iterators corresponding to levels that are ordered
+                    
+
                     min_helper(iterators,
                                std::apply([&](auto&... args) { return std::tuple(args.end()...); },
                                           m_coiterHelper.m_iterHelpers));
