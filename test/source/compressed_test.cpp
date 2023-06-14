@@ -10,6 +10,7 @@
 #include <xsparse/levels/dense.hpp>
 #include <xsparse/version.h>
 
+#include <xsparse/level_capabilities/locate.hpp>
 #include <xsparse/util/container_traits.hpp>
 #include <xsparse/level_properties.hpp>
 
@@ -35,6 +36,9 @@ TEST_CASE("Compressed-BaseCase")
     // Check basic strict properties of all compressed levels
     CHECK(!decltype(s)::LevelProperties::is_branchless);
     CHECK(decltype(s)::LevelProperties::is_compact);
+
+    // check the `s` level does not have locate() function
+    // static_assert(!has_locate_v<decltype(s)>);
 }
 
 TEST_CASE("Compressed-CSR")

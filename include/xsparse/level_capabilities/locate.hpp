@@ -7,6 +7,21 @@
 
 #include <type_traits>
 
+/**
+ * @brief The following code is used to determine if a class T has a member function locate().
+ *
+ * @tparam T - The class to check for the member function locate().
+ *
+ * @example
+ *
+ * struct A
+ * {
+ *    void locate() {}
+ * };
+ *
+ * has_locate_v<A> // true
+ */
+
 template <class T, class = void>
 struct has_locate : std::false_type
 {

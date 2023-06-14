@@ -5,6 +5,7 @@
 #include <tuple>
 #include <algorithm>
 #include <stdexcept>
+#include <xsparse/level_capabilities/locate.hpp>
 
 namespace xsparse::level_capabilities
 {
@@ -59,7 +60,7 @@ namespace xsparse::level_capabilities
         }
 
         template <std::size_t I>
-        consteval bool is_level_ordered() const noexcept
+        constexpr bool is_level_ordered() const noexcept
         /**
          * @brief Check if a single level is ordered or not at index I.
          */
@@ -68,7 +69,7 @@ namespace xsparse::level_capabilities
         }
 
         template <std::size_t... I>
-        consteval auto ordered_level_mask_impl(std::index_sequence<I...>) const noexcept
+        constexpr auto ordered_level_mask_impl(std::index_sequence<I...>) const noexcept
         /**
          * @brief Template recursion to construct tuples of true/false indicating ordered/unordered
          * levels.
@@ -77,7 +78,7 @@ namespace xsparse::level_capabilities
             return std::make_tuple(is_level_ordered<I>()...);
         }
 
-        consteval auto ordered_level_mask() const noexcept
+        constexpr auto ordered_level_mask() const noexcept
         /**
          * @brief Compute a tuple of true/false indicating ordered/unordered levels.
          *
@@ -176,13 +177,30 @@ namespace xsparse::level_capabilities
 
                 inline auto get_PKs() const noexcept
                 {
-                    return std::apply([&](auto&... args)
-                                      { return std::make_tuple(locate(args)...); },
-                                      this->iterators);
+                    /**
+                     * @brief Return tuple of PKs from each level.
+                     *
+                     * @details If the level is ordered, return the PK from the iterator using
+                     * dereferencing `*iter`. If the level is unordered, return the PK from
+                     * the iterator using `iter.locate()`.
+                     */
+                    return std::apply(
+                        [&](auto&... args)
+                        {
+                            return std::make_tuple((has_locate_v<decltype(args)>
+                                                        ? args.locate(m_coiterHelper.m_pkm1, min_ik)
+                                                        : deref_PKs(args))...);
+                        },
+                        this->iterators);
+
+                    // return std::apply([&](auto&... args)
+                    // {
+                    //     return std::make_tuple(deref_PKs(args)...);
+                    // }, this->iterators);
                 }
 
                 template <class iter>
-                inline auto locate(iter i) const noexcept
+                inline auto deref_PKs(iter i) const noexcept
                 {
                     return (std::get<0>(*i) == min_ik)
                                ? std::optional<std::tuple_element_t<1, decltype(*i)>>(
@@ -214,9 +232,24 @@ namespace xsparse::level_capabilities
 
                 inline iterator& operator++() noexcept
                 {
-                    // TODO: Loop over the iterators and advance iterators corresponding to levels that are ordered
-                    
+                    // if A \union B and A is ordered but B is not -> will raise compile time error
 
+                    // A \intersect B (A has 1000 elements and B has 1 elements)
+                    // A is ordered and B is not
+                    // we just have to iterate over A and then check B.locate(ik) whenever
+                    // A has non-zero value
+
+                    // If the level supports locate(), then the min_ik is known and is given to the
+                    // locate function
+
+                    // TODO: only advance_iter(args) if the iterator corresponds to ordered level
+                    // auto levelMask = m_coiterHelper.m_coiterate.ordered_level_mask();
+                    // std::size_t i = 0;
+                    // std::apply([&](auto&... args) {
+                    //     ((std::get<i++>(levelMask) ? advance_iter(args) : void()), ...);
+                    // }, iterators);
+
+                    std::apply([&](auto&... args) { ((advance_iter(args)), ...); }, iterators);
                     min_helper(iterators,
                                std::apply([&](auto&... args) { return std::tuple(args.end()...); },
                                           m_coiterHelper.m_iterHelpers));

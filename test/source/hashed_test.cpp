@@ -2,6 +2,7 @@
 #include <xsparse/levels/hashed.hpp>
 #include <xsparse/levels/dense.hpp>
 #include <xsparse/levels/singleton.hpp>
+#include <xsparse/level_capabilities/locate.hpp>
 
 #include <xsparse/util/container_traits.hpp>
 #include <xsparse/level_properties.hpp>
@@ -39,6 +40,9 @@ TEST_CASE("Hashed-BaseCase")
     CHECK(!decltype(h)::LevelProperties::is_ordered);
     CHECK(!decltype(h)::LevelProperties::is_branchless);
     CHECK(!decltype(h)::LevelProperties::is_compact);
+
+    // check the `h` level has locate() function
+    // static_assert(has_locate_v<decltype(h)>);
 }
 
 TEST_CASE("Dense-Hashed")

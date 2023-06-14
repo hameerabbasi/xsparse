@@ -5,6 +5,7 @@
 #include <xsparse/levels/dense.hpp>
 #include <xsparse/version.h>
 #include <xsparse/level_properties.hpp>
+#include <xsparse/level_capabilities/locate.hpp>
 
 TEST_CASE("Dense-BaseCase")
 {
@@ -26,6 +27,8 @@ TEST_CASE("Dense-BaseCase")
     CHECK(decltype(d)::LevelProperties::is_full);
     CHECK(!decltype(d)::LevelProperties::is_branchless);
     CHECK(decltype(d)::LevelProperties::is_compact);
+
+    // static_assert(!has_locate_v<decltype(d)>);
 }
 
 TEST_CASE("Dense-2D")
