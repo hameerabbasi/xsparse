@@ -28,7 +28,7 @@ TEST_CASE("Dense-BaseCase")
     CHECK(!decltype(d)::LevelProperties::is_branchless);
     CHECK(decltype(d)::LevelProperties::is_compact);
 
-    // static_assert(!has_locate_v<decltype(d)>);
+    static_assert(!has_locate_v<decltype(d)>);
 }
 
 TEST_CASE("Dense-2D")

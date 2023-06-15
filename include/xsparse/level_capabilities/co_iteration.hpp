@@ -187,12 +187,13 @@ namespace xsparse::level_capabilities
                     return std::apply(
                         [&](auto&... args)
                         {
-                            return std::make_tuple((has_locate_v<decltype(args)>
+                            return std::make_tuple((has_locate_v<std::decay_t<decltype(args)>>
                                                         ? args.locate(m_coiterHelper.m_pkm1, min_ik)
                                                         : deref_PKs(args))...);
                         },
                         this->iterators);
 
+                    // OLD IMPLEMENTATION:
                     // return std::apply([&](auto&... args)
                     // {
                     //     return std::make_tuple(deref_PKs(args)...);
