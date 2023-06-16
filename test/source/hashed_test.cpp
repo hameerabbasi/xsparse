@@ -37,9 +37,9 @@ TEST_CASE("Hashed-BaseCase")
     CHECK(l2 == crd[0].size());
 
     // Check basic stric properties of all hashed levels
-    CHECK(!decltype(h)::LevelProperties::is_ordered);
-    CHECK(!decltype(h)::LevelProperties::is_branchless);
-    CHECK(!decltype(h)::LevelProperties::is_compact);
+    static_assert(!decltype(h)::LevelProperties::is_ordered);
+    static_assert(!decltype(h)::LevelProperties::is_branchless);
+    static_assert(!decltype(h)::LevelProperties::is_compact);
 
     // check the `h` level has locate() function
     static_assert(has_locate_v<decltype(h)>);

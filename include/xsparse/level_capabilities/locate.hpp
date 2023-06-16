@@ -29,10 +29,6 @@ struct has_locate : std::false_type
 {
 };
 
-// template <class T>
-// struct has_locate<T, decltype(T::locate)> : std::true_type
-// {
-// };
 template <class T>
 struct has_locate<T, std::void_t<decltype(&T::locate)>> : std::true_type
 {
