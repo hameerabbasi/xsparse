@@ -46,8 +46,6 @@ namespace xsparse::util
          * @tparam Fn - The function to apply to each element of the tuple.
          * @tparam Argument - The tuple to apply the function to.
          * @tparam Ns - Parameter pack of the indices of the tuple.
-         *
-         * @return if constexpr(... == 0) return std::tuple<>()
          */
         if constexpr (sizeof...(Ns) == 0)
             return std::tuple<>();  // empty tuple
@@ -83,8 +81,6 @@ namespace xsparse::util
          *
          * @tparam Fn - The function to apply to each element of the tuple.
          * @tparam Ts - The types of the tuple.
-         *
-         * @return if constexpr(... == 0) return std::tuple<>()
          */
         return tuple_transform_impl(
             std::forward<Fn>(fn), tuple, std::make_index_sequence<sizeof...(Ts)>());
