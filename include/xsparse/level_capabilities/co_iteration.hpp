@@ -178,10 +178,10 @@ namespace xsparse::level_capabilities
 
                 template <std::size_t I>
                 inline std::enable_if_t<
-                    std::tuple_element_t<I, decltype(iterators)>::parent_type::
-                        LevelProperties::is_ordered,
-                    std::optional<typename std::tuple_element_t<I,
-                                                  decltype(iterators)>::parent_type::BaseTraits::PK>>
+                    std::tuple_element_t<I, decltype(iterators)>::parent_type::LevelProperties::
+                        is_ordered,
+                    std::optional<typename std::tuple_element_t<I, decltype(iterators)>::
+                                      parent_type::BaseTraits::PK>>
                 get_PKs_level() const noexcept
                 {
                     return deref_PKs(std::get<I>(iterators));
@@ -189,13 +189,12 @@ namespace xsparse::level_capabilities
 
                 template <std::size_t I>
                 inline std::enable_if_t<
-                    !std::tuple_element_t<I, decltype(iterators)>::parent_type::
-                            LevelProperties::is_ordered
+                    !std::tuple_element_t<I, decltype(iterators)>::parent_type::LevelProperties::
+                            is_ordered
                         && has_locate_v<
-                            typename std::tuple_element_t<I,
-                                                          decltype(iterators)>::parent_type>,
-                    std::optional<typename std::tuple_element_t<I,
-                                                  decltype(iterators)>::parent_type::BaseTraits::PK>>
+                            typename std::tuple_element_t<I, decltype(iterators)>::parent_type>,
+                    std::optional<typename std::tuple_element_t<I, decltype(iterators)>::
+                                      parent_type::BaseTraits::PK>>
                 get_PKs_level() const noexcept
                 {
                     return std::get<I>(this->m_coiterHelper.m_coiterate.m_levelsTuple)
@@ -203,7 +202,8 @@ namespace xsparse::level_capabilities
                 }
 
                 template <std::size_t... I>
-                inline auto get_PKs_complete([[maybe_unused]] std::index_sequence<I...> i) const noexcept
+                inline auto get_PKs_complete(
+                    [[maybe_unused]] std::index_sequence<I...> i) const noexcept
                 {
                     return std::make_tuple(get_PKs_level<I>()...);
                 }
@@ -234,7 +234,8 @@ namespace xsparse::level_capabilities
                     //     },
                     //     std::make_index_sequence<std::tuple_size_v<decltype(iterators)>>
                     // );
-                    return get_PKs_complete(std::make_index_sequence<std::tuple_size_v<decltype(iterators)>>{});
+                    return get_PKs_complete(
+                        std::make_index_sequence<std::tuple_size_v<decltype(iterators)>>{});
 
                     // return tuple_transform(
                     //     get_PKs_complete(),
