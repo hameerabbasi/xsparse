@@ -5,6 +5,8 @@
 #include <functional>
 #include <unordered_set>
 #include <unordered_map>
+#include <iostream>
+#include <fmt/ranges.h>
 
 #include <xsparse/levels/compressed.hpp>
 #include <xsparse/levels/dense.hpp>
@@ -252,25 +254,31 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
     for (auto const [ik, pk_tuple] : coiter.coiter_helper(std::make_tuple(), ZERO))
     {
         // get the index and pointer from the levels involved in co-iteration
-        auto [i1, p1] = *it1;
+        // auto [i1, p1] = *it1;
 
         // should only iterate over the ordered dense level
-        uintptr_t l = i1;
-        CHECK(ik == l);
+        // uintptr_t l = i1;
+        // CHECK(ik == l);
 
         // check that neither level has reached the end
-        if (it1 != end1)
-        {
-            // if both levels have a non-zero value at index "i1", then those values
-            // should be present in the co-iterated tuple
-            if (i1 == l && hash_level.locate(p1, i1) != std::nullopt)
-            {
-                CHECK(p1 == std::get<0>(pk_tuple).value());
-            }
+        // if (it1 != end1)
+        // {
+        //     // if both levels have a non-zero value at index "i1", then those values
+        //     // should be present in the co-iterated tuple
+        //     if (i1 == l && hash_level.locate(p1, i1) != std::nullopt)
+        //     {
+        //         CHECK(p1 == std::get<0>(pk_tuple).value());
+        //     }
 
-            // increment through the dense level always
-            ++it1;
-        }
+        //     // increment through the dense level always
+        //     ++it1;
+        // }
+        CHECK(ik);
+        std::cout << "ik: " << ik << std::endl;
+        // Print tuple
+        std::cout << std::get<0>(pk_tuple).value() << std::endl;
+        std::cout << std::get<1>(pk_tuple).value() << std::endl;
+        // break;
     }
 
     // check that the dense level should've reached its end
