@@ -204,49 +204,28 @@ namespace xsparse::level_capabilities
                 template <std::size_t... I>
                 inline auto get_PKs_complete(
                     [[maybe_unused]] std::index_sequence<I...> i) const noexcept
+                /**
+                 * @brief Helper function to obtain PKs from each level's iterator.
+                 *
+                 * @details Calls overriden `get_PKs_level` function that are defined at
+                 * compile-time for a ordered, or unordered level.
+                 *
+                 */
                 {
                     return std::make_tuple(get_PKs_level<I>()...);
                 }
 
                 inline auto get_PKs() const noexcept
+                /**
+                 * @brief Return tuple of PKs from each level.
+                 *
+                 * @details If the level is ordered, return the PK from the iterator using
+                 * dereferencing `*iter`. If the level is unordered, return the PK from
+                 * the iterator using `iter.locate()`.
+                 */
                 {
-                    /**
-                     * @brief Return tuple of PKs from each level.
-                     *
-                     * @details If the level is ordered, return the PK from the iterator using
-                     * dereferencing `*iter`. If the level is unordered, return the PK from
-                     * the iterator using `iter.locate()`.
-                     */
-
-                    // return std::apply(
-                    //     [&](
-                    //         auto&... args
-                    //     )
-                    //     {
-                    //         return std::make_tuple(get_PKs_level()...);
-                    //     }, std::integral_constant<std::size_t,
-                    //     std::make_index_sequence<std::tuple_size_v<decltype(iterators)>>>{}
-                    // );
-                    // return std::apply(
-                    //     [&](auto&... args)
-                    //     {
-                    //         return std::make_tuple(get_PKs_level()...);
-                    //     },
-                    //     std::make_index_sequence<std::tuple_size_v<decltype(iterators)>>
-                    // );
                     return get_PKs_complete(
                         std::make_index_sequence<std::tuple_size_v<decltype(iterators)>>{});
-
-                    // return tuple_transform(
-                    //     get_PKs_complete(),
-                    //     // this->iterators,
-                    //     std::make_tuple(std::make_index_sequence<std::tuple_size_v<decltype(iterators)>>{}...));
-
-                    // OLD IMPLEMENTATION:
-                    // return std::apply([&](auto&... args)
-                    // {
-                    //     return std::make_tuple(deref_PKs(args)...);
-                    // }, this->iterators);
                 }
 
                 template <class iter>
