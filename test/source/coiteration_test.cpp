@@ -18,6 +18,7 @@
 #include <xsparse/level_properties.hpp>
 #include <xsparse/level_capabilities/co_iteration.hpp>
 #include <xsparse/level_capabilities/coordinate_iterate.hpp>
+#include <xsparse/util/template_utils.hpp>
 
 TEST_CASE("Coiteration-Dense-Dense")
 {
@@ -217,7 +218,7 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
      */
     constexpr uint8_t ZERO = 0;
 
-    std::unordered_map<uintptr_t, uintptr_t> const umap1{ { 0, 1 }, { 2, 0 }, { 1, 2 } };
+    std::unordered_map<uintptr_t, uintptr_t> const umap1{ { 0, 1 }, { 2, 5 }, { 1, 2 } };
     std::vector<std::unordered_map<uintptr_t, uintptr_t>> const crd0{ umap1 };
 
     // initialize the two levels to be coiterated
@@ -248,9 +249,15 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
     auto it1 = it_helper1.begin();
     auto end1 = it_helper1.end();
 
+
+    // std::tuple<int, float, double, char> tuple(1, 2.5f, 3.7, 'A');
+    // std::tuple<bool, bool, bool, bool> mask(true, false, true, false);
+    // xsparse::util::applyToTuple(xsparse::util::applyFunction<int>, tuple, mask);
+    // xsparse::util::apply_to_tuple(xsparse::util::applyFunction<int>, tuple, mask);
+
     // when co-iterating over levels that are unordered (i.e. hashed), then we use locate to
     // check
-    // if the index exists in the hashed level. If not, then we skip it.
+    // if the index exists in the hashed level. If not, then we skip it.    
     for (auto const [ik, pk_tuple] : coiter.coiter_helper(std::make_tuple(), ZERO))
     {
         // get the index and pointer from the levels involved in co-iteration
@@ -276,8 +283,8 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
         CHECK(ik);
         std::cout << "ik: " << ik << std::endl;
         // Print tuple
-        std::cout << std::get<0>(pk_tuple).value() << std::endl;
-        std::cout << std::get<1>(pk_tuple).value() << std::endl;
+        // std::cout << "pk0: " << std::get<0>(pk_tuple).value() << std::endl;
+        // std::cout << "pk1: " << std::get<1>(pk_tuple).value() << std::endl;
         // break;
     }
 

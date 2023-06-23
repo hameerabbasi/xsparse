@@ -1,6 +1,6 @@
 #ifndef XSPARSE_CO_ITERATION_HPP
 #define XSPARSE_CO_ITERATION_HPP
-
+#include <iostream>
 #include <vector>
 #include <tuple>
 #include <algorithm>
@@ -155,9 +155,20 @@ namespace xsparse::level_capabilities
                                                   const std::tuple<T2...>& t2,
                                                   std::index_sequence<I...>)
                 {
+                    std::cout << "Number of elements in t1: " << sizeof...(T1) << std::endl;
+                    std::cout << "Number of elements in t1: " << sizeof...(T1) << std::endl;
+                    std::cout << "Index sequence I: ";
+                    ((std::cout << I << ' '), ...); // Print each index
+                    std::cout << std::endl;
+                    std::cout << "t1: ";
+                    ((std::cout << std::get<0>(*std::get<I>(t1)) << ' '), ...); // Print each index
+                    std::cout << std::max({ (std::get<I>(t1) != std::get<I>(t2))
+                                            ? std::get<0>(*std::get<I>(t1))
+                                            : min_ik... }) << std::endl;
                     min_ik = std::min({ (std::get<I>(t1) != std::get<I>(t2))
                                             ? std::get<0>(*std::get<I>(t1))
                                             : min_ik... });
+                    std::cout << "calc_min_ik after: " << min_ik << std::endl;
                 }
 
             public:
@@ -176,6 +187,38 @@ namespace xsparse::level_capabilities
                                           m_coiterHelper.m_iterHelpers));
                 }
 
+                // Apply the function to the element if the mask value is true
+                template <typename Function, typename T>
+                inline void apply_if(const Function& function, const T& element, bool mask_value) {
+                    if (mask_value) {
+                        function(element);
+                    }
+                }
+
+                // Apply the function to each element in the tuple based on the mask
+                template <typename Function, typename... Args, typename... MaskArgs, std::size_t... Indices>
+                inline void apply_to_tuple_helper(
+                    const Function& function,
+                    const std::tuple<Args...>& tuple,
+                    const std::tuple<MaskArgs...>& mask,
+                    std::index_sequence<Indices...>
+                ) noexcept {
+                    (apply_if(function, std::get<Indices>(tuple), std::get<Indices>(mask)), ...);
+                }
+
+                // TODO:
+                // 1. Can we replace `MaskArgs` with a boolean template parameter?
+                // 2. 
+                // Apply the function to each element in the tuple if the corresponding mask element is true
+                template <typename Function, typename... Args, typename... MaskArgs>
+                inline void apply_to_tuple(
+                    const Function& function,
+                    const std::tuple<Args...>& tuple,
+                    const std::tuple<MaskArgs...>& mask
+                ) noexcept {
+                    apply_to_tuple_helper(function, tuple, mask, std::index_sequence_for<Args...>{});
+                }
+
                 template <std::size_t I>
                 inline std::enable_if_t<
                     std::tuple_element_t<I, decltype(iterators)>::parent_type::LevelProperties::
@@ -183,7 +226,8 @@ namespace xsparse::level_capabilities
                     std::optional<typename std::tuple_element_t<I, decltype(iterators)>::
                                       parent_type::BaseTraits::PK>>
                 get_PKs_level() const noexcept
-                {
+                {   
+                    std::cout << "get_PKs_level_derf: " << I << std::endl;
                     return deref_PKs(std::get<I>(iterators));
                 }
 
@@ -197,6 +241,8 @@ namespace xsparse::level_capabilities
                                       parent_type::BaseTraits::PK>>
                 get_PKs_level() const noexcept
                 {
+                    std::cout << "get_PKs_level: " << I << std::endl;
+                    std::cout << "min_ik: " << min_ik << std::endl;
                     return std::get<I>(this->m_coiterHelper.m_coiterate.m_levelsTuple)
                         .locate(m_coiterHelper.m_pkm1, min_ik);
                 }
@@ -262,13 +308,26 @@ namespace xsparse::level_capabilities
                 inline iterator& operator++() noexcept
                 {
                     // TODO: only advance_iter(args) if the iterator corresponds to ordered level
+                    // ORIGINAL:
+                    // std::apply([&](auto&... args) { ((advance_iter(args)), ...); }, iterators);
+                    
+                    // Attempt 1: This doesn't work cuz of the i=0 runtime.
                     // auto levelMask = m_coiterHelper.m_coiterate.ordered_level_mask();
                     // std::size_t i = 0;
                     // std::apply([&](auto&... args) {
                     //     ((std::get<i++>(levelMask) ? advance_iter(args) : void()), ...);
                     // }, iterators);
 
-                    std::apply([&](auto&... args) { ((advance_iter(args)), ...); }, iterators);
+                    // Attempt 2: This also doesn't work.
+                    // std::apply([&](auto&... args) { ((
+                    //     apply_to_tuple(advance_iter(args), args, m_coiterHelper.m_coiterate.ordered_level_mask())
+                    // ), ...); }, iterators);
+
+                    // Attempt 3: This for some reason doesn't work now because of the mask...
+                    std::apply([&](auto&... args) { ((
+                        apply_to_tuple([&](auto& arg) { advance_iter(arg); }, args, m_coiterHelper.m_coiterate.ordered_level_mask())
+                    ), ...); }, iterators);
+
                     min_helper(iterators,
                                std::apply([&](auto&... args) { return std::tuple(args.end()...); },
                                           m_coiterHelper.m_iterHelpers));
