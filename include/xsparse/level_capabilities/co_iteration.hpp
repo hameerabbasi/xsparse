@@ -154,6 +154,22 @@ namespace xsparse::level_capabilities
                 inline constexpr void calc_min_ik(const std::tuple<T1...>& t1,
                                                   const std::tuple<T2...>& t2,
                                                   std::index_sequence<I...>)
+                /**
+                 * @brief Calculate the minimum index from a tuple of elements based on comparison and conditions.
+                 *
+                 * @tparam T1... - Types of the elements in the first tuple. 
+                 * @tparam T2... - Types of the elements in the second tuple. 
+                 * @param t1 - The first tuple. This is generally the current
+                 * position of the iterator.
+                 * @param t2 - The second tuple. This is generally the end
+                 * position of the iterator.
+                 *
+                 * @details This function compares the elements of `t1` and `t2` at each corresponding index,
+                 * and calculates the minimum index based on certain conditions. The elements at the same index
+                 * in `t1` and `t2` are compared using the `!=` operator, and if they are not equal, the element
+                 * in `t1` is compared to the current value of `min_ik`. If it is less than the current `min_ik`,
+                 * `min_ik` is updated to the element's value. The minimum index is returned after all comparisons.
+                 */
                 {
                     std::cout << "Number of elements in t1: " << sizeof...(T1) << std::endl;
                     std::cout << "Number of elements in t1: " << sizeof...(T1) << std::endl;
@@ -206,9 +222,6 @@ namespace xsparse::level_capabilities
                     (apply_if(function, std::get<Indices>(tuple), std::get<Indices>(mask)), ...);
                 }
 
-                // TODO:
-                // 1. Can we replace `MaskArgs` with a boolean template parameter?
-                // 2. 
                 // Apply the function to each element in the tuple if the corresponding mask element is true
                 template <typename Function, typename... Args, typename... MaskArgs>
                 inline void apply_to_tuple(
@@ -218,6 +231,34 @@ namespace xsparse::level_capabilities
                 ) noexcept {
                     apply_to_tuple_helper(function, tuple, mask, std::index_sequence_for<Args...>{});
                 }
+
+                // Attempt 2 at apply_to_tuple
+                // template <typename T, typename Function>
+                // void apply_if(T&& value, Function&& func, std::true_type) {
+                //     std::forward<Function>(func)(std::forward<T>(value));
+                // }
+
+                // template <typename T, typename Function>
+                // void apply_if(T&&, Function&&, std::false_type) {
+                //     // Do nothing when the mask value is false.
+                // }
+
+                // template <bool Condition, typename Tuple, typename MaskTuple, typename Function, std::size_t... Is>
+                // void apply_if_impl(Tuple&& tuple, MaskTuple&& maskTuple, Function&& func, std::index_sequence<Is...>) {
+                //     (apply_if(std::get<Is>(std::forward<Tuple>(tuple)),
+                //             std::forward<Function>(func),
+                //             std::get<Is>(std::forward<MaskTuple>(maskTuple))), ...);
+                // }
+
+                // template <bool Condition, typename Tuple, typename MaskTuple, typename Function>
+                // void apply_if(Tuple&& tuple, MaskTuple&& maskTuple, Function&& func) {
+                //     constexpr std::size_t TupleSize = std::tuple_size_v<std::decay_t<Tuple>>;
+                //     apply_if_impl<Condition>(std::forward<Tuple>(tuple),
+                //                             std::forward<MaskTuple>(maskTuple),
+                //                             std::forward<Function>(func),
+                //                             std::make_index_sequence<TupleSize>{});
+                // }
+
 
                 template <std::size_t I>
                 inline std::enable_if_t<
@@ -311,6 +352,14 @@ namespace xsparse::level_capabilities
                     // ORIGINAL:
                     // std::apply([&](auto&... args) { ((advance_iter(args)), ...); }, iterators);
                     
+                    // Apply advance_iter to iterators corresponding to true ordered_level_mask
+                    // std::apply([&](auto&... args) {
+                    //     applyMemberFunctionToIterators(iterators, m_coiterHelper.m_coiterate.ordered_level_mask()..., &decltype(args)::advance_iter);
+                    // }, m_coiterHelper.m_iterHelpers);
+                    // Apply advance_iter to iterators corresponding to true ordered_level_mask
+                    // std::apply([&](auto&... args) {     
+                    //     applyMemberFunctionToIterators(iterators, std::make_tuple(args.ordered_level_mask()...), &decltype(args)::advance_iter);
+                    // }, m_coiterHelper.m_iterHelpers);
                     // Attempt 1: This doesn't work cuz of the i=0 runtime.
                     // auto levelMask = m_coiterHelper.m_coiterate.ordered_level_mask();
                     // std::size_t i = 0;
@@ -318,15 +367,22 @@ namespace xsparse::level_capabilities
                     //     ((std::get<i++>(levelMask) ? advance_iter(args) : void()), ...);
                     // }, iterators);
 
-                    // Attempt 2: This also doesn't work.
-                    // std::apply([&](auto&... args) { ((
-                    //     apply_to_tuple(advance_iter(args), args, m_coiterHelper.m_coiterate.ordered_level_mask())
-                    // ), ...); }, iterators);
+                    // Attempt 2: This also doesn't work because I think hashed is a const_iterator..
+                    auto lambda = [=](auto& i) { advance_iter(i); };
+                    std::apply([&](auto&... args) { ((
+                        apply_to_tuple(lambda, std::make_tuple(args), m_coiterHelper.m_coiterate.ordered_level_mask())
+                    ), ...); }, iterators);
 
                     // Attempt 3: This for some reason doesn't work now because of the mask...
-                    std::apply([&](auto&... args) { ((
-                        apply_to_tuple([&](auto& arg) { advance_iter(arg); }, args, m_coiterHelper.m_coiterate.ordered_level_mask())
-                    ), ...); }, iterators);
+                    // std::apply([&](auto&&... args) { ((
+                    //     apply_to_tuple([&](auto& iter) { advance_iter(iter); }, std::make_tuple(args), m_coiterHelper.m_coiterate.ordered_level_mask())
+                    // ), ...); }, iterators);
+
+                    // Attempt 4: This uses the attempt 2 of apply_to_tuple, but it doesn't work.
+                    // Apply memberFunction only if the mask value is true
+                    // apply_if<true>(iterators, m_coiterHelper.m_coiterate.ordered_level_mask(), [&obj](int value) {
+                    //     advance_iter(value);
+                    // });
 
                     min_helper(iterators,
                                std::apply([&](auto&... args) { return std::tuple(args.end()...); },
