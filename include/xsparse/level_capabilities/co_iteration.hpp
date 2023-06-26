@@ -150,6 +150,7 @@ namespace xsparse::level_capabilities
                     calc_min_ik(t1, t2, std::make_index_sequence<sizeof...(T1)>{});
                 }
 
+                // TODO: refactor this to take instead of tuple of iterators and tuples of their ends, to take in
                 template <typename... T1, typename... T2, std::size_t... I>
                 inline constexpr void calc_min_ik(const std::tuple<T1...>& t1,
                                                   const std::tuple<T2...>& t2,
@@ -171,21 +172,31 @@ namespace xsparse::level_capabilities
                  * `min_ik` is updated to the element's value. The minimum index is returned after all comparisons.
                  */
                 {
-                    std::cout << "Number of elements in t1: " << sizeof...(T1) << std::endl;
-                    std::cout << "Number of elements in t1: " << sizeof...(T1) << std::endl;
-                    std::cout << "Index sequence I: ";
-                    ((std::cout << I << ' '), ...); // Print each index
-                    std::cout << std::endl;
-                    std::cout << "t1: ";
-                    ((std::cout << std::get<0>(*std::get<I>(t1)) << ' '), ...); // Print each index
-                    std::cout << std::max({ (std::get<I>(t1) != std::get<I>(t2))
-                                            ? std::get<0>(*std::get<I>(t1))
-                                            : min_ik... }) << std::endl;
+                    // std::cout << "Number of elements in t1: " << sizeof...(T1) << std::endl;
+                    // std::cout << "Number of elements in t1: " << sizeof...(T1) << std::endl;
+                    // std::cout << "Index sequence I: ";
+                    // ((std::cout << I << ' '), ...); // Print each index
+                    // std::cout << std::endl;
+                    // std::cout << "t1: ";
+                    // ((std::cout << std::get<0>(*std::get<I>(t1)) << ' '), ...); // Print each index
+                    // std::cout << std::max({ (std::get<I>(t1) != std::get<I>(t2))
+                    //                         ? std::get<0>(*std::get<I>(t1))
+                    //                         : min_ik... }) << std::endl;
+                    // if constexpr (std::tuple_element_t<I>(t1)::parent_type::LevelProperties::is_ordered) {
                     min_ik = std::min({ (std::get<I>(t1) != std::get<I>(t2))
                                             ? std::get<0>(*std::get<I>(t1))
                                             : min_ik... });
-                    std::cout << "calc_min_ik after: " << min_ik << std::endl;
+                    // }
+                    // else if constexpr (std::tuple_element_t<I>(t1)::parent_type::LevelProperties::is_unordered){
+                        // has to have locate function
+                    // }
+
+                    // std::cout << "calc_min_ik after: " << min_ik << std::endl;
                 }
+
+                // TODO: refactor this to implement on a single iterator and iterator-end and can add
+                // the constexpr 
+                // calc_min_ik_level()
 
             public:
                 using iterator_category = std::forward_iterator_tag;
@@ -202,90 +213,67 @@ namespace xsparse::level_capabilities
                                std::apply([&](auto&... args) { return std::tuple(args.end()...); },
                                           m_coiterHelper.m_iterHelpers));
                 }
+                
+                // template <std::size_t I>
+                // inline std::enable_if_t<
+                //     std::tuple_element_t<I, decltype(iterators)>::parent_type::LevelProperties::
+                //         is_ordered,
+                //     std::optional<typename std::tuple_element_t<I, decltype(iterators)>::
+                //                       parent_type::BaseTraits::PK>>
+                // get_PKs_level() const noexcept
+                // {   
+                //     std::cout << "get_PKs_level_derf: " << I << std::endl;
+                //     return deref_PKs(std::get<I>(iterators));
+                // }
 
-                // Apply the function to the element if the mask value is true
-                template <typename Function, typename T>
-                inline void apply_if(const Function& function, const T& element, bool mask_value) {
-                    if (mask_value) {
-                        function(element);
+                // // TODO: refactor get_PKs_level() to only one function and then call another lower
+                // // level function, which will chain constexpr if statements based on the iter type.
+                // // index_tuple and then based on index tuple do the right thing like in advance_iter
+                // template <std::size_t I>
+                // inline std::enable_if_t<
+                //     !std::tuple_element_t<I, decltype(iterators)>::parent_type::LevelProperties::
+                //             is_ordered
+                //         && has_locate_v<
+                //             typename std::tuple_element_t<I, decltype(iterators)>::parent_type>,
+                //     std::optional<typename std::tuple_element_t<I, decltype(iterators)>::
+                //                       parent_type::BaseTraits::PK>>
+                // get_PKs_level() const noexcept
+                // {
+                //     std::cout << "get_PKs_level: " << I << std::endl;
+                //     std::cout << "min_ik: " << min_ik << std::endl;
+                //     return std::get<I>(this->m_coiterHelper.m_coiterate.m_levelsTuple)
+                //         .locate(m_coiterHelper.m_pkm1, min_ik);
+                // }
+
+                template <class iter, std::size_t I>
+                inline auto get_PK_iter(iter& i) const noexcept
+                /**
+                 * @brief Get the PK of the iterator at index I.
+                 * 
+                 * @tparam iter - The type of the iterator.
+                 * @tparam I - The index of the iterator in the tuple of iterators. The template
+                 * param is only used in the setting where the iterator is unordered.
+                 * 
+                 * @param i - The iterator passed by reference.
+                 * 
+                 * @return The PK of the iterator at index I.
+                 */
+                {
+                    if constexpr (iter::parent_type::LevelProperties::is_ordered) {
+                        return deref_PKs(i);
+                    }
+                    else if constexpr (has_locate_v<typename decltype(i)::parent_type>) {
+                        return std::get<I>(this->m_coiterHelper.m_coiterate.m_levelsTuple).locate(m_coiterHelper.m_pkm1, min_ik);
+                    }
+                    else {
+                        static_assert(false);
                     }
                 }
 
-                // Apply the function to each element in the tuple based on the mask
-                template <typename Function, typename... Args, typename... MaskArgs, std::size_t... Indices>
-                inline void apply_to_tuple_helper(
-                    const Function& function,
-                    const std::tuple<Args...>& tuple,
-                    const std::tuple<MaskArgs...>& mask,
-                    std::index_sequence<Indices...>
-                ) noexcept {
-                    (apply_if(function, std::get<Indices>(tuple), std::get<Indices>(mask)), ...);
-                }
-
-                // Apply the function to each element in the tuple if the corresponding mask element is true
-                template <typename Function, typename... Args, typename... MaskArgs>
-                inline void apply_to_tuple(
-                    const Function& function,
-                    const std::tuple<Args...>& tuple,
-                    const std::tuple<MaskArgs...>& mask
-                ) noexcept {
-                    apply_to_tuple_helper(function, tuple, mask, std::index_sequence_for<Args...>{});
-                }
-
-                // Attempt 2 at apply_to_tuple
-                // template <typename T, typename Function>
-                // void apply_if(T&& value, Function&& func, std::true_type) {
-                //     std::forward<Function>(func)(std::forward<T>(value));
-                // }
-
-                // template <typename T, typename Function>
-                // void apply_if(T&&, Function&&, std::false_type) {
-                //     // Do nothing when the mask value is false.
-                // }
-
-                // template <bool Condition, typename Tuple, typename MaskTuple, typename Function, std::size_t... Is>
-                // void apply_if_impl(Tuple&& tuple, MaskTuple&& maskTuple, Function&& func, std::index_sequence<Is...>) {
-                //     (apply_if(std::get<Is>(std::forward<Tuple>(tuple)),
-                //             std::forward<Function>(func),
-                //             std::get<Is>(std::forward<MaskTuple>(maskTuple))), ...);
-                // }
-
-                // template <bool Condition, typename Tuple, typename MaskTuple, typename Function>
-                // void apply_if(Tuple&& tuple, MaskTuple&& maskTuple, Function&& func) {
-                //     constexpr std::size_t TupleSize = std::tuple_size_v<std::decay_t<Tuple>>;
-                //     apply_if_impl<Condition>(std::forward<Tuple>(tuple),
-                //                             std::forward<MaskTuple>(maskTuple),
-                //                             std::forward<Function>(func),
-                //                             std::make_index_sequence<TupleSize>{});
-                // }
-
-
                 template <std::size_t I>
-                inline std::enable_if_t<
-                    std::tuple_element_t<I, decltype(iterators)>::parent_type::LevelProperties::
-                        is_ordered,
-                    std::optional<typename std::tuple_element_t<I, decltype(iterators)>::
-                                      parent_type::BaseTraits::PK>>
-                get_PKs_level() const noexcept
+                inline auto get_PKs_level() const noexcept
                 {   
-                    std::cout << "get_PKs_level_derf: " << I << std::endl;
-                    return deref_PKs(std::get<I>(iterators));
-                }
-
-                template <std::size_t I>
-                inline std::enable_if_t<
-                    !std::tuple_element_t<I, decltype(iterators)>::parent_type::LevelProperties::
-                            is_ordered
-                        && has_locate_v<
-                            typename std::tuple_element_t<I, decltype(iterators)>::parent_type>,
-                    std::optional<typename std::tuple_element_t<I, decltype(iterators)>::
-                                      parent_type::BaseTraits::PK>>
-                get_PKs_level() const noexcept
-                {
-                    std::cout << "get_PKs_level: " << I << std::endl;
-                    std::cout << "min_ik: " << min_ik << std::endl;
-                    return std::get<I>(this->m_coiterHelper.m_coiterate.m_levelsTuple)
-                        .locate(m_coiterHelper.m_pkm1, min_ik);
+                    return get_PK_iter<std::tuple_element_t<I, decltype(iterators)>, I>(std::get<I>(iterators));
                 }
 
                 template <std::size_t... I>
@@ -326,10 +314,13 @@ namespace xsparse::level_capabilities
 
                 template <class iter>
                 inline void advance_iter(iter& i) const noexcept
-                {
-                    if (static_cast<IK>(std::get<0>(*i)) == min_ik)
-                    {
-                        ++i;
+                {  
+                    // advance iterator if it is ordered
+                    if constexpr (iter::parent_type::LevelProperties::is_ordered) {
+                        if (static_cast<IK>(std::get<0>(*i)) == min_ik)
+                        {
+                            ++i;
+                        }
                     }
                 }
 
@@ -348,42 +339,7 @@ namespace xsparse::level_capabilities
 
                 inline iterator& operator++() noexcept
                 {
-                    // TODO: only advance_iter(args) if the iterator corresponds to ordered level
-                    // ORIGINAL:
-                    // std::apply([&](auto&... args) { ((advance_iter(args)), ...); }, iterators);
-                    
-                    // Apply advance_iter to iterators corresponding to true ordered_level_mask
-                    // std::apply([&](auto&... args) {
-                    //     applyMemberFunctionToIterators(iterators, m_coiterHelper.m_coiterate.ordered_level_mask()..., &decltype(args)::advance_iter);
-                    // }, m_coiterHelper.m_iterHelpers);
-                    // Apply advance_iter to iterators corresponding to true ordered_level_mask
-                    // std::apply([&](auto&... args) {     
-                    //     applyMemberFunctionToIterators(iterators, std::make_tuple(args.ordered_level_mask()...), &decltype(args)::advance_iter);
-                    // }, m_coiterHelper.m_iterHelpers);
-                    // Attempt 1: This doesn't work cuz of the i=0 runtime.
-                    // auto levelMask = m_coiterHelper.m_coiterate.ordered_level_mask();
-                    // std::size_t i = 0;
-                    // std::apply([&](auto&... args) {
-                    //     ((std::get<i++>(levelMask) ? advance_iter(args) : void()), ...);
-                    // }, iterators);
-
-                    // Attempt 2: This also doesn't work because I think hashed is a const_iterator..
-                    auto lambda = [=](auto& i) { advance_iter(i); };
-                    std::apply([&](auto&... args) { ((
-                        apply_to_tuple(lambda, std::make_tuple(args), m_coiterHelper.m_coiterate.ordered_level_mask())
-                    ), ...); }, iterators);
-
-                    // Attempt 3: This for some reason doesn't work now because of the mask...
-                    // std::apply([&](auto&&... args) { ((
-                    //     apply_to_tuple([&](auto& iter) { advance_iter(iter); }, std::make_tuple(args), m_coiterHelper.m_coiterate.ordered_level_mask())
-                    // ), ...); }, iterators);
-
-                    // Attempt 4: This uses the attempt 2 of apply_to_tuple, but it doesn't work.
-                    // Apply memberFunction only if the mask value is true
-                    // apply_if<true>(iterators, m_coiterHelper.m_coiterate.ordered_level_mask(), [&obj](int value) {
-                    //     advance_iter(value);
-                    // });
-
+                    std::apply([&](auto&... args) { ((advance_iter(args)), ...); }, iterators);
                     min_helper(iterators,
                                std::apply([&](auto&... args) { return std::tuple(args.end()...); },
                                           m_coiterHelper.m_iterHelpers));
