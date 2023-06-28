@@ -226,9 +226,9 @@ namespace xsparse::level_capabilities
                 //     return deref_PKs(std::get<I>(iterators));
                 // }
 
-                // // TODO: refactor get_PKs_level() to only one function and then call another lower
-                // // level function, which will chain constexpr if statements based on the iter type.
-                // // index_tuple and then based on index tuple do the right thing like in advance_iter
+                // // // TODO: refactor get_PKs_level() to only one function and then call another lower
+                // // // level function, which will chain constexpr if statements based on the iter type.
+                // // // index_tuple and then based on index tuple do the right thing like in advance_iter
                 // template <std::size_t I>
                 // inline std::enable_if_t<
                 //     !std::tuple_element_t<I, decltype(iterators)>::parent_type::LevelProperties::
@@ -316,12 +316,12 @@ namespace xsparse::level_capabilities
                 inline void advance_iter(iter& i) const noexcept
                 {  
                     // advance iterator if it is ordered
-                    if constexpr (iter::parent_type::LevelProperties::is_ordered) {
-                        if (static_cast<IK>(std::get<0>(*i)) == min_ik)
-                        {
-                            ++i;
-                        }
+                    // if constexpr (iter::parent_type::LevelProperties::is_ordered) {
+                    if (static_cast<IK>(std::get<0>(*i)) == min_ik)
+                    {
+                        ++i;
                     }
+                    // }
                 }
 
                 inline reference operator*() const noexcept
