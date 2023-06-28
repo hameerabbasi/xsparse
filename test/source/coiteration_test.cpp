@@ -249,15 +249,16 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
     auto it1 = it_helper1.begin();
     auto end1 = it_helper1.end();
 
+    auto it_helper2 = hash_level.iter_helper(std::make_tuple(), ZERO);
+    auto it2 = it_helper2.begin();
+    // auto end2 = it_helper2.end();
 
-    // std::tuple<int, float, double, char> tuple(1, 2.5f, 3.7, 'A');
-    // std::tuple<bool, bool, bool, bool> mask(true, false, true, false);
-    // xsparse::util::applyToTuple(xsparse::util::applyFunction<int>, tuple, mask);
-    // xsparse::util::apply_to_tuple(xsparse::util::applyFunction<int>, tuple, mask);
+    std::cout << "hash end and beginning: " << std::get<0>(*it2) << " " << std::endl;
 
     // when co-iterating over levels that are unordered (i.e. hashed), then we use locate to
     // check
-    // if the index exists in the hashed level. If not, then we skip it.    
+    // if the index exists in the hashed level. If not, then we skip it.
+    int count = 0;
     for (auto const [ik, pk_tuple] : coiter.coiter_helper(std::make_tuple(), ZERO))
     {
         // get the index and pointer from the levels involved in co-iteration
@@ -282,6 +283,15 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
         // }
         CHECK(ik);
         std::cout << "ik: " << ik << std::endl;
+        // std::cout << std::tuple_size<decltype(pk_tuple)>{} << std::endl;
+        // std::cout << "PK: " << std::get<1>(pk_tuple).value() << std::endl;
+        // std::cout << "PK: " << std::get<0>(pk_tuple).value() << std::endl;
+        count++;
+
+        if (count >= 10)
+        {
+            break;
+        }
         // Print tuple
         // std::cout << "pk0: " << std::get<0>(pk_tuple).value() << std::endl;
         // std::cout << "pk1: " << std::get<1>(pk_tuple).value() << std::endl;

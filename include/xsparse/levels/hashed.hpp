@@ -81,7 +81,7 @@ namespace xsparse
 
                 public:
                     using parent_type = typename BaseTraits::Level;
-                    
+
                     explicit inline iterator(wrapped_iterator_type wrapped) noexcept
                         : wrapped_it(wrapped)
                     {

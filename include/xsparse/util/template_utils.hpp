@@ -41,39 +41,40 @@ namespace xsparse::util
 
     // Function to apply when the condition is met
     template <typename T>
-    void applyFunction(const T& value) {
+    void applyFunction(const T& value)
+    {
         std::cout << " got em... " << value << " ";
     }
 
     // Apply the function to the element if the mask value is true
     template <typename Function, typename T>
-    inline void apply_if(const Function& function, const T& element, bool mask_value) {
-        if (mask_value) {
+    inline void apply_if(const Function& function, const T& element, bool mask_value)
+    {
+        if (mask_value)
+        {
             function(element);
         }
     }
 
     // Apply the function to each element in the tuple based on the mask
     template <typename Function, typename... Args, typename... MaskArgs, std::size_t... Indices>
-    inline void apply_to_tuple_helper(
-        const Function& function,
-        const std::tuple<Args...>& tuple,
-        const std::tuple<MaskArgs...>& mask,
-        std::index_sequence<Indices...>
-    ) noexcept {
+    inline void apply_to_tuple_helper(const Function& function,
+                                      const std::tuple<Args...>& tuple,
+                                      const std::tuple<MaskArgs...>& mask,
+                                      std::index_sequence<Indices...>) noexcept
+    {
         (apply_if(function, std::get<Indices>(tuple), std::get<Indices>(mask)), ...);
     }
 
     // TODO:
     // 1. Can we replace `MaskArgs` with a boolean template parameter?
-    // 2. 
+    // 2.
     // Apply the function to each element in the tuple if the corresponding mask element is true
     template <typename Function, typename... Args, typename... MaskArgs>
-    inline void apply_to_tuple(
-        const Function& function,
-        const std::tuple<Args...>& tuple,
-        const std::tuple<MaskArgs...>& mask
-    ) noexcept {
+    inline void apply_to_tuple(const Function& function,
+                               const std::tuple<Args...>& tuple,
+                               const std::tuple<MaskArgs...>& mask) noexcept
+    {
         apply_to_tuple_helper(function, tuple, mask, std::index_sequence_for<Args...>{});
     }
 }

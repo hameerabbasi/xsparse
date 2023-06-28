@@ -141,62 +141,156 @@ namespace xsparse::level_capabilities
                     return std::tuple{ std::get<I>(t1) == std::get<I>(t2)... };
                 }
 
-                template <typename... T1, typename... T2>
-                inline constexpr void min_helper(const std::tuple<T1...>& t1,
-                                                 const std::tuple<T2...>& t2)
-                {
-                    static_assert(sizeof...(T1) == sizeof...(T2));
+                // not used yet...
+                // template <class T1, class T2>
+                // inline constexpr auto get_min_ik_iter(T2& t1, T1& t2)
+                // {
+                //     if constexpr (T1::parent_type::LevelProperties::is_ordered)
+                //     {
+                //         return std::min((t1 != t2) ? *t1 : min_ik);
+                //     }
+                //     else if constexpr (!T1::parent_type::LevelProperties::is_ordered
+                //                        && !has_locate_v<typename T1::parent_type>)
+                //     {
+                //         static_assert(false);
+                //     }
+                //     else
+                //     {
+                //         return min_ik;
+                //     }
+                // }
 
-                    calc_min_ik(t1, t2, std::make_index_sequence<sizeof...(T1)>{});
+                //
+                // // tODO: RENAME TO ITER1/ITER2
+                // template <typename T1, typename T2>
+                // inline constexpr auto get_min_ik_level(const T1& t1,
+                //                                        const T2& t2) const noexcept
+                // {
+                //     // using iter_type = std::tuple_element_t<I, decltype(t1)>;
+                //     // iter_type it_current = std::get<I>(t1);
+                //     // iter_type it_end = std::get<I>(t2);
+
+                //     return std::min(t1, t2);
+                //     // return 0;
+                //     // return 0; get_min_ik_iter(std::get<I>(t1), std::get<I>(t2));
+                // }
+
+                // template <typename... T1, typename... T2>
+                // inline constexpr void calc_min_ik(const std::tuple<T1...>& t1,
+                //                                   const std::tuple<T2...>& t2)
+                // /**
+                //  * @brief Calculate the minimum index from a tuple of elements based on
+                //  comparison
+                //  * and conditions.
+                //  *
+                //  * @tparam T1... - Types of the elements in the first tuple.
+                //  * @tparam T2... - Types of the elements in the second tuple.
+                //  * @param t1 - The first tuple. This is generally the current
+                //  * position of the iterator.
+                //  * @param t2 - The second tuple. This is generally the end
+                //  * position of the iterator.
+                //  *
+                //  * @details This function compares the elements of `t1` and `t2` at each
+                //  * corresponding index, and calculates the minimum index based on certain
+                //  * conditions. The elements at the same index in `t1` and `t2` are compared using
+                //  * the `!=` operator, and if they are not equal, the element in `t1` is compared
+                //  to
+                //  * the current value of `min_ik`. If it is less than the current `min_ik`,
+                //  `min_ik`
+                //  * is updated to the element's value. The minimum index is returned after all
+                //  * comparisons.
+                //  */
+                // {
+                //     // old soln.
+                // min_ik = std::min({ (std::get<I>(t1) != std::get<I>(t2))
+                //                         ? std::get<0>(*std::get<I>(t1))
+                //                         : min_ik... });
+
+                //     min_ik = std::min({ std::make_tuple(get_min_ik_level(t1, t2)...) });
+                // }
+
+                // template <std::size_t I>
+                // inline std::enable_if_t<std::tuple_element_t<I,
+                // decltype(iterators)>::parent_type::LevelProperties::is_ordered, IK>
+                // get_min_ik_level() const noexcept
+                // {
+                //     using iter_type = std::tuple_element_t<I, decltype(iterators)>;
+                //     iter_type it_current = std::get<I>(iterators);
+                //     iter_type it_end = std::get<I>(m_coiterHelper.m_iterHelpers).end();
+
+                //     return it_current != it_end ? std::get<0>(*it_current) : min_ik;
+                // }
+
+                // template <std::size_t I>
+                // inline std::enable_if_t<!std::tuple_element_t<I,
+                // decltype(iterators)>::parent_type::LevelProperties::is_ordered, void>
+                // get_min_ik_level() const noexcept
+                // {
+                // }
+
+
+                template <std::size_t I>
+                inline constexpr IK get_min_ik_level() const noexcept
+                {
+                    using iter_type = std::tuple_element_t<I, decltype(iterators)>;
+                    iter_type it_current = std::get<I>(iterators);
+                    iter_type it_end = std::get<I>(m_coiterHelper.m_iterHelpers).end();
+
+                    static_assert(iter_type::parent_type::LevelProperties::is_ordered
+                                      || has_locate_v<typename iter_type::parent_type>,
+                                  "The level must be ordered or have a locate function.");
+
+                    if constexpr (iter_type::parent_type::LevelProperties::is_ordered)
+                    {
+                        return it_current != it_end ? std::get<0>(*it_current) : min_ik;
+                    }
+                    else
+                    {
+                        return std::numeric_limits<IK>::max();
+                    }
                 }
 
-                // TODO: refactor this to take instead of tuple of iterators and tuples of their ends, to take in
-                template <typename... T1, typename... T2, std::size_t... I>
-                inline constexpr void calc_min_ik(const std::tuple<T1...>& t1,
-                                                  const std::tuple<T2...>& t2,
-                                                  std::index_sequence<I...>)
+                template <std::size_t... I>
+                inline constexpr void calc_min_ik([[maybe_unused]] std::index_sequence<I...> i)
                 /**
-                 * @brief Calculate the minimum index from a tuple of elements based on comparison and conditions.
+                 * @brief Calculate the minimum index from a tuple of elements based on comparison
+                 * and conditions.
                  *
-                 * @tparam T1... - Types of the elements in the first tuple. 
-                 * @tparam T2... - Types of the elements in the second tuple. 
+                 * @tparam T1... - Types of the elements in the first tuple.
+                 * @tparam T2... - Types of the elements in the second tuple.
                  * @param t1 - The first tuple. This is generally the current
                  * position of the iterator.
                  * @param t2 - The second tuple. This is generally the end
                  * position of the iterator.
                  *
-                 * @details This function compares the elements of `t1` and `t2` at each corresponding index,
-                 * and calculates the minimum index based on certain conditions. The elements at the same index
-                 * in `t1` and `t2` are compared using the `!=` operator, and if they are not equal, the element
-                 * in `t1` is compared to the current value of `min_ik`. If it is less than the current `min_ik`,
-                 * `min_ik` is updated to the element's value. The minimum index is returned after all comparisons.
+                 * @details This function compares the elements of `t1` and `t2` at each
+                 * corresponding index, and calculates the minimum index based on certain
+                 * conditions. The elements at the same index in `t1` and `t2` are compared using
+                 * the `!=` operator, and if they are not equal, the element in `t1` is compared to
+                 * the current value of `min_ik`. If it is less than the current `min_ik`, `min_ik`
+                 * is updated to the element's value. The minimum index is returned after all
+                 * comparisons.
                  */
                 {
-                    // std::cout << "Number of elements in t1: " << sizeof...(T1) << std::endl;
-                    // std::cout << "Number of elements in t1: " << sizeof...(T1) << std::endl;
-                    // std::cout << "Index sequence I: ";
-                    // ((std::cout << I << ' '), ...); // Print each index
-                    // std::cout << std::endl;
-                    // std::cout << "t1: ";
-                    // ((std::cout << std::get<0>(*std::get<I>(t1)) << ' '), ...); // Print each index
-                    // std::cout << std::max({ (std::get<I>(t1) != std::get<I>(t2))
-                    //                         ? std::get<0>(*std::get<I>(t1))
-                    //                         : min_ik... }) << std::endl;
-                    // if constexpr (std::tuple_element_t<I>(t1)::parent_type::LevelProperties::is_ordered) {
-                    min_ik = std::min({ (std::get<I>(t1) != std::get<I>(t2))
-                                            ? std::get<0>(*std::get<I>(t1))
-                                            : min_ik... });
-                    // }
-                    // else if constexpr (std::tuple_element_t<I>(t1)::parent_type::LevelProperties::is_unordered){
-                        // has to have locate function
-                    // }
-
-                    // std::cout << "calc_min_ik after: " << min_ik << std::endl;
+                    min_ik = std::min({ get_min_ik_level<I>()... });
                 }
 
-                // TODO: refactor this to implement on a single iterator and iterator-end and can add
-                // the constexpr 
-                // calc_min_ik_level()
+                inline constexpr void min_helper()
+                {
+                    calc_min_ik(std::make_index_sequence<std::tuple_size_v<decltype(iterators)>>{});
+                }
+
+                // TODO: refactor this to use index_sequence pattern that worked for the get_PKs
+                // stuff
+                // -> min over only the min_ik and ordered iterator indices
+                // template <typename... T1, typename... T2>
+                // inline constexpr void min_helper(const std::tuple<T1...>& t1,
+                //                                  const std::tuple<T2...>& t2)
+                // {
+                //     static_assert(sizeof...(T1) == sizeof...(T2));
+
+                //     calc_min_ik(t1, t2);
+                // }
 
             public:
                 using iterator_category = std::forward_iterator_tag;
@@ -209,88 +303,69 @@ namespace xsparse::level_capabilities
                     : m_coiterHelper(coiterHelper)
                     , iterators(it)
                 {
-                    min_helper(iterators,
-                               std::apply([&](auto&... args) { return std::tuple(args.end()...); },
-                                          m_coiterHelper.m_iterHelpers));
-                }
-                
-                // template <std::size_t I>
-                // inline std::enable_if_t<
-                //     std::tuple_element_t<I, decltype(iterators)>::parent_type::LevelProperties::
-                //         is_ordered,
-                //     std::optional<typename std::tuple_element_t<I, decltype(iterators)>::
-                //                       parent_type::BaseTraits::PK>>
-                // get_PKs_level() const noexcept
-                // {   
-                //     std::cout << "get_PKs_level_derf: " << I << std::endl;
-                //     return deref_PKs(std::get<I>(iterators));
-                // }
+                    // static_assert(sizeof(iterators) == sizeof(m_coiterHelper.m_iterHelpers));
+                    min_helper();
 
-                // // // TODO: refactor get_PKs_level() to only one function and then call another lower
-                // // // level function, which will chain constexpr if statements based on the iter type.
-                // // // index_tuple and then based on index tuple do the right thing like in advance_iter
-                // template <std::size_t I>
-                // inline std::enable_if_t<
-                //     !std::tuple_element_t<I, decltype(iterators)>::parent_type::LevelProperties::
-                //             is_ordered
-                //         && has_locate_v<
-                //             typename std::tuple_element_t<I, decltype(iterators)>::parent_type>,
-                //     std::optional<typename std::tuple_element_t<I, decltype(iterators)>::
-                //                       parent_type::BaseTraits::PK>>
-                // get_PKs_level() const noexcept
-                // {
-                //     std::cout << "get_PKs_level: " << I << std::endl;
-                //     std::cout << "min_ik: " << min_ik << std::endl;
-                //     return std::get<I>(this->m_coiterHelper.m_coiterate.m_levelsTuple)
-                //         .locate(m_coiterHelper.m_pkm1, min_ik);
-                // }
+                    // old soln.
+                    // min_helper(iterators,
+                    //            std::apply([&](auto&... args) { return std::tuple(args.end()...);
+                    //            },
+                    //                       m_coiterHelper.m_iterHelpers));
+                }
 
                 template <class iter, std::size_t I>
-                inline auto get_PK_iter(iter& i) const noexcept
+                inline constexpr auto get_PK_iter(iter& i) const noexcept
                 /**
                  * @brief Get the PK of the iterator at index I.
-                 * 
+                 *
                  * @tparam iter - The type of the iterator.
                  * @tparam I - The index of the iterator in the tuple of iterators. The template
                  * param is only used in the setting where the iterator is unordered.
-                 * 
+                 *
                  * @param i - The iterator passed by reference.
-                 * 
+                 *
                  * @return The PK of the iterator at index I.
                  */
                 {
-                    if constexpr (iter::parent_type::LevelProperties::is_ordered) {
+                    // XXX: move this into a destructor.
+                    // levels should either be ordered or have locate function.
+                    static_assert(iter::parent_type::LevelProperties::is_ordered
+                                      || has_locate_v<typename iter::parent_type>,
+                                  "Levels should either be ordered or have locate function.");
+
+                    if constexpr (iter::parent_type::LevelProperties::is_ordered)
+                    {
                         return deref_PKs(i);
                     }
-                    else if constexpr (has_locate_v<typename decltype(i)::parent_type>) {
-                        return std::get<I>(this->m_coiterHelper.m_coiterate.m_levelsTuple).locate(m_coiterHelper.m_pkm1, min_ik);
-                    }
-                    else {
-                        static_assert(false);
+                    else if constexpr (has_locate_v<typename iter::parent_type>)
+                    {
+                        return std::get<I>(this->m_coiterHelper.m_coiterate.m_levelsTuple)
+                            .locate(m_coiterHelper.m_pkm1, min_ik);
                     }
                 }
 
                 template <std::size_t I>
-                inline auto get_PKs_level() const noexcept
-                {   
-                    return get_PK_iter<std::tuple_element_t<I, decltype(iterators)>, I>(std::get<I>(iterators));
+                inline constexpr auto get_PKs_level() const noexcept
+                {
+                    using iter_type = std::tuple_element_t<I, decltype(iterators)>;
+                    iter_type it(std::get<I>(iterators));
+                    return get_PK_iter<iter_type, I>(it);
                 }
 
                 template <std::size_t... I>
-                inline auto get_PKs_complete(
+                inline constexpr auto get_PKs_complete(
                     [[maybe_unused]] std::index_sequence<I...> i) const noexcept
                 /**
                  * @brief Helper function to obtain PKs from each level's iterator.
                  *
-                 * @details Calls overriden `get_PKs_level` function that are defined at
-                 * compile-time for a ordered, or unordered level.
-                 *
+                 * @details Performs a fold expression over `get_PKs_level` for every index in
+                 * the index sequence `i`.
                  */
                 {
                     return std::make_tuple(get_PKs_level<I>()...);
                 }
 
-                inline auto get_PKs() const noexcept
+                inline constexpr auto get_PKs() const noexcept
                 /**
                  * @brief Return tuple of PKs from each level.
                  *
@@ -314,14 +389,15 @@ namespace xsparse::level_capabilities
 
                 template <class iter>
                 inline void advance_iter(iter& i) const noexcept
-                {  
+                {
                     // advance iterator if it is ordered
-                    // if constexpr (iter::parent_type::LevelProperties::is_ordered) {
-                    if (static_cast<IK>(std::get<0>(*i)) == min_ik)
+                    if constexpr (iter::parent_type::LevelProperties::is_ordered)
                     {
-                        ++i;
+                        if (static_cast<IK>(std::get<0>(*i)) == min_ik)
+                        {
+                            ++i;
+                        }
                     }
-                    // }
                 }
 
                 inline reference operator*() const noexcept
@@ -340,9 +416,11 @@ namespace xsparse::level_capabilities
                 inline iterator& operator++() noexcept
                 {
                     std::apply([&](auto&... args) { ((advance_iter(args)), ...); }, iterators);
-                    min_helper(iterators,
-                               std::apply([&](auto&... args) { return std::tuple(args.end()...); },
-                                          m_coiterHelper.m_iterHelpers));
+                    min_helper();
+                    // min_helper(iterators,
+                    //            std::apply([&](auto&... args) { return std::tuple(args.end()...);
+                    //            },
+                    //                       m_coiterHelper.m_iterHelpers));
                     return *this;
                 }
 

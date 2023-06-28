@@ -190,7 +190,7 @@ namespace xsparse::level_capabilities
 
             public:
                 using parent_type = typename BaseTraits::Level;
-                
+
                 explicit inline iterator(iteration_helper const& iterationHelper,
                                          typename BaseTraits::PK pk) noexcept
                     : m_iterHelper(iterationHelper)
