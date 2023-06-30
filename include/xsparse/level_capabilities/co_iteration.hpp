@@ -141,74 +141,6 @@ namespace xsparse::level_capabilities
                     return std::tuple{ std::get<I>(t1) == std::get<I>(t2)... };
                 }
 
-                // not used yet...
-                // template <class T1, class T2>
-                // inline constexpr auto get_min_ik_iter(T2& t1, T1& t2)
-                // {
-                //     if constexpr (T1::parent_type::LevelProperties::is_ordered)
-                //     {
-                //         return std::min((t1 != t2) ? *t1 : min_ik);
-                //     }
-                //     else if constexpr (!T1::parent_type::LevelProperties::is_ordered
-                //                        && !has_locate_v<typename T1::parent_type>)
-                //     {
-                //         static_assert(false);
-                //     }
-                //     else
-                //     {
-                //         return min_ik;
-                //     }
-                // }
-
-                //
-                // // tODO: RENAME TO ITER1/ITER2
-                // template <typename T1, typename T2>
-                // inline constexpr auto get_min_ik_level(const T1& t1,
-                //                                        const T2& t2) const noexcept
-                // {
-                //     // using iter_type = std::tuple_element_t<I, decltype(t1)>;
-                //     // iter_type it_current = std::get<I>(t1);
-                //     // iter_type it_end = std::get<I>(t2);
-
-                //     return std::min(t1, t2);
-                //     // return 0;
-                //     // return 0; get_min_ik_iter(std::get<I>(t1), std::get<I>(t2));
-                // }
-
-                // template <typename... T1, typename... T2>
-                // inline constexpr void calc_min_ik(const std::tuple<T1...>& t1,
-                //                                   const std::tuple<T2...>& t2)
-                // /**
-                //  * @brief Calculate the minimum index from a tuple of elements based on
-                //  comparison
-                //  * and conditions.
-                //  *
-                //  * @tparam T1... - Types of the elements in the first tuple.
-                //  * @tparam T2... - Types of the elements in the second tuple.
-                //  * @param t1 - The first tuple. This is generally the current
-                //  * position of the iterator.
-                //  * @param t2 - The second tuple. This is generally the end
-                //  * position of the iterator.
-                //  *
-                //  * @details This function compares the elements of `t1` and `t2` at each
-                //  * corresponding index, and calculates the minimum index based on certain
-                //  * conditions. The elements at the same index in `t1` and `t2` are compared using
-                //  * the `!=` operator, and if they are not equal, the element in `t1` is compared
-                //  to
-                //  * the current value of `min_ik`. If it is less than the current `min_ik`,
-                //  `min_ik`
-                //  * is updated to the element's value. The minimum index is returned after all
-                //  * comparisons.
-                //  */
-                // {
-                //     // old soln.
-                // min_ik = std::min({ (std::get<I>(t1) != std::get<I>(t2))
-                //                         ? std::get<0>(*std::get<I>(t1))
-                //                         : min_ik... });
-
-                //     min_ik = std::min({ std::make_tuple(get_min_ik_level(t1, t2)...) });
-                // }
-
                 // template <std::size_t I>
                 // inline std::enable_if_t<std::tuple_element_t<I,
                 // decltype(iterators)>::parent_type::LevelProperties::is_ordered, IK>
@@ -246,6 +178,7 @@ namespace xsparse::level_capabilities
                     }
                     else
                     {
+                        // return std::get<0>(*it_current);
                         return std::numeric_limits<IK>::max();
                     }
                 }
@@ -277,7 +210,9 @@ namespace xsparse::level_capabilities
 
                 inline constexpr void min_helper()
                 {
+                    std::cout << "min_helper: " << min_ik <<std::endl;
                     calc_min_ik(std::make_index_sequence<std::tuple_size_v<decltype(iterators)>>{});
+                    std::cout << "after: " << min_ik << std::endl;
                 }
 
                 // TODO: refactor this to use index_sequence pattern that worked for the get_PKs

@@ -241,7 +241,6 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
                                            std::tuple<>>
         coiter(fn, dense_level, hash_level);
 
-    auto test = coiter.coiter_helper(std::make_tuple(), ZERO);
     // define iteration helper through dense and hashed level
     auto it_helper1 = dense_level.iter_helper(std::make_tuple(), ZERO);
 
@@ -254,6 +253,13 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
     // auto end2 = it_helper2.end();
 
     std::cout << "hash end and beginning: " << std::get<0>(*it2) << " " << std::endl;
+    // std::cout << "dense end: " << std::get<0>(*end1) << " " << std::endl;
+    // std::cout << "hash end and beginning: " << *end2 << " " << std::endl;
+    // check iterating through a hashed level
+    for (auto const [i2, p2] : it_helper2)
+    {
+        std::cout << "hash: " << i2 << " " << p2 << std::endl;
+    }
 
     // when co-iterating over levels that are unordered (i.e. hashed), then we use locate to
     // check
@@ -267,22 +273,24 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
         // should only iterate over the ordered dense level
         // uintptr_t l = i1;
         // CHECK(ik == l);
+        std::cout << "starting again : " << ik;
 
         // check that neither level has reached the end
         // if (it1 != end1)
         // {
-        //     // if both levels have a non-zero value at index "i1", then those values
-        //     // should be present in the co-iterated tuple
-        //     if (i1 == l && hash_level.locate(p1, i1) != std::nullopt)
-        //     {
-        //         CHECK(p1 == std::get<0>(pk_tuple).value());
-        //     }
+            // if both levels have a non-zero value at index "i1", then those values
+            // should be present in the co-iterated tuple
+            // if (i1 == l && hash_level.locate(p1, i1) != std::nullopt)
+            // {
+            //     CHECK(p1 == std::get<0>(pk_tuple).value());
+            // }
 
-        //     // increment through the dense level always
+            // increment through the dense level always
         //     ++it1;
         // }
         CHECK(ik);
         std::cout << "ik: " << ik << std::endl;
+        // std::cout << "minik: " << coiter.coiter_helper.
         // std::cout << std::tuple_size<decltype(pk_tuple)>{} << std::endl;
         // std::cout << "PK: " << std::get<1>(pk_tuple).value() << std::endl;
         // std::cout << "PK: " << std::get<0>(pk_tuple).value() << std::endl;
