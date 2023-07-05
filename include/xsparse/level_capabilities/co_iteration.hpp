@@ -138,28 +138,27 @@ namespace xsparse::level_capabilities
                                               const std::tuple<T2...>& t2,
                                               std::index_sequence<I...>) const noexcept
                 {
-                    return std::tuple{ std::get<I>(t1) == std::get<I>(t2)... };
+                    return std::tuple{ compare_level(std::get<I>(t1), std::get<I>(t2))... };
+
+                    // old soln.
+                    // return std::tuple{ std::get<I>(t1) == std::get<I>(t2)... };
                 }
 
-                // template <std::size_t I>
-                // inline std::enable_if_t<std::tuple_element_t<I,
-                // decltype(iterators)>::parent_type::LevelProperties::is_ordered, IK>
-                // get_min_ik_level() const noexcept
-                // {
-                //     using iter_type = std::tuple_element_t<I, decltype(iterators)>;
-                //     iter_type it_current = std::get<I>(iterators);
-                //     iter_type it_end = std::get<I>(m_coiterHelper.m_iterHelpers).end();
-
-                //     return it_current != it_end ? std::get<0>(*it_current) : min_ik;
-                // }
-
-                // template <std::size_t I>
-                // inline std::enable_if_t<!std::tuple_element_t<I,
-                // decltype(iterators)>::parent_type::LevelProperties::is_ordered, void>
-                // get_min_ik_level() const noexcept
-                // {
-                // }
-
+                template <typename T1, typename T2>
+                inline constexpr auto compare_level(T1& t1, T2& t2) const noexcept
+                {
+                    // using iter_type = std::tuple_element_t<I, decltype(iterators)>;
+                    // iter_type it_current = std::get<I>(iterators);
+                    // iter_type it_end = std::get<I>(m_coiterHelper.m_iterHelpers).end();
+                    if constexpr (T1::parent_type::LevelProperties::is_ordered)
+                    {
+                        return t1 == t2;
+                    }
+                    else
+                    {
+                        return true;
+                    }
+                }
 
                 template <std::size_t I>
                 inline constexpr IK get_min_ik_level() const noexcept
@@ -214,18 +213,6 @@ namespace xsparse::level_capabilities
                     calc_min_ik(std::make_index_sequence<std::tuple_size_v<decltype(iterators)>>{});
                     std::cout << "after: " << min_ik << std::endl;
                 }
-
-                // TODO: refactor this to use index_sequence pattern that worked for the get_PKs
-                // stuff
-                // -> min over only the min_ik and ordered iterator indices
-                // template <typename... T1, typename... T2>
-                // inline constexpr void min_helper(const std::tuple<T1...>& t1,
-                //                                  const std::tuple<T2...>& t2)
-                // {
-                //     static_assert(sizeof...(T1) == sizeof...(T2));
-
-                //     calc_min_ik(t1, t2);
-                // }
 
             public:
                 using iterator_category = std::forward_iterator_tag;
