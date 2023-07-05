@@ -1,6 +1,5 @@
 #ifndef XSPARSE_CO_ITERATION_HPP
 #define XSPARSE_CO_ITERATION_HPP
-#include <iostream>
 #include <vector>
 #include <tuple>
 #include <algorithm>
@@ -124,38 +123,34 @@ namespace xsparse::level_capabilities
                 IK min_ik;
 
             private:
-                template <typename... T1, typename... T2>
-                inline constexpr auto compareHelper(const std::tuple<T1...>& t1,
-                                                    const std::tuple<T2...>& t2) const noexcept
+                template <typename... iter1, typename... iter2>
+                inline constexpr auto compareHelper(const std::tuple<iter1...>& it1,
+                                                    const std::tuple<iter2...>& it2) const noexcept
                 {
-                    static_assert(sizeof...(T1) == sizeof...(T2));
+                    static_assert(sizeof...(iter1) == sizeof...(iter2));
 
-                    return compare(t1, t2, std::make_index_sequence<sizeof...(T1)>{});
+                    return compare(it1, it2, std::make_index_sequence<sizeof...(iter1)>{});
                 }
 
-                template <typename... T1, typename... T2, std::size_t... I>
-                inline constexpr auto compare(const std::tuple<T1...>& t1,
-                                              const std::tuple<T2...>& t2,
+                template <typename... iter1, typename... iter2, std::size_t... I>
+                inline constexpr auto compare(const std::tuple<iter1...>& it1,
+                                              const std::tuple<iter2...>& it2,
                                               std::index_sequence<I...>) const noexcept
                 {
-                    return std::tuple{ compare_level(std::get<I>(t1), std::get<I>(t2))... };
-
-                    // old soln.
-                    // return std::tuple{ std::get<I>(t1) == std::get<I>(t2)... };
+                    return std::tuple{ compare_level(std::get<I>(it1), std::get<I>(it2))... };
                 }
 
-                template <typename T1, typename T2>
-                inline constexpr auto compare_level(T1& t1, T2& t2) const noexcept
+                template <typename iter1, typename iter2>
+                inline constexpr auto compare_level(iter1& it1, iter2& it2) const noexcept
                 {
-                    // using iter_type = std::tuple_element_t<I, decltype(iterators)>;
-                    // iter_type it_current = std::get<I>(iterators);
-                    // iter_type it_end = std::get<I>(m_coiterHelper.m_iterHelpers).end();
-                    if constexpr (T1::parent_type::LevelProperties::is_ordered)
+                    if constexpr (iter1::parent_type::LevelProperties::is_ordered)
                     {
-                        return t1 == t2;
+                        // check if the current position is equal to the end
+                        return it1 == it2;
                     }
                     else
                     {
+                        // always return true for unordered levels
                         return true;
                     }
                 }
@@ -177,7 +172,6 @@ namespace xsparse::level_capabilities
                     }
                     else
                     {
-                        // return std::get<0>(*it_current);
                         return std::numeric_limits<IK>::max();
                     }
                 }
@@ -188,20 +182,10 @@ namespace xsparse::level_capabilities
                  * @brief Calculate the minimum index from a tuple of elements based on comparison
                  * and conditions.
                  *
-                 * @tparam T1... - Types of the elements in the first tuple.
-                 * @tparam T2... - Types of the elements in the second tuple.
-                 * @param t1 - The first tuple. This is generally the current
-                 * position of the iterator.
-                 * @param t2 - The second tuple. This is generally the end
-                 * position of the iterator.
+                 * @tparam I... - index sequence.
+                 * @param i - index sequence that is unused.
                  *
-                 * @details This function compares the elements of `t1` and `t2` at each
-                 * corresponding index, and calculates the minimum index based on certain
-                 * conditions. The elements at the same index in `t1` and `t2` are compared using
-                 * the `!=` operator, and if they are not equal, the element in `t1` is compared to
-                 * the current value of `min_ik`. If it is less than the current `min_ik`, `min_ik`
-                 * is updated to the element's value. The minimum index is returned after all
-                 * comparisons.
+                 * @details This function gets the minimum index from all levels.
                  */
                 {
                     min_ik = std::min({ get_min_ik_level<I>()... });
@@ -209,9 +193,7 @@ namespace xsparse::level_capabilities
 
                 inline constexpr void min_helper()
                 {
-                    std::cout << "min_helper: " << min_ik <<std::endl;
                     calc_min_ik(std::make_index_sequence<std::tuple_size_v<decltype(iterators)>>{});
-                    std::cout << "after: " << min_ik << std::endl;
                 }
 
             public:
@@ -225,14 +207,7 @@ namespace xsparse::level_capabilities
                     : m_coiterHelper(coiterHelper)
                     , iterators(it)
                 {
-                    // static_assert(sizeof(iterators) == sizeof(m_coiterHelper.m_iterHelpers));
                     min_helper();
-
-                    // old soln.
-                    // min_helper(iterators,
-                    //            std::apply([&](auto&... args) { return std::tuple(args.end()...);
-                    //            },
-                    //                       m_coiterHelper.m_iterHelpers));
                 }
 
                 template <class iter, std::size_t I>
@@ -339,10 +314,6 @@ namespace xsparse::level_capabilities
                 {
                     std::apply([&](auto&... args) { ((advance_iter(args)), ...); }, iterators);
                     min_helper();
-                    // min_helper(iterators,
-                    //            std::apply([&](auto&... args) { return std::tuple(args.end()...);
-                    //            },
-                    //                       m_coiterHelper.m_iterHelpers));
                     return *this;
                 }
 

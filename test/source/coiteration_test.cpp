@@ -242,66 +242,39 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
         coiter(fn, dense_level, hash_level);
 
     // define iteration helper through dense and hashed level
-    // auto it_helper1 = dense_level.iter_helper(std::make_tuple(), ZERO);
+    auto it_helper1 = dense_level.iter_helper(std::make_tuple(), ZERO);
 
     // initialize iterators for dense and hashed level
-    // auto it1 = it_helper1.begin();
-    // auto end1 = it_helper1.end();
-
-    auto it_helper2 = hash_level.iter_helper(std::make_tuple(), ZERO);
-    auto it2 = it_helper2.begin();
-    // auto end2 = it_helper2.end();
-
-    std::cout << "hash end and beginning: " << std::get<0>(*it2) << " " << std::endl;
-    // std::cout << "dense end: " << std::get<0>(*end1) << " " << std::endl;
-    // std::cout << "hash end and beginning: " << *end2 << " " << std::endl;
-    // check iterating through a hashed level
-    for (auto const [i2, p2] : it_helper2)
-    {
-        std::cout << "hash: " << i2 << " " << p2 << std::endl;
-    }
+    auto it1 = it_helper1.begin();
+    auto end1 = it_helper1.end();
 
     // when co-iterating over levels that are unordered (i.e. hashed), then we use locate to
-    // check
-    // if the index exists in the hashed level. If not, then we skip it.
-    // int count = 0;
+    // check if the index exists in the hashed level. If not, then we skip it.
     for (auto const [ik, pk_tuple] : coiter.coiter_helper(std::make_tuple(), ZERO))
     {
         // get the index and pointer from the levels involved in co-iteration
-        // auto [i1, p1] = *it1;
+        auto [i1, p1] = *it1;
 
         // should only iterate over the ordered dense level
-        // uintptr_t l = i1;
-        // CHECK(ik == l);
+        uintptr_t l = i1;
+        CHECK(ik == l);
         std::cout << "starting again : " << ik;
 
         // check that neither level has reached the end
-        // if (it1 != end1)
-        // {
+        if (it1 != end1)
+        {
             // if both levels have a non-zero value at index "i1", then those values
             // should be present in the co-iterated tuple
-            // if (i1 == l && hash_level.locate(p1, i1) != std::nullopt)
-            // {
-            //     CHECK(p1 == std::get<0>(pk_tuple).value());
-            // }
+            if (i1 == l)
+            {
+                CHECK(p1 == std::get<0>(pk_tuple).value());
+            }
 
             // increment through the dense level always
-        //     ++it1;
-        // }
-        // CHECK(ik);
-        std::cout << "ik: " << ik << std::endl;
-        // std::cout << "minik: " << coiter.coiter_helper.
-        // std::cout << std::tuple_size<decltype(pk_tuple)>{} << std::endl;
-        // std::cout << "PK: " << std::get<1>(pk_tuple).value() << std::endl;
-        // std::cout << "PK: " << std::get<0>(pk_tuple).value() << std::endl;
-        // count++;
-
-        // Print tuple
-        // std::cout << "pk0: " << std::get<0>(pk_tuple).value() << std::endl;
-        // std::cout << "pk1: " << std::get<1>(pk_tuple).value() << std::endl;
-        // break;
+            ++it1;
+        }
     }
 
     // check that the dense level should've reached its end
-    // CHECK((it1 == end1) == true);
+    CHECK((it1 == end1) == true);
 }
