@@ -2,6 +2,7 @@
 #define XSPARSE_CO_ITERATION_HPP
 #include <vector>
 #include <tuple>
+#include <limits>
 #include <algorithm>
 #include <stdexcept>
 #include <xsparse/level_capabilities/locate.hpp>
