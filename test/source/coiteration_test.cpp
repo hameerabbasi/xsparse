@@ -5,8 +5,6 @@
 #include <functional>
 #include <unordered_set>
 #include <unordered_map>
-#include <iostream>
-#include <fmt/ranges.h>
 
 #include <xsparse/levels/compressed.hpp>
 #include <xsparse/levels/dense.hpp>
@@ -198,6 +196,7 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
     /**
      * @brief Test coiteration for dense and hashed formats when function is conjunctive.
      *
+     * XXX:
      * A conjunctive merge requires coiterating over a dense and hashed format. This
      * test checks that the coiteration is done correctly. The test proceeds as follows:
      *
@@ -250,7 +249,6 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
         // should only iterate over the ordered dense level
         uintptr_t l = i1;
         CHECK(ik == l);
-        std::cout << "starting again : " << ik;
 
         // check that neither level has reached the end
         if (it1 != end1)

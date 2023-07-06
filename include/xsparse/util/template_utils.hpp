@@ -7,8 +7,6 @@
 #include <tuple>
 #include <type_traits>
 
-#include <iostream>
-
 namespace xsparse::util
 {
     template <class T, template <class...> class TT>
@@ -39,5 +37,4 @@ namespace xsparse::util
     inline constexpr bool is_tuple_with_integral_template_arguments_v
         = is_tuple_with_integral_template_arguments<T>::value;
 }
-
 #endif  // XSPARSE_TEMPLATE_UTILS_H
