@@ -80,6 +80,8 @@ namespace xsparse
                     wrapped_iterator_type wrapped_it;
 
                 public:
+                    using parent_type = typename BaseTraits::Level;
+
                     explicit inline iterator(wrapped_iterator_type wrapped) noexcept
                         : wrapped_it(wrapped)
                     {
@@ -127,8 +129,10 @@ namespace xsparse
                 }
             };
 
-            iteration_helper iter_helper(typename BaseTraits::PKM1 pkm1)
+            iteration_helper iter_helper([[maybe_unused]] typename BaseTraits::I i,
+                                         typename BaseTraits::PKM1 pkm1)
             {
+                // i is not used, but it is here to make the interface consistent with other levels
                 return iteration_helper{ this->m_crd[pkm1] };
             }
 

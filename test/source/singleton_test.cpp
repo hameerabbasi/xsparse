@@ -30,8 +30,8 @@ TEST_CASE("Singleton-BaseCase")
     }
 
     // Check basic stric properties of all singleton levels
-    CHECK(decltype(s)::LevelProperties::is_branchless);
-    CHECK(decltype(s)::LevelProperties::is_compact);
+    static_assert(decltype(s)::LevelProperties::is_branchless);
+    static_assert(decltype(s)::LevelProperties::is_compact);
 }
 
 TEST_CASE("Singleton-COO")

@@ -68,6 +68,12 @@ CTEST_OUTPUT_ON_FAILURE=1 cmake --build build/test --target test
 ./build/test/GreeterTests
 ```
 
+To enable debug mode
+
+```bash
+cmake -S test -B build/test -DCMAKE_BUILD_TYPE=Debug
+```
+
 To collect code coverage information, run CMake with the `-DENABLE_TEST_COVERAGE=1` option.
 
 ### Run clang-format
