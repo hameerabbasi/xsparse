@@ -60,6 +60,11 @@ namespace xsparse::level_capabilities
             {
                 throw std::invalid_argument("level sizes should be same");
             }
+
+            static_assert(
+                all_ordered_or_have_locate(
+                    std::make_index_sequence<std::tuple_size_v<decltype(m_levelsTuple)>>{}),
+                "Coiteration is only allowed if all levels are ordered or have the locate function");
         }
 
         template <std::size_t I>
@@ -77,12 +82,6 @@ namespace xsparse::level_capabilities
         {
             return (level_is_ordered_or_has_locate<I>() && ...);
         }
-
-        static constexpr bool check_levels = all_ordered_or_have_locate(
-            std::make_index_sequence<std::tuple_size_v<decltype(m_levelsTuple)>>{});
-        static_assert(
-            check_levels,
-            "Coiteration is only allowed if all levels are ordered or have the locate function");
 
     public:
         class coiteration_helper
