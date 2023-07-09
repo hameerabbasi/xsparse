@@ -8,6 +8,8 @@
 #include <xsparse/level_capabilities/locate.hpp>
 #include <xsparse/util/template_utils.hpp>
 
+#include <iostream>
+
 namespace xsparse::level_capabilities
 {
     /**
@@ -58,21 +60,29 @@ namespace xsparse::level_capabilities
             {
                 throw std::invalid_argument("level sizes should be same");
             }
-
-            // first check that the levels are all ordered or have locate
-            all_ordered_or_have_locate(std::make_index_sequence<std::tuple_size_v<decltype(m_levelsTuple)>>{});
         }
 
-        // Helper function to check if a level is ordered
-        template <typename Level>
-        constexpr bool is_level_ordered(Level& level) {
-            return Level::LevelProperties::is_ordered;
+        template <std::size_t I>
+        inline constexpr auto level_is_ordered_or_has_locate()
+        {
+            using level_type = std::tuple_element_t<I, decltype(m_levelsTuple)>;
+            level_type level = std::get<I>(m_levelsTuple);
+
+            return std::decay_t<decltype(level)>::LevelProperties::is_ordered
+                   || has_locate_v<std::decay_t<decltype(level)>>;
         }
 
         template <std::size_t... I>
-        inline constexpr bool all_ordered_or_have_locate([[maybe_unused]] std::index_sequence<I...> i) {
-            return (true && ... && (is_level_ordered(std::get<I>(m_levelsTuple)) || has_locate_v<std::get<I>(m_levelsTuple)>)... );
+        inline constexpr auto all_ordered_or_have_locate(std::index_sequence<I...>)
+        {
+            return (level_is_ordered_or_has_locate<I>() && ...);
         }
+
+        static constexpr bool check_levels = all_ordered_or_have_locate(
+            std::make_index_sequence<std::tuple_size_v<decltype(m_levelsTuple)>>{});
+        static_assert(
+            check_levels,
+            "Coiteration is only allowed if all levels are ordered or have the locate function");
 
     public:
         class coiteration_helper
