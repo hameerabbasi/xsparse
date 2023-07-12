@@ -18,6 +18,8 @@
 #include <xsparse/level_capabilities/coordinate_iterate.hpp>
 #include <xsparse/util/template_utils.hpp>
 
+#include <iostream>
+
 TEST_CASE("Coiteration-Dense-Dense")
 {
     constexpr uint8_t ZERO = 0;
@@ -250,7 +252,7 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
         uintptr_t l = i1;
         CHECK(ik == l);
 
-        // check that neither level has reached the end
+        // check that the dense level has not reached the end
         if (it1 != end1)
         {
             // if both levels have a non-zero value at index "i1", then those values
@@ -258,6 +260,17 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
             if (i1 == l)
             {
                 CHECK(p1 == std::get<0>(pk_tuple).value());
+            }
+
+            // check that the pk_tuple has the correct values when hash level has a value
+            auto hash_level_pk = hash_level.locate(0, i1);
+            if (hash_level_pk.has_value())
+            {
+                CHECK(hash_level_pk == std::get<1>(pk_tuple).value());
+            }
+            else
+            {
+                CHECK(hash_level_pk.has_value() == false);
             }
 
             // increment through the dense level always

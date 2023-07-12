@@ -10,6 +10,26 @@
 
 #include <iostream>
 
+
+template <class... Levels>
+struct all_ordered_or_have_locate;
+
+// Base case: No levels left to check
+template <>
+struct all_ordered_or_have_locate<>
+{
+    static constexpr bool value = true;  // All levels have been checked
+};
+
+// Recursive case: Check the current level and continue with the rest
+template <class Level, class... RemainingLevels>
+struct all_ordered_or_have_locate<Level, RemainingLevels...>
+{
+    static constexpr bool value = Level::LevelProperties::is_ordered || has_locate_v<Level>
+                                      ? all_ordered_or_have_locate<RemainingLevels...>::value
+                                      : false;
+};
+
 namespace xsparse::level_capabilities
 {
     /**
@@ -61,26 +81,20 @@ namespace xsparse::level_capabilities
                 throw std::invalid_argument("level sizes should be same");
             }
 
+            // check that at least one of the levels is ordered
+            static constexpr bool check_ordered = (Levels::LevelProperties::is_ordered || ...);
+            static_assert(check_ordered,
+                          "Coiteration is only allowed if at least one level is ordered");
+
+            // check that all levels are either ordered, or has locate function
+            static constexpr bool check_levels = all_ordered_or_have_locate<Levels...>::value;
             static_assert(
-                all_ordered_or_have_locate(
-                    std::make_index_sequence<std::tuple_size_v<decltype(m_levelsTuple)>>{}),
+                check_levels,
                 "Coiteration is only allowed if all levels are ordered or have the locate function");
-        }
 
-        template <std::size_t I>
-        inline constexpr auto level_is_ordered_or_has_locate()
-        {
-            using level_type = std::tuple_element_t<I, decltype(m_levelsTuple)>;
-            level_type level = std::get<I>(m_levelsTuple);
-
-            return std::decay_t<decltype(level)>::LevelProperties::is_ordered
-                   || has_locate_v<std::decay_t<decltype(level)>>;
-        }
-
-        template <std::size_t... I>
-        inline constexpr auto all_ordered_or_have_locate(std::index_sequence<I...>)
-        {
-            return (level_is_ordered_or_has_locate<I>() && ...);
+            // check that the comparison helper defines a disjunctive merge only over ordered levels
+            // recursively pass in false, and true for each level to `m_comparisonHelper` for each
+            // unordered level, ans pass in false for each ordered level.
         }
 
     public:
