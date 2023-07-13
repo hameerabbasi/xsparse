@@ -30,6 +30,41 @@ struct all_ordered_or_have_locate<Level, RemainingLevels...>
                                       : false;
 };
 
+
+template <class... Levels>
+struct TupleEvaluator {
+    template <class F>
+    static constexpr bool Evaluate(F&& f) {
+        return EvaluateHelper<sizeof...(Levels), F>::template Evaluate<Levels...>(std::forward<F>(f));
+    }
+
+    private:
+        template <std::size_t N, class F>
+        struct EvaluateHelper {
+            template <class... Args>
+            static constexpr bool Evaluate(F&& f) {
+                if constexpr (std::tuple_element_t<N - 1, std::tuple<Levels...>>::LevelProperties::is_ordered)
+                {
+                    return EvaluateHelper<N - 1, F>::template Evaluate<Args..., false>(std::forward<F>(f));
+                }
+                else
+                {
+                    return EvaluateHelper<N - 1, F>::template Evaluate<Args..., false>(std::forward<F>(f)) &&
+                        EvaluateHelper<N - 1, F>::template Evaluate<Args..., true>(std::forward<F>(f));
+                }
+            }
+        };
+
+        template <class F>
+        struct EvaluateHelper<0u, F> {
+            template <class... Args>
+            static constexpr bool Evaluate(F&& f) {
+                return std::invoke(std::forward<F>(f), Args{}...);
+            }
+        };
+};
+
+
 namespace xsparse::level_capabilities
 {
     /**
@@ -56,6 +91,33 @@ namespace xsparse::level_capabilities
      * function, else return False. Then do a check that `m_comparisonHelper` defines
      * a conjunctive merge (i.e. AND operation).
      * Otherwise, coiteration is not allowed.
+     * 
+     * Now, I want to do a check over the levels and `F`that defines a valid coiteration. F is
+     * a function that takes in boolean values corresponding to each level and returns a boolean.
+     * For example, if there are 5 levels, then F takes in a tuple of 5 booleans and returns a
+     * boolean.
+     * 
+     * For each ordered level, we want to pass in `false` to F, and for each unordered level, we want to
+     * evaluate `F` with `true` and `false` for the unordered level. I want to implement a template
+     * recursion over the `Levels` tuple that does this check. Initially `F` is evaluated
+     * with all inputs as `false`. Then recursing over `Levels`, if a level is unordered,
+     * we want to evaluate `F` with `true` and `false` for that level. If a level is ordered,
+     * we want to evaluate `F` with `false` for that level. For any level
+     * that we are not on, the input to `F` is `false`. If `F` returns `true` for any of these
+     * evaluations, then we throw an error. 
+     * 
+     * For example, if Levels = (A, B, C, D)
+     
+        And A, and D are unordered with locate() function defined and B and C are ordered.
+
+        We want to check that the output is always false for F evaluated:
+
+        F(false, false, false, false)
+        F(true, false, false, false)
+        F(false, false, false, true)
+
+        If any of the above returns `true`, then we throw an error.
+
      *
      * This check is done automatically in the constructor, via the function `
      */
@@ -81,10 +143,11 @@ namespace xsparse::level_capabilities
                 throw std::invalid_argument("level sizes should be same");
             }
 
+            // the following checks that at least one level is always ordered,
+            // and any unordered levels are only part of conjunctive merges
             // check that at least one of the levels is ordered
             static constexpr bool check_ordered = (Levels::LevelProperties::is_ordered || ...);
-            static_assert(check_ordered,
-                          "Coiteration is only allowed if at least one level is ordered");
+            static_assert(check_ordered, "Coiteration is only allowed if at least one level is ordered");
 
             // check that all levels are either ordered, or has locate function
             static constexpr bool check_levels = all_ordered_or_have_locate<Levels...>::value;
@@ -95,7 +158,32 @@ namespace xsparse::level_capabilities
             // check that the comparison helper defines a disjunctive merge only over ordered levels
             // recursively pass in false, and true for each level to `m_comparisonHelper` for each
             // unordered level, ans pass in false for each ordered level.
+            // check that m_comparisonHelper(true, true, ..., false, ...) == false
+            // index sequence for all the levels, index sequence of the unordered property
+            // constexpr bool result = evaluateLevels(f, );
+            // static constexpr bool check_F = evaluateLevels<Levels...>();
+            // static_assert(!check_F, "F returns `true` for some evaluations");
+            // check_coiterate_condition(f, levels);
+
+            static constexpr bool check_coiterate_condition = TupleEvaluator<Levels...>::Evaluate(f);
+            static_assert(check_coiterate_condition == false);
         }
+
+        // constexpr void check_coiterate_condition(F f, Levels const&...) {
+        //     // check that f(false, false, ..., false) == false
+        //     static_assert(f(std::make_tuple((Levels{}, false)...)) == false);
+
+        //     // define a lambda function
+        //     [&]<std::size_t... Is>(std::index_sequence<Is...>) {
+        //         constexpr auto make_single_level_tuple = []<std::size_t I>(std::integral_constant<std::size_t, I>) constexpr {
+        //             constexpr auto levels_tuple = ordered_level_mask<Levels>();
+        //             constexpr auto false_tuple = std::make_tuple((Levels{}, false)...);
+        //             return std::make_tuple(std::get<Is>(I == Is ? levels_tuple : false_tuple)...);
+        //         };
+
+        //         static_assert(((f(make_single_level_tuple(std::integral_constant<std::size_t, Is>{})) == false) && ...));
+        //     }(std::index_sequence_for<Levels...>{});
+        // }
 
     public:
         class coiteration_helper
