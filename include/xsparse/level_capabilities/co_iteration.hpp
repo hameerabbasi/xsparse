@@ -30,39 +30,103 @@ struct all_ordered_or_have_locate<Level, RemainingLevels...>
                                       : false;
 };
 
+// Step 1: Base case for recursion (empty tuple)
+template <class... Levels, typename... Ts>
+constexpr std::tuple<Ts...> constructTupleHelper() {
+    return std::make_tuple();
+}
 
-template <class... Levels>
-struct TupleEvaluator {
-    template <class F>
-    static constexpr bool Evaluate(F&& f) {
-        return EvaluateHelper<sizeof...(Levels), F>::template Evaluate<Levels...>(std::forward<F>(f));
+// Step 2: Recursive template function to construct the tuple
+template <class... Levels, typename T, typename... Ts>
+constexpr std::tuple<T, Ts...> constructTupleHelper(const T& value, const Ts&... rest) {
+    auto tailTuple = constructTupleHelper<Levels..., Ts...>(rest...);
+    return std::tuple_cat(std::make_tuple(value), tailTuple);
+}
+
+
+// Step 2: Recursive template function to construct the tuple
+template <class... Levels, typename T, typename... Ts>
+constexpr std::tuple<T, Ts...> constructTupleHelper(const T& value, const Ts&... rest) {
+    if constexpr (!std::tuple_element_t<I, Levels>::LevelProperties::is_ordered)
+    {
+        auto tailTuple = constructTupleHelper<Levels..., Ts...>(false, rest...);
     }
+    else
+    {
+        auto tailTuple = constructTupleHelper<Levels..., Ts...>(false, rest...);
+        auto tailTuple = constructTupleHelper<Levels..., Ts...>(true, rest...);
+    }
+    auto tailTuple = constructTupleHelper<Levels..., Ts...>(rest...);
+    std::tuple_cat(std::make_tuple(value), tailTuple);
+}
 
-    private:
-        template <std::size_t N, class F>
-        struct EvaluateHelper {
-            template <class... Args>
-            static constexpr bool Evaluate(F&& f) {
-                if constexpr (std::tuple_element_t<N - 1, std::tuple<Levels...>>::LevelProperties::is_ordered)
-                {
-                    return EvaluateHelper<N - 1, F>::template Evaluate<Args..., false>(std::forward<F>(f));
-                }
-                else
-                {
-                    return EvaluateHelper<N - 1, F>::template Evaluate<Args..., false>(std::forward<F>(f)) &&
-                        EvaluateHelper<N - 1, F>::template Evaluate<Args..., true>(std::forward<F>(f));
-                }
-            }
-        };
+//  * TODO: need to concatenate all the level values before this
+//  * at level == 0: static_assert and template specialization instead of tuple_cat
+//  * because it will compile that specific function call for that specific set of boolean arguments
+//  * -> static_assert here.
+//  * 
 
-        template <class F>
-        struct EvaluateHelper<0u, F> {
-            template <class... Args>
-            static constexpr bool Evaluate(F&& f) {
-                return std::invoke(std::forward<F>(f), Args{}...);
-            }
-        };
-};
+//  * I want a function that recursively constructs a tuple of booleans of size LevelsSize.
+//  * The function recursively branches depending on a level property of the level at index I.
+//  * 
+//  * For example, if `std::get<I>(Levels).LevelProperties::is_ordered == false`, then the function
+//  * will branch into two recursive calls, one with `level_bool == true` and one with `level_bool == false`.
+//  * 
+//  * Once the full tuple of booleans is constructed, it is passed to the function `F`, and the result
+//  * is checked to see if the levels are coiterable.
+
+// For example, say we have Levels = (A, B, C, D) with B and D unordered. The recursion would proceed as follows:
+
+// 1. [On index 0 corresponding to `A`] construct_boolean_args<F, std::tuple<bool>(false), 4, 0>() 
+// 2. [On index 1 corresponding to `B`, which branches]
+//     - construct_boolean_args<F, std::tuple<bool, bool>(false, false), 4, 0>()
+//     - construct_boolean_args<F, std::tuple<bool, bool>(false, true), 4, 0>()
+// 3. [On index 2 corresponding to `C`]
+//     - construct_boolean_args<F, std::tuple<bool, bool>(false, false, false), 4, 0>()
+//     - construct_boolean_args<F, std::tuple<bool, bool>(false, true, false), 4, 0>()
+// 4. [On index 2 corresponding to `D`, which branches again]
+//     - construct_boolean_args<F, std::tuple<bool, bool>(false, false, false, false), 4, 0>()
+//     - construct_boolean_args<F, std::tuple<bool, bool>(false, false, false, true), 4, 0>()
+//     - construct_boolean_args<F, std::tuple<bool, bool>(false, true, false, false), 4, 0>()
+//     - construct_boolean_args<F, std::tuple<bool, bool>(false, true, false, true), 4, 0>()
+
+// At the end, we will have four function evaluations of `F` corresponding to the four tuples of booleans
+// constructed above. If any of the function evaluations return true, then the levels are not coiterable.
+
+// tparam F: A function object that takes in a tuple of booleans and returns a boolean.
+// tparam LevelsSize: The size of the tuple of levels.
+// tparam I: The current index of the level we are checking.
+// tparam PrevArgs: A tuple of booleans that is the result of the previous recursive calls.
+// tparam Levels: A tuple of levels.
+
+// template <class F, std::size_t LevelsSize, std::size_t I, typename... PrevArgs, class Level, class... Levels>
+// constexpr auto validate_boolean_args()
+// {
+//     static_assert(true);
+// }
+
+template <class F, std::size_t LevelsSize, std::size_t I, typename... PrevArgs, class... Levels>
+constexpr auto validate_boolean_args()
+{
+    if constexpr (I == LevelsSize)
+    {
+        // do something once the full set of arguments is constructed
+        // e.g.
+        // return std::invoke(F, PrevArgs);
+        static_assert(true);
+        // static_assert(std::invoke(F, PrevArgs...) == false>, "check failed");
+    }
+    else
+    {
+        // conditional recursion I think?
+        if constexpr (Level::LevelProperties::is_ordered)
+        {
+            
+            validate_boolean_args<F, LevelsSize, I + 1, std::tuple_cat(std::tuple<PrevArgs...>{}, std::tuple<bool>(true)), Levels...>();
+        }
+        validate_boolean_args<F, LevelsSize, I + 1, std::tuple_cat(std::tuple<PrevArgs...>{}, std::tuple<bool>(false)), Levels...>();
+    }
+}
 
 
 namespace xsparse::level_capabilities
@@ -115,6 +179,7 @@ namespace xsparse::level_capabilities
         F(false, false, false, false)
         F(true, false, false, false)
         F(false, false, false, true)
+        F(true, false, false, true)
 
         If any of the above returns `true`, then we throw an error.
 
@@ -164,25 +229,32 @@ namespace xsparse::level_capabilities
             // static constexpr bool check_F = evaluateLevels<Levels...>();
             // static_assert(!check_F, "F returns `true` for some evaluations");
             // check_coiterate_condition(f, levels);
-
-            static constexpr bool check_coiterate_condition = TupleEvaluator<Levels...>::Evaluate(f);
-            static_assert(check_coiterate_condition == false);
+            validate_boolean_args<F, sizeof...(Levels), 0, std::tuple<>{}, Levels...>();
         }
 
-        // constexpr void check_coiterate_condition(F f, Levels const&...) {
-        //     // check that f(false, false, ..., false) == false
-        //     static_assert(f(std::make_tuple((Levels{}, false)...)) == false);
+        // Notes: 7/16/23:
+        // - F should be a template parameter
+        // - Need actually combinatorially check all combinations of true/false for unordered levels
+        // - recursviely invoke function with true/false for unordered levels and false for ordered
+        // May need some std::enable_if and template specialization because the `if constexpr` will not work here
+        // 
+        // Recurse and append at each level
+        // 1. Level 1: if ordered -> false
+        // 2. Level 2: if unordered -> false and true
+        // template <std::size_t LevelsSize, std::size_t I>
+        // constexpr void check_coiterate_helper(std::index_sequence<I...>)
+        // {
+        //     if constexpr (!std::get<I>(Levels)::LevelProperties::is_ordered)
+        //     {
+        //         static_assert(std::invoke(F, construct_boolean_args<LevelsSize, I>(true)...) == false);
+        //     }
+        //     static_assert(std::invoke(F, construct_boolean_args<LevelsSize, I>(false)...) == false);
+        // }
 
-        //     // define a lambda function
-        //     [&]<std::size_t... Is>(std::index_sequence<Is...>) {
-        //         constexpr auto make_single_level_tuple = []<std::size_t I>(std::integral_constant<std::size_t, I>) constexpr {
-        //             constexpr auto levels_tuple = ordered_level_mask<Levels>();
-        //             constexpr auto false_tuple = std::make_tuple((Levels{}, false)...);
-        //             return std::make_tuple(std::get<Is>(I == Is ? levels_tuple : false_tuple)...);
-        //         };
-
-        //         static_assert(((f(make_single_level_tuple(std::integral_constant<std::size_t, Is>{})) == false) && ...));
-        //     }(std::index_sequence_for<Levels...>{});
+        // constexpr void check_coiterate_condition()
+        // {
+        //     constexpr std::size_t LevelsSize = sizeof...(Levels);
+        //     check_coiterate_helper<LevelsSize>(std::make_index_sequence<sizeof...(Levels)>{});
         // }
 
     public:
