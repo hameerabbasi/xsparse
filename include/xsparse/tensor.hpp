@@ -29,7 +29,7 @@ namespace xsparse
 
         inline constexpr auto get_dimension() const noexcept
         /**
-         * @brief Returns the dimensionality of the tensor.
+         * @brief Returns the dimensionality of the tensor (also called mode).
          *
          * @return constexpr std::size_t - the dimensionality of the tensor, which
          * is the size of the tuple of levels.
