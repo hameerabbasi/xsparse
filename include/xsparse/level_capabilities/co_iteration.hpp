@@ -30,101 +30,36 @@ struct all_ordered_or_have_locate<Level, RemainingLevels...>
                                       : false;
 };
 
-// Step 1: Base case for recursion (empty tuple)
-template <class... Levels, typename... Ts>
-constexpr std::tuple<Ts...> constructTupleHelper() {
-    return std::make_tuple();
+// Helper function to check if a level is ordered
+template <typename Level>
+constexpr bool is_level_ordered() {
+    return Level::LevelProperties::is_ordered;
 }
 
-// Step 2: Recursive template function to construct the tuple
-template <class... Levels, typename T, typename... Ts>
-constexpr std::tuple<T, Ts...> constructTupleHelper(const T& value, const Ts&... rest) {
-    auto tailTuple = constructTupleHelper<Levels..., Ts...>(rest...);
-    return std::tuple_cat(std::make_tuple(value), tailTuple);
-}
-
-
-// Step 2: Recursive template function to construct the tuple
-template <class... Levels, typename T, typename... Ts>
-constexpr std::tuple<T, Ts...> constructTupleHelper(const T& value, const Ts&... rest) {
-    if constexpr (!std::tuple_element_t<I, Levels>::LevelProperties::is_ordered)
-    {
-        auto tailTuple = constructTupleHelper<Levels..., Ts...>(false, rest...);
-    }
-    else
-    {
-        auto tailTuple = constructTupleHelper<Levels..., Ts...>(false, rest...);
-        auto tailTuple = constructTupleHelper<Levels..., Ts...>(true, rest...);
-    }
-    auto tailTuple = constructTupleHelper<Levels..., Ts...>(rest...);
-    std::tuple_cat(std::make_tuple(value), tailTuple);
-}
-
-//  * TODO: need to concatenate all the level values before this
-//  * at level == 0: static_assert and template specialization instead of tuple_cat
-//  * because it will compile that specific function call for that specific set of boolean arguments
-//  * -> static_assert here.
-//  * 
-
-//  * I want a function that recursively constructs a tuple of booleans of size LevelsSize.
-//  * The function recursively branches depending on a level property of the level at index I.
-//  * 
-//  * For example, if `std::get<I>(Levels).LevelProperties::is_ordered == false`, then the function
-//  * will branch into two recursive calls, one with `level_bool == true` and one with `level_bool == false`.
-//  * 
-//  * Once the full tuple of booleans is constructed, it is passed to the function `F`, and the result
-//  * is checked to see if the levels are coiterable.
-
-// For example, say we have Levels = (A, B, C, D) with B and D unordered. The recursion would proceed as follows:
-
-// 1. [On index 0 corresponding to `A`] construct_boolean_args<F, std::tuple<bool>(false), 4, 0>() 
-// 2. [On index 1 corresponding to `B`, which branches]
-//     - construct_boolean_args<F, std::tuple<bool, bool>(false, false), 4, 0>()
-//     - construct_boolean_args<F, std::tuple<bool, bool>(false, true), 4, 0>()
-// 3. [On index 2 corresponding to `C`]
-//     - construct_boolean_args<F, std::tuple<bool, bool>(false, false, false), 4, 0>()
-//     - construct_boolean_args<F, std::tuple<bool, bool>(false, true, false), 4, 0>()
-// 4. [On index 2 corresponding to `D`, which branches again]
-//     - construct_boolean_args<F, std::tuple<bool, bool>(false, false, false, false), 4, 0>()
-//     - construct_boolean_args<F, std::tuple<bool, bool>(false, false, false, true), 4, 0>()
-//     - construct_boolean_args<F, std::tuple<bool, bool>(false, true, false, false), 4, 0>()
-//     - construct_boolean_args<F, std::tuple<bool, bool>(false, true, false, true), 4, 0>()
-
-// At the end, we will have four function evaluations of `F` corresponding to the four tuples of booleans
-// constructed above. If any of the function evaluations return true, then the levels are not coiterable.
-
-// tparam F: A function object that takes in a tuple of booleans and returns a boolean.
-// tparam LevelsSize: The size of the tuple of levels.
-// tparam I: The current index of the level we are checking.
-// tparam PrevArgs: A tuple of booleans that is the result of the previous recursive calls.
-// tparam Levels: A tuple of levels.
-
-// template <class F, std::size_t LevelsSize, std::size_t I, typename... PrevArgs, class Level, class... Levels>
-// constexpr auto validate_boolean_args()
-// {
-//     static_assert(true);
-// }
-
-template <class F, std::size_t LevelsSize, std::size_t I, typename... PrevArgs, class... Levels>
-constexpr auto validate_boolean_args()
+template <class F, class... Levels, typename... Mask>
+constexpr void validate_boolean_args([[maybe_unused]] Mask... ordered_mask_tuple)
 {
-    if constexpr (I == LevelsSize)
+    validate_boolean_helper<F, 0, decltype(std::make_tuple()), Mask...>(std::make_tuple());
+}
+
+template <class F, std::size_t I, typename... Args, typename... Mask>
+constexpr void validate_boolean_helper(std::tuple<Args...> f_args)
+{
+    if constexpr (I == sizeof...(Mask))
     {
         // do something once the full set of arguments is constructed
         // e.g.
-        // return std::invoke(F, PrevArgs);
-        static_assert(true);
-        // static_assert(std::invoke(F, PrevArgs...) == false>, "check failed");
+        static_assert(F{}(f_args) == false, "check failed");
     }
     else
     {
-        // conditional recursion I think?
-        if constexpr (Level::LevelProperties::is_ordered)
+        if constexpr (std::tuple_element_t<I, std::tuple<Mask...>>::value == false)
         {
-            
-            validate_boolean_args<F, LevelsSize, I + 1, std::tuple_cat(std::tuple<PrevArgs...>{}, std::tuple<bool>(true)), Levels...>();
+            // static constexpr auto new_args = std::tuple_cat(f_args, std::tuple<bool>(false));
+            validate_boolean_helper<F, I+1, decltype(std::tuple_cat(f_args, std::tuple<bool>(false))), Mask...>(std::tuple_cat(f_args, std::tuple<bool>(false)));
         }
-        validate_boolean_args<F, LevelsSize, I + 1, std::tuple_cat(std::tuple<PrevArgs...>{}, std::tuple<bool>(false)), Levels...>();
+        // static constexpr auto new_args = std::tuple_cat(f_args, std::tuple<bool>(true));
+        validate_boolean_helper<F, I+1, decltype(std::tuple_cat(f_args, std::tuple<bool>(true))), Mask...>(std::tuple_cat(f_args, std::tuple<bool>(true)));
     }
 }
 
@@ -220,16 +155,16 @@ namespace xsparse::level_capabilities
                 check_levels,
                 "Coiteration is only allowed if all levels are ordered or have the locate function");
 
+            // Add a member variable to hold the boolean mask of ordered levels
+            static constexpr auto ordered_mask_tuple = std::make_tuple(is_level_ordered<Levels>()...);
+            static_assert(std::get<0>(ordered_mask_tuple) == true, "First level must be ordered");
+            static_assert(sizeof...(Levels) == std::tuple_size_v<decltype(ordered_mask_tuple)>,
+                          "Size of ordered mask tuple must be equal to number of levels");
+            
             // check that the comparison helper defines a disjunctive merge only over ordered levels
             // recursively pass in false, and true for each level to `m_comparisonHelper` for each
             // unordered level, ans pass in false for each ordered level.
-            // check that m_comparisonHelper(true, true, ..., false, ...) == false
-            // index sequence for all the levels, index sequence of the unordered property
-            // constexpr bool result = evaluateLevels(f, );
-            // static constexpr bool check_F = evaluateLevels<Levels...>();
-            // static_assert(!check_F, "F returns `true` for some evaluations");
-            // check_coiterate_condition(f, levels);
-            validate_boolean_args<F, sizeof...(Levels), 0, std::tuple<>{}, Levels...>();
+            validate_boolean_args<F, Levels..., decltype(ordered_mask_tuple)>(ordered_mask_tuple);
         }
 
         // Notes: 7/16/23:
@@ -250,7 +185,6 @@ namespace xsparse::level_capabilities
         //     }
         //     static_assert(std::invoke(F, construct_boolean_args<LevelsSize, I>(false)...) == false);
         // }
-
         // constexpr void check_coiterate_condition()
         // {
         //     constexpr std::size_t LevelsSize = sizeof...(Levels);
