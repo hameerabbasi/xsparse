@@ -29,7 +29,6 @@ namespace xsparse
             static_assert(sizeof...(Tensor) == sizeof...(Is));
 
             // TODO: check that all levels of the tensor has the same dimensions as the size of each vector of indices
-
             // TODO: Each vector of input indices (is) should be strictly increasing
         }
 
@@ -37,6 +36,7 @@ namespace xsparse
         {
         }
 
+        // TODO: What is the output format of the merge lattice?
         inline constexpr auto merge_iterators() const noexcept
         {
         }
