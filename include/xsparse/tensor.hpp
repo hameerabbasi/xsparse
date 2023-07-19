@@ -10,16 +10,18 @@ namespace xsparse
      *
      * @tparam Levels - a tuple of levels, which comprise this tensor.
      */
-    template <class Levels>
+    template <class ContainerType, class... Levels>
     class Tensor;
 
-    template <class... Levels>
-    class Tensor<std::tuple<Levels...>>
+    template <class ContainerType, class... Levels>
+    class Tensor<ContainerType, std::tuple<Levels...>>
     {
     private:
         std::tuple<Levels&...> const m_levelsTuple;
 
     public:
+        // TODO; need to add template parameter ContainerType which is the type of the data
+        // that is held (e.g. int) is a tensor of ints 
         explicit inline Tensor(Levels&... levels)
             : m_levelsTuple(std::tie(levels...))
         {
@@ -27,7 +29,7 @@ namespace xsparse
             // defined.
         }
 
-        inline constexpr auto get_dimension() const noexcept
+        inline constexpr auto ndim() const noexcept
         /**
          * @brief Returns the dimensionality of the tensor (also called mode).
          *
@@ -38,7 +40,17 @@ namespace xsparse
             return sizeof...(Levels);
         }
 
-        inline constexpr auto get_levels() const noexcept
+        inline constexpr auto shape() const noexcept
+        {
+            // TODO: this should return a tuple of the shapes of the tensor
+        }
+
+        inline const auto get_levels() const noexcept
+        {
+            return m_levelsTuple;
+        }
+
+        inline auto get_levels() noexcept
         {
             return m_levelsTuple;
         }
