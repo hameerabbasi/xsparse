@@ -36,32 +36,56 @@ constexpr bool is_level_ordered() {
     return Level::LevelProperties::is_ordered;
 }
 
-template <class F, class... Levels, typename... Mask>
-constexpr void validate_boolean_args([[maybe_unused]] Mask... ordered_mask_tuple)
-{
-    validate_boolean_helper<F, 0, decltype(std::make_tuple()), Mask...>(std::make_tuple());
-}
 
-template <class F, std::size_t I, typename... Args, typename... Mask>
-constexpr void validate_boolean_helper(std::tuple<Args...> f_args)
-{
-    if constexpr (I == sizeof...(Mask))
-    {
-        // do something once the full set of arguments is constructed
-        // e.g.
-        static_assert(F{}(f_args) == false, "check failed");
-    }
-    else
-    {
-        if constexpr (std::tuple_element_t<I, std::tuple<Mask...>>::value == false)
-        {
-            // static constexpr auto new_args = std::tuple_cat(f_args, std::tuple<bool>(false));
-            validate_boolean_helper<F, I+1, decltype(std::tuple_cat(f_args, std::tuple<bool>(false))), Mask...>(std::tuple_cat(f_args, std::tuple<bool>(false)));
-        }
-        // static constexpr auto new_args = std::tuple_cat(f_args, std::tuple<bool>(true));
-        validate_boolean_helper<F, I+1, decltype(std::tuple_cat(f_args, std::tuple<bool>(true))), Mask...>(std::tuple_cat(f_args, std::tuple<bool>(true)));
-    }
-}
+// Forward declaration
+// template <class F, std::size_t I, typename... Args, typename... Mask>
+// constexpr bool validate_boolean_helper(std::tuple<Args...> f_args);
+
+
+// template <class F, std::size_t I, typename... Args, typename... Mask>
+// constexpr void validate_boolean_helper(std::tuple<Args...> f_args)
+// /**
+//  * @brief Helper function to validate boolean arguments.
+//  * 
+//  * @details This function performs template recursion to construct a tuple of boolean arguments
+//  * that is then passed to the function object `F`. The function object `F` is a function that
+//  * returns true, or false.
+//  * 
+//  * The template recursion creates a tree, where the leaves of the tree are the
+//  * constructed tuple of boolean arguments. If the Ith element of `Mask` is not ordered,
+//  * then the recursion branches into two paths, one with the Ith element set to true, and
+//  * the other with the Ith element set to false. If the Ith element of `Mask` is ordered,
+//  * then the recursion only branches into one path, with the Ith element set to false.
+//  * 
+//  * At the end of the recursion, the tuple of boolean arguments is passed to the function
+//  * and static_assert is used to check that the function returns false.
+//  * 
+//  * @tparam F - A boolean function object that takes in sizeof...(Mask) boolean arguments.
+//  * @tparam I - The current index of the recursion.
+//  * @tparam Args - The tuple of boolean arguments that is constructed. At the end of any
+//  * recursion path, the tuple of boolean arguments is passed to the function object `F`.
+//  * @tparam Mask - The tuple of boolean values that is used to construct the tuple of
+//  * boolean arguments.
+//  */
+// {
+//     if constexpr (I == sizeof...(Mask))
+//     {
+//         // do something once the full set of arguments is constructed
+//         // e.g.
+//         static_assert(F{}(f_args) == false, "check failed");
+//     }
+//     else
+//     {
+//         if constexpr (std::tuple_element_t<I, std::tuple<Mask...>>::value == false)
+//         {
+//             // static constexpr auto new_args = std::tuple_cat(f_args, std::tuple<bool>(false));
+//             validate_boolean_helper<F, I+1, decltype(std::tuple_cat(f_args, std::tuple<bool>(false))), Mask...>(std::tuple_cat(f_args, std::tuple<bool>(false)));
+//         }
+//         // static constexpr auto new_args = std::tuple_cat(f_args, std::tuple<bool>(true));
+//         validate_boolean_helper<F, I+1, decltype(std::tuple_cat(f_args, std::tuple<bool>(true))), Mask...>(std::tuple_cat(f_args, std::tuple<bool>(true)));
+//     }
+// }
+
 
 
 namespace xsparse::level_capabilities
@@ -156,7 +180,6 @@ namespace xsparse::level_capabilities
                 "Coiteration is only allowed if all levels are ordered or have the locate function");
 
             // Add a member variable to hold the boolean mask of ordered levels
-            static constexpr auto ordered_mask_tuple = std::make_tuple(is_level_ordered<Levels>()...);
             static_assert(std::get<0>(ordered_mask_tuple) == true, "First level must be ordered");
             static_assert(sizeof...(Levels) == std::tuple_size_v<decltype(ordered_mask_tuple)>,
                           "Size of ordered mask tuple must be equal to number of levels");
@@ -164,33 +187,62 @@ namespace xsparse::level_capabilities
             // check that the comparison helper defines a disjunctive merge only over ordered levels
             // recursively pass in false, and true for each level to `m_comparisonHelper` for each
             // unordered level, ans pass in false for each ordered level.
-            validate_boolean_args<F, Levels..., decltype(ordered_mask_tuple)>(ordered_mask_tuple);
+            validate_boolean_args();
         }
 
-        // Notes: 7/16/23:
-        // - F should be a template parameter
-        // - Need actually combinatorially check all combinations of true/false for unordered levels
-        // - recursviely invoke function with true/false for unordered levels and false for ordered
-        // May need some std::enable_if and template specialization because the `if constexpr` will not work here
-        // 
-        // Recurse and append at each level
-        // 1. Level 1: if ordered -> false
-        // 2. Level 2: if unordered -> false and true
-        // template <std::size_t LevelsSize, std::size_t I>
-        // constexpr void check_coiterate_helper(std::index_sequence<I...>)
-        // {
-        //     if constexpr (!std::get<I>(Levels)::LevelProperties::is_ordered)
-        //     {
-        //         static_assert(std::invoke(F, construct_boolean_args<LevelsSize, I>(true)...) == false);
-        //     }
-        //     static_assert(std::invoke(F, construct_boolean_args<LevelsSize, I>(false)...) == false);
-        // }
-        // constexpr void check_coiterate_condition()
-        // {
-        //     constexpr std::size_t LevelsSize = sizeof...(Levels);
-        //     check_coiterate_helper<LevelsSize>(std::make_index_sequence<sizeof...(Levels)>{});
-        // }
+        static constexpr auto ordered_mask_tuple = std::make_tuple(is_level_ordered<Levels>()...);
 
+        template <std::size_t Index = 0, typename... Args>
+        void print_boolean_tuple(const std::tuple<Args...>& t) {
+            if constexpr (Index < sizeof...(Args)) {
+                std::cout << std::boolalpha << std::get<Index>(t) << " ";
+                print_boolean_tuple<Index + 1>(t);
+            }
+            std::cout << std::endl;
+        }
+        template <std::size_t I, typename... Args>
+        constexpr void validate_boolean_helper(std::tuple<Args...> f_args)
+        {
+            // Check if the current recursion depth (I) is less than the number of elements in Mask.
+            if constexpr (I < sizeof(ordered_mask_tuple))
+            {
+                // If the Ith element of Mask is not ordered (false), branch into two paths.
+                if constexpr (!std::get<I>(ordered_mask_tuple))
+                {
+                    // First, set the Ith element of f_args to true and recursively call the function.
+                    // std::get<I>(f_args) = true;
+                    validate_boolean_helper<I + 1, Args...>(std::tuple_cat(f_args, std::tuple<bool>(false)));
+
+                    // Next, set the Ith element of f_args to false and recursively call the function.
+                    // std::get<I>(f_args) = false;
+                    validate_boolean_helper<I + 1, Args...>(std::tuple_cat(f_args, std::tuple<bool>(true)));
+                }
+                // If the Ith element of Mask is ordered (true), only branch into one path with the Ith element set to false.
+                else
+                {
+                    // std::get<I>(f_args) = false;
+                    validate_boolean_helper<I + 1, Args...>(std::tuple_cat(f_args, std::tuple<bool>(false)));
+                }
+            }
+            else
+            {
+                // When we reach the end of recursion (base case), call the function object F with the constructed boolean arguments.
+                // static_assert(true);
+                static_assert(sizeof...(Args) == sizeof...(Levels), "Number of arguments must be equal to number of levels");
+
+                print_boolean_tuple(f_args);
+                // static_assert(F{}(f_args) == false, "Function F should return false for the given arguments.");
+                // static_assert(this->m_comparisonHelper(f_args) == false, "Function F should return false for the given arguments.");
+                // static_assert(!(F{}(false, false)), "Function F should return false for the given arguments.");
+                // static_assert(!F{}(...Args), "Function F should return false for the given arguments.");
+            }
+        }
+
+        constexpr void validate_boolean_args()
+        {
+            validate_boolean_helper<0>(std::tuple<>());
+        }
+        
     public:
         class coiteration_helper
         {

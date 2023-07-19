@@ -241,6 +241,7 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
     auto it1 = it_helper1.begin();
     auto end1 = it_helper1.end();
 
+    CHECK(false);
     // when co-iterating over levels that are unordered (i.e. hashed), then we use locate to
     // check if the index exists in the hashed level. If not, then we skip it.
     for (auto const [ik, pk_tuple] : coiter.coiter_helper(std::make_tuple(), ZERO))
