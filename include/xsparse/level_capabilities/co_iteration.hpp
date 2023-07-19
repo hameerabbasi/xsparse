@@ -154,12 +154,14 @@ namespace xsparse::level_capabilities
     {
     private:
         std::tuple<Levels&...> const m_levelsTuple;
-        F const m_comparisonHelper;
+        // F const m_comparisonHelper;
 
     public:
-        explicit inline Coiterate(F f, Levels&... levels)
+        explicit inline Coiterate(
+            // F f,
+            Levels&... levels)
             : m_levelsTuple(std::tie(levels...))
-            , m_comparisonHelper(f)
+            // , m_comparisonHelper(f)
         {
             if (![](auto const& first, auto const&... rest)
                 { return ((first == rest) && ...); }(levels.size()...))
@@ -187,6 +189,9 @@ namespace xsparse::level_capabilities
             // check that the comparison helper defines a disjunctive merge only over ordered levels
             // recursively pass in false, and true for each level to `m_comparisonHelper` for each
             // unordered level, ans pass in false for each ordered level.
+
+            // need to convert template parameter `F` into something that is constexpr invokable/callable
+            // during compile-time
             validate_boolean_args();
         }
 
