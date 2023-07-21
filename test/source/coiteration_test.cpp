@@ -27,9 +27,9 @@ TEST_CASE("Coiteration-Dense-Dense")
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s1{ 5 };
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s2{ 5 };
 
-    auto fn = [](std::tuple<bool, bool> t) constexpr { return std::get<0>(t) && std::get<1>(t); };
+    constexpr auto fn = [](std::tuple<bool, bool> t) constexpr { return std::get<0>(t) && std::get<1>(t); };
 
-    xsparse::level_capabilities::Coiterate<std::function<bool(std::tuple<bool, bool>)>,
+    xsparse::level_capabilities::Coiterate<decltype(fn),
                                            uintptr_t,
                                            uintptr_t,
                                            std::tuple<decltype(s1), decltype(s2)>,
@@ -72,7 +72,7 @@ TEST_CASE("Coiteration-Dense-Dense-Dense")
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s2{ 5 };
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s3{ 5 };
 
-    auto fn = [](std::tuple<bool, bool, bool> t) constexpr
+    constexpr auto fn = [](std::tuple<bool, bool, bool> t) constexpr
     { return (std::get<0>(t) && std::get<1>(t)) || (std::get<2>(t)); };
 
     xsparse::level_capabilities::Coiterate<std::function<bool(std::tuple<bool, bool, bool>)>,
@@ -132,7 +132,7 @@ TEST_CASE("Coiteration-Singleton-Singleton-Dense-Dense")
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s3{ 5 };
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s4{ 5 };
 
-    auto fn = [](std::tuple<bool, bool, bool, bool> t) constexpr
+    constexpr auto fn = [](std::tuple<bool, bool, bool, bool> t) constexpr
     { return (std::get<0>(t) || std::get<2>(t)) || (std::get<1>(t) || std::get<3>(t)); };
 
     xsparse::level_capabilities::Coiterate<
@@ -225,7 +225,7 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
         hash_level{ 5, crd0 };
 
     // define a conjunctive function
-    auto fn = [](std::tuple<bool, bool> t) constexpr { return (std::get<0>(t) && std::get<1>(t)); };
+    constexpr auto fn = [](std::tuple<bool, bool> t) constexpr { return (std::get<0>(t) && std::get<1>(t)); };
 
     xsparse::level_capabilities::Coiterate<std::function<bool(std::tuple<bool, bool>)>,
                                            uintptr_t,
