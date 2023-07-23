@@ -157,10 +157,10 @@ namespace xsparse::level_capabilities
      * This check is done automatically in the constructor, via the function `
      */
 
-    template <class F, class IK, class PK, class Levels, class Is>
+    template <template<bool...> class F, class IK, class PK, class Levels, class Is>
     class Coiterate;
 
-    template <class F, class IK, class PK, class... Levels, class... Is>
+    template <template<bool...> class F, class IK, class PK, class... Levels, class... Is>
     class Coiterate<F, IK, PK, std::tuple<Levels...>, std::tuple<Is...>>
     {
     private:
@@ -219,7 +219,7 @@ namespace xsparse::level_capabilities
             std::cout << std::endl;
         }
 
-        template <std::size_t I, typename... Args>
+        template <std::size_t I, typename NewArg, typename... Args>
         static constexpr auto validate_boolean_helper(std::tuple<Args...> f_args)
         {
             // Check if the current recursion depth (I) is less than the number of elements in Mask.
@@ -232,7 +232,8 @@ namespace xsparse::level_capabilities
                 //     validate_boolean_helper<I + 1, Args...>(std::tuple_cat(f_args, std::tuple<bool>(true)));
                 // }
                 // If the Ith element of Mask is ordered (true), only branch into one path with the Ith element set to false.
-                validate_boolean_helper<I + 1, Args...>(std::tuple_cat(f_args, std::tuple<bool>(false)));
+                // TODO: tuple concatenation at the template level
+                validate_boolean_helper<I + 1, false, Args...>(std::tuple_cat(f_args, std::tuple<bool>(false)));
             }
             else
             {
@@ -241,9 +242,13 @@ namespace xsparse::level_capabilities
 
                 print_boolean_tuple(f_args);
 
+
+                // TODO: start from a blank godbolt C++20 short example
+                // and try to get a static_assert to work on a constexpr invokable function.
+
                 // This line results in the following errors.
                 // static_assert(callFunction(f_args) == false, "Function F should return false for the given arguments.");
-                // static_assert(F{}(f_args) == false);
+                static_assert(F<Args...>::value == false);
             }
             // static_assert(F{}(f_args) == false);
             // static_assert(callFunction(f_args) == false, "Function F should return false for the given arguments.");
