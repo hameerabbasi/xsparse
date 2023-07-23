@@ -11,26 +11,29 @@ namespace xsparse
     template <class F, class Tensor>
     class MergeLattice;
 
-    template <class F, class... Tensor>
-    class MergeLattice<F,  std::tuple<Tensor...>> //std::pair<Tensor..., std::vector<std::size_t>>>
+    template <class F, std::vector<std::uintptr_t>... Indices, class... Tensor>
+    class MergeLattice<F, std::tuple<Indices...>>
+    // std::tuple<Tensor...>> //std::pair<Tensor..., std::vector<std::size_t>>>
     {
     private:
-        std::tuple<Tensor&...> const m_tensors;
-        std::tuple<std::vector<std::size_t>> const m_is;
+        // std::tuple<Tensor&...> const m_tensors;
+        // std::tuple<std::vector<std::size_t>> const m_is;
 
-        // std::tuple<std::pair<Tensor, std::vector<int>>...> const m_tensors;
+        std::tuple<std::pair<Tensor, std::vector<int>>...> const m_tensors;
     public:
         explicit inline MergeLattice(
             // is -> make a pair of std::tuple
             // tuple of pairs of Tensors and vectors<size_t>
             // std::pair<std::tuple<Tensors...>, std::vector<std::size_t>>& tensor_and_indices)
             // std::tuple<std::pair<Tensor, std::vector<int>>...>& tensor_and_indices)
-            Tensor&... tensors, std::tuple<std::vector<std::size_t>>& is)
+            Tensor&... tensors)
+            // std::tuple<std::vector<std::size_t>>& is)
             : m_tensors(std::tie(tensors...))
-            , m_is(is)
+            // , m_is(is)
             // : m_tensors(tensor_and_indices)
         {
-            static_assert(sizeof...(Tensor) == sizeof(is));
+            // https://godbolt.org/z/1YKoKndMa
+            static_assert(sizeof...(Tensor) == sizeof...(Indices));
 
             // TODO: check that all levels of the tensor has the same dimensions as the size of each vector of indices
             // TODO: Each vector of input indices (is) should be strictly increasing

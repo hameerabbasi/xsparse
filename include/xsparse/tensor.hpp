@@ -15,7 +15,12 @@ namespace xsparse
     template <class DataType, class... Levels>
     class Tensor;
 
-    template <class DataType, class... Levels>
+    // TODO: datatype, and also ContainerTraits similar to the levels, where Elem is `DateType`.
+    // Need a TVec of Data
+    // - how do we append data to the tensor? -> container_traits helps us define this
+    // - how do we read/write data to the tensor at a specific location? 
+    // - and how do we mush many of these together for the sake of multithreading?
+    template <class DataType, class... Levels, class ContainerTraits= util::container_traits<std::vector, std::unordered_set, std::unordered_map>>
     class Tensor<DataType, std::tuple<Levels...>>
     {
     private:
@@ -58,12 +63,16 @@ namespace xsparse
             return sizeof...(Levels);
         }
 
+        // TODO: add a `get_data` function that returns a reference to the data at specific index
+        // a const and nonconst version for reading and writing respectively.
+
+        // TODO: change this to a `using ...` statement for the member property
         inline constexpr auto dtype() const noexcept
         {
             return static_cast<DataType*>(nullptr);
         }
 
-        inline constexpr auto shape() const noexcept
+        inline auto shape() const noexcept
         {
             // e.g. for a tensor of shape (i, j, k) this should return (i, j, k)
             // get the size of each tensor mode and return as a tuple
@@ -71,7 +80,7 @@ namespace xsparse
                         std::make_index_sequence<std::tuple_size_v<decltype(m_levelsTuple)>>{});
         }
 
-        inline constexpr auto get_levels() const noexcept
+        inline auto get_levels() const noexcept
         {
             return m_levelsTuple;
         }
