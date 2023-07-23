@@ -4,6 +4,7 @@
 #include <tuple>
 
 #include <xsparse/tensor.hpp>
+#include <xsparse/level_capabilities/co_iteration.hpp>
 
 namespace xsparse
 {
@@ -11,27 +12,25 @@ namespace xsparse
     class MergeLattice;
 
     template <class F, class... Tensor>
-    class MergeLattice<F, std::tuple<Tensor...>, std::tuple<std::vector<std::size_t>...>>
+    class MergeLattice<F,  std::tuple<Tensor...>> //std::pair<Tensor..., std::vector<std::size_t>>>
     {
     private:
-        // OutDim const m_outDim;
         std::tuple<Tensor&...> const m_tensors;
-        std::tuple<std::vector<Is>&...> const m_is;
-        // F const m_comparisonHelper;
+        std::tuple<std::vector<std::size_t>> const m_is;
 
+        // std::tuple<std::pair<Tensor, std::vector<int>>...> const m_tensors;
     public:
         explicit inline MergeLattice(
-            // F f, OutDim outDim, 
             // is -> make a pair of std::tuple
             // tuple of pairs of Tensors and vectors<size_t>
-            std::tuple<Tensor...>& tensors, std::tuple<std::vector<std::size_t...>>& is)
-            : 
-            // m_outDim(outDim)
-            , m_tensors(std::tie(tensors...))
-            , m_is(std::tie(is...))
-            // , m_comparisonHelper(f)
+            // std::pair<std::tuple<Tensors...>, std::vector<std::size_t>>& tensor_and_indices)
+            // std::tuple<std::pair<Tensor, std::vector<int>>...>& tensor_and_indices)
+            Tensor&... tensors, std::tuple<std::vector<std::size_t>>& is)
+            : m_tensors(std::tie(tensors...))
+            , m_is(is)
+            // : m_tensors(tensor_and_indices)
         {
-            static_assert(sizeof...(Tensor) == sizeof...(Is));
+            static_assert(sizeof...(Tensor) == sizeof(is));
 
             // TODO: check that all levels of the tensor has the same dimensions as the size of each vector of indices
             // TODO: Each vector of input indices (is) should be strictly increasing
@@ -49,6 +48,78 @@ namespace xsparse
     // the type of the tensor values is able to be gotten from Tensor::ContainerType
     // Ex: pair((i,j), (<ContainerType::value> A[ij], B[ij], D[i])) for the case we are discussing
     // advance would change because you need 
+    public:
+        class iterator
+        {
+        private:
+            // coiteration_helper const& m_coiterHelper;
+            // std::tuple<typename Levels::iteration_helper::iterator...> iterators;
+            // IK min_ik;
+            // std::tuple<typename Levels::iteration_helper...> m_iterHelpers;
+
+        public:
+            using iterator_category = std::forward_iterator_tag;
+            using reference = typename std::
+                tuple<IK, std::tuple<std::optional<typename Levels::BaseTraits::PK>...>>;
+
+            explicit inline iterator() noexcept
+            {
+            }
+
+            inline reference operator*() const noexcept
+            {
+                // auto PK_tuple = get_PKs();
+                // return { min_ik, PK_tuple };
+            }
+
+            inline iterator operator++(int) const noexcept
+            {
+                iterator tmp = *this;
+                ++(*this);
+                return tmp;
+            }
+
+            inline iterator& operator++() noexcept
+            {
+                // std::apply([&](auto&... args) { ((advance_iter(args)), ...); }, iterators);
+                // min_helper();
+                // return *this;
+            }
+
+            inline bool operator!=(iterator const& other) const noexcept
+            {
+                // return !m_coiterHelper.m_coiterate.m_comparisonHelper(
+                //     compareHelper(iterators, other.iterators));
+            };
+
+            inline bool operator==(iterator const& other) const noexcept
+            {
+                // return !(*this != other);
+            };
+        };
+        inline iterator begin() const noexcept
+        /**
+         * @brief Beginning of each tensor's iterator.
+         * 
+         */
+        {
+            return iterator{ *this,
+                                std::apply([&](auto&... args)
+                                        { return std::tuple(args.begin()...); },
+                                        this->m_iterHelpers) };
+        }
+
+        inline iterator end() const noexcept
+        /**
+         * @brief End of each tensor's iterator.
+         * 
+         */
+        {
+            // return iterator{ *this,
+            //                     std::apply([&](auto&... args)
+            //                             { return std::tuple(args.end()...); },
+            //                             this->m_iterHelpers) };
+        }
     };
 }
 

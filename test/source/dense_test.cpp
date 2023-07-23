@@ -45,7 +45,9 @@ TEST_CASE("Dense-2D")
         d1{ SIZE1 };
     xsparse::levels::dense<std::tuple<decltype(d1)>, uintptr_t, uintptr_t> d2{ SIZE2 };
 
-
+    CHECK(d1.size() == SIZE1);
+    CHECK(d2.size() == SIZE2);
+    
     uintptr_t l1 = 0;
     for (auto const [i1, p1] : d1.iter_helper(std::make_tuple(), ZERO))
     {
@@ -76,6 +78,9 @@ TEST_CASE("Dense-2D-Size")
                            uintptr_t,
                            xsparse::level_properties<true, true, true, false, true>>
         d2{ SIZE2 };
+
+    CHECK(d1.size() == SIZE1);
+    CHECK(d2.size() == SIZE2);
 
     uintptr_t l1 = 0;
     for (auto const [i1, p1] : d1.iter_helper(std::make_tuple(), ZERO))
