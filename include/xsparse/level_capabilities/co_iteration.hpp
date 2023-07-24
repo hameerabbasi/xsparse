@@ -36,17 +36,21 @@ constexpr bool is_level_ordered() {
     return Level::LevelProperties::is_ordered;
 }
 
-// Helper function to apply the lambda function to a tuple
-template <typename F, typename Tuple, std::size_t... Is>
-constexpr auto apply_tuple_helper(F&& fn, const Tuple& t, std::index_sequence<Is...>) {
-    return fn(std::get<Is>(t)...);
+// Helper function to perform tuple unpacking and call a template function
+template <template<bool...> class F, typename T, std::size_t... Indices>
+constexpr auto callTemplateFunctionWithTupleElements(const T& tuple, std::index_sequence<Indices...>) {
+    // Call the template function with unpacked tuple elements
+    // Here, you can replace 'yourTemplateFunction' with the template function you want to call.
+    // Assuming the template function takes three arguments of type int, double, and char.
+    return F<std::get<Indices>(tuple)...>::value;
 }
 
-// Function to apply the lambda function to a tuple
-template <typename F, typename... Args>
-constexpr auto apply_tuple(F&& fn, const std::tuple<Args...>& t) {
-    return apply_tuple_helper(std::forward<F>(fn), t, std::index_sequence_for<Args...>());
+// Function to call the template function with the tuple elements
+template <template<bool...> class F, typename... Args>
+constexpr auto callTemplateFunctionWithTuple(const std::tuple<Args...>& tuple) {
+    callTemplateFunctionWithTupleElements<F>(tuple, std::index_sequence_for<Args...>{});
 }
+
 
 namespace xsparse::level_capabilities
 {
@@ -426,11 +430,50 @@ namespace xsparse::level_capabilities
                     return *this;
                 }
 
+                // Function to unpack the tuple and pass the values to `F`
+                template <typename Tuple, std::size_t... Indices>
+                inline bool unpackAndCheck(const Tuple& tuple, std::index_sequence<Indices...>) const {
+                    return !F<std::get<Indices>(tuple)...>::value;
+                }
+
+                // Base case: Function to handle the last element in the tuple
+                template <size_t Index = 0, typename... Ts>
+                auto unpack_arguments(const std::tuple<Ts...>& t) {
+                    return std::get<Index>(t);
+                }
+
+                // Recursive case: Function to handle elements in the tuple except the last one
+                template <size_t Index = 0, typename... Ts>
+                auto print_arguments(const std::tuple<Ts...>& t) {
+                    return print_arguments<Index + 1>(t);
+                }
+
                 inline bool operator!=(iterator const& other) const noexcept
                 {
-                    // return !(std::apply(, my_tuple);
-    
-                    return !F<compareHelper(iterators, other.iterators)>::value;
+                    // a tuple of booleans
+                    const auto result_bools = compareHelper(iterators, other.iterators);
+
+                    // TODO: I want to unpack the `result_bools` tuple into a variadic template
+                    // which is passed into the function object `F` to check if the coiteration
+                    // is valid.
+                    // A pseudocode example is: `!F<result_bools...>::value`
+                    // Using std::apply to unpack and pass the tuple elements as template arguments
+                    bool result = std::apply([](auto&... args)-> bool {
+                        !F<decltype(args)...>::value;
+                    }, result_bools);
+                    return result;
+
+                    // return !F<result_bools>::value;
+                    // return unpackAndCheck(result_bools, std::index_sequence_for<decltype(result_bools)>{});
+
+                    // Unpack the result_bools tuple and call F with the unpacked values
+                    // const bool result = call_F_with_unpacked(result_bools, std::make_index_sequence<std::tuple_size<decltype(result_bools)>::value>{});
+                    // return result;
+                    // using Indices = std::make_index_sequence<std::tuple_size<decltype(bools)>::value>;
+                    // return !F<std::tuple_element<Indices, decltype(bools)>...>::value;
+                    // constexpr auto indices = std::make_integer_sequence<std::size_t, sizeof(bools)>();
+                    // return !callTemplateFunctionWithTuple<F>(compareHelper(iterators, other.iterators));
+                    // return test(bools, Indices{});
                     // return !m_coiterHelper.m_coiterate.m_comparisonHelper(
                     //     compareHelper(iterators, other.iterators));
                 };
