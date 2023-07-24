@@ -450,18 +450,23 @@ namespace xsparse::level_capabilities
 
                 inline bool operator!=(iterator const& other) const noexcept
                 {
-                    // a tuple of booleans
+                    // a tuple of booleans E.g. (true, false, true, false)
                     const auto result_bools = compareHelper(iterators, other.iterators);
+
+                    // constexpr auto unpack_tuple = []<typename Tuple, size_t... Ints>(std::index_sequence<Ints...>)->bool {
+                    //     return !F<std::tuple_element_t<Ints, Tuple>...>::value;
+                    // };
+                    // return unpack_tuple.template operator()<decltype(result_bools)>(std::make_index_sequence<std::tuple_size_v<decltype(result_bools)>>());
 
                     // TODO: I want to unpack the `result_bools` tuple into a variadic template
                     // which is passed into the function object `F` to check if the coiteration
                     // is valid.
                     // A pseudocode example is: `!F<result_bools...>::value`
                     // Using std::apply to unpack and pass the tuple elements as template arguments
-                    bool result = std::apply([](auto&... args)-> bool {
-                        !F<decltype(args)...>::value;
-                    }, result_bools);
-                    return result;
+                    // bool result = std::apply([](auto&... args)-> bool {
+                    //     !F<decltype(args)...>::value;
+                    // }, result_bools);
+                    // return result;
 
                     // return !F<result_bools>::value;
                     // return unpackAndCheck(result_bools, std::index_sequence_for<decltype(result_bools)>{});
