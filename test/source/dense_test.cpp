@@ -47,7 +47,7 @@ TEST_CASE("Dense-2D")
 
     CHECK(d1.size() == SIZE1);
     CHECK(d2.size() == SIZE2);
-    
+
     uintptr_t l1 = 0;
     for (auto const [i1, p1] : d1.iter_helper(std::make_tuple(), ZERO))
     {

@@ -6,73 +6,140 @@
 #include <xsparse/tensor.hpp>
 #include <xsparse/level_capabilities/co_iteration.hpp>
 
+// utility method for template specialization of the function F
+// Base case for recursion (no indices to set)
+template <std::size_t... Indices, typename... Args>
+auto
+callF(std::index_sequence<Indices...>, std::tuple<Args...> args)
+{
+    // For demonstration purposes, let's print the values in the tuple
+    std::cout << "Received tuple: ";
+    std::apply([](const auto&... args) { ((std::cout << args << ' '), ...); }, args);
+    std::cout << std::endl;
+
+    return F<std::get<Indices>(args)...>::value;
+}
+
+// Recursive case for setting the first index and continuing with the rest
+template <std::size_t Index, std::size_t... Indices, typename... Args>
+auto
+callF(std::index_sequence<Index, Indices...>, std::tuple<Args...> args)
+{
+    std::get<Index>(args) = true;
+    return callF(std::index_sequence<Indices...>(), args);
+}
+
+// Helper function to call the recursive version explicitly
+template <std::size_t... Indices, typename... Args>
+auto
+SetIndicesToTrue(std::tuple<Args...> args)
+{
+    return callF(std::index_sequence<Indices...>(), args);
+}
+
 namespace xsparse
 {
-    template <class F, class Tensor>
+    template <class F, typename DataType, typename Indices, class Tensors>
     class MergeLattice;
 
-    template <class F, std::vector<std::uintptr_t>... Indices, class... Tensor>
-    class MergeLattice<F, std::tuple<Indices...>>
-    // std::tuple<Tensor...>> //std::pair<Tensor..., std::vector<std::size_t>>>
+    template <class F, typename DataType, typename... Indices, class... Tensors>
+    class MergeLattice<F, DataType, std::tuple<Indices...>, std::tuple<Tensors...>>
     {
     private:
-        // std::tuple<Tensor&...> const m_tensors;
-        // std::tuple<std::vector<std::size_t>> const m_is;
+        std::tuple<Tensors&...> const m_tensors;
 
-        std::tuple<std::pair<Tensor, std::vector<int>>...> const m_tensors;
     public:
-        explicit inline MergeLattice(
-            // is -> make a pair of std::tuple
-            // tuple of pairs of Tensors and vectors<size_t>
-            // std::pair<std::tuple<Tensors...>, std::vector<std::size_t>>& tensor_and_indices)
-            // std::tuple<std::pair<Tensor, std::vector<int>>...>& tensor_and_indices)
-            Tensor&... tensors)
-            // std::tuple<std::vector<std::size_t>>& is)
+        explicit inline MergeLattice(Tensors&... tensors)
             : m_tensors(std::tie(tensors...))
-            // , m_is(is)
-            // : m_tensors(tensor_and_indices)
         {
             // https://godbolt.org/z/1YKoKndMa
-            static_assert(sizeof...(Tensor) == sizeof...(Indices));
+            static_assert(sizeof...(Tensors) == sizeof...(Indices));
 
-            // TODO: check that all levels of the tensor has the same dimensions as the size of each vector of indices
+            // TODO: check that all levels of the tensor has the same dimensions as the size of each
+            // vector of indices
             // TODO: Each vector of input indices (is) should be strictly increasing
 
             // TODO: runtime check that the shapes of the tensors match e.g. (i, j) of A_ij and B_ij
             // and the i of D_i.
         }
 
-    // TODO: we also need to define an iterator in here that will actually iterate over the merge lattice.
-    // begin() and end() would define the beginning and end of the iterator
-    // begin, end and != would essentially be same as coiterate, but in between
-    // e.g. advance would be different
-    // dereference would return a pair which would have two elements for A,
-    // (<index into the tensor (e.g. i,j,k tuple values)>, <tuple of of each tensor value at those index>)
-    // the type of the tensor values is able to be gotten from Tensor::ContainerType
-    // Ex: pair((i,j), (<ContainerType::value> A[ij], B[ij], D[i])) for the case we are discussing
-    // advance would change because you need 
+        // TODO: we also need to define an iterator in here that will actually iterate over the
+        // merge lattice. begin() and end() would define the beginning and end of the iterator
+        // begin, end and != would essentially be same as coiterate, but in between
+        // e.g. advance would be different
+        // dereference would return a pair which would have two elements for A,
+        // (<index into the tensor (e.g. i,j,k tuple values)>, <tuple of of each tensor value at
+        // those index>) the type of the tensor values is able to be gotten from
+        // Tensors::ContainerType Ex: pair((i,j), (<ContainerType::value> A[ij], B[ij], D[i])) for
+        // the case we are discussing advance would change because you need
     public:
         class iterator
         {
         private:
-            // coiteration_helper const& m_coiterHelper;
-            // std::tuple<typename Levels::iteration_helper::iterator...> iterators;
-            // IK min_ik;
-            // std::tuple<typename Levels::iteration_helper...> m_iterHelpers;
+            // a tuple of coiterators defined for each index level
+            std::tuple<Coiterate...> m_coiters;
+
+            // number of coiterators is the same as the number of indices
+            static constexpr auto n_coiterators = get_max_index<Indices...>();
+
+            constexpr auto get_max_index() const noexcept
+            /**
+             * @brief Get the maximum index from tuple of vectors of indices.
+             *
+             */
+            {
+            }
+
+            template <std::size_t I, class... Levels>
+            constexpr auto init_coiterator_for_levels() noexcept
+            {
+                if constexpr (I < n_coiterators)
+                {
+                    return std::tuple_cat(std::make_tuple(Coiterate(std::get<I>(m_tensors))),
+                                          init_coiterator_for_levels<I + 1>());
+                }
+
+                // compute which indices are not involved, so they are always set to true
+                // constexpr auto default_true_indices;
+
+                // re-define the template function F to take in a tuple of bools where
+                // the indices in `default_true_indices` are always set to true
+
+                // define the coiterator for index I
+                xsparse::level_capabilities::Coiterate<F,
+                                                       uintptr_t,
+                                                       uintptr_t,
+                                                       std::tuple<decltype(Levels)...>,
+                                                       std::tuple<>>
+                coiter(Levels...);
+                return coiter;
+            }
+
+            constexpr auto init_coiterators() noexcept
+            {
+                // a tuple of coiterators
+                constexpr auto coiterators = init_coiterator_for_levels<0>();
+                return coiterators;
+            }
 
         public:
             using iterator_category = std::forward_iterator_tag;
-            using reference = typename std::
-                tuple<IK, std::tuple<std::optional<typename Levels::BaseTraits::PK>...>>;
+            using reference = DataType;
 
             explicit inline iterator() noexcept
+                : m_coiters(init_coiterators())
             {
             }
 
             inline reference operator*() const noexcept
             {
+                // dereference each coiterator and return a tuple of the values
+                for
+                    coiter in m_coiters : auto [ik, pk] = coiter*;
+
+
                 // auto PK_tuple = get_PKs();
-                // return { min_ik, PK_tuple };
+                return { min_ik, PK_tuple };
             }
 
             inline iterator operator++(int) const noexcept
@@ -90,38 +157,46 @@ namespace xsparse
             }
 
             inline bool operator!=(iterator const& other) const noexcept
-            {
-                // return !m_coiterHelper.m_coiterate.m_comparisonHelper(
-                //     compareHelper(iterators, other.iterators));
-            };
+                /**
+                 * @brief Check if two merge lattice iterators are not equal.
+                 *
+                 * @details Two merge lattice iterators are not equal if the coiterators
+                 * are not equal. This check proceeds by checking if the coiterators are
+                 * all equal.
+                 *
+                 * Questions:
+                 * 1. Does each coiterator check it with respect to the function `F`, or
+                 * with their modified function, where certain indices are set to `true`?
+                 */
+                {
+                    // return !F<>::value;
+                };
 
             inline bool operator==(iterator const& other) const noexcept
             {
-                // return !(*this != other);
+                return !(*this != other);
             };
         };
         inline iterator begin() const noexcept
         /**
-         * @brief Beginning of each tensor's iterator.
-         * 
+         * @brief Beginning of each index's coiterator.
+         *
          */
         {
             return iterator{ *this,
-                                std::apply([&](auto&... args)
-                                        { return std::tuple(args.begin()...); },
-                                        this->m_iterHelpers) };
+                             std::apply([&](auto&... args) { return std::tuple(args.begin()...); },
+                                        this->m_coiters) };
         }
 
         inline iterator end() const noexcept
         /**
-         * @brief End of each tensor's iterator.
-         * 
+         * @brief End of each index's coiterator.
+         *
          */
         {
-            // return iterator{ *this,
-            //                     std::apply([&](auto&... args)
-            //                             { return std::tuple(args.end()...); },
-            //                             this->m_iterHelpers) };
+            return iterator{ *this,
+                             std::apply([&](auto&... args) { return std::tuple(args.end()...); },
+                                        this->m_coiters) };
         }
     };
 }

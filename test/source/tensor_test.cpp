@@ -39,10 +39,11 @@ TEST_CASE("Multiple-levels-Tensor")
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s1{ 5 };
     xsparse::levels::dense<std::tuple<decltype(s1)>, uintptr_t, uintptr_t> s2{ 6 };
     xsparse::levels::hashed<std::tuple<decltype(s2)>, uintptr_t, uintptr_t> h{ SIZE1, crd };
-    xsparse::Tensor<std::int8_t, std::tuple<decltype(s1), decltype(s2), decltype(h)>> t1(s1, s2, h);
+    xsparse::Tensor<std::int8_t, std::tuple<decltype(s1), decltype(s2), decltype(h)>, uintptr_t> t1(
+        s1, s2, h);
 
     CHECK(t1.ndim() == 3);
     CHECK(t1.shape() == std::make_tuple(5, 6, SIZE1));
     CHECK(std::get<2>(t1.get_levels()).size() == SIZE1);
-    // CHECK(std::is_same<decltype(t1.dtype()), std::int8_t*>::value);
+    CHECK(std::is_same<decltype(t1)::dtype, std::int8_t*>::value);
 }
