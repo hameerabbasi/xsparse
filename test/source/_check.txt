@@ -27,7 +27,7 @@ TEST_CASE("Coiteration-Dense-Dense")
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s1{ 5 };
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s2{ 5 };
 
-    constexpr auto fn = [](std::tuple<bool, bool> t) constexpr { return std::get<0>(t) && std::get<1>(t); };
+    constexpr auto fn = [](bool t1, bool t2) constexpr { return t1 && t2; };
 
     xsparse::level_capabilities::Coiterate<xsparse::util::LambdaWrapper<decltype(fn)>::template apply,
                                            uintptr_t,
@@ -61,7 +61,7 @@ TEST_CASE("Coiteration-Dense-Dense")
             ++it2;
         }
     }
-    CHECK(fn(std::tuple(it1 == end1, it2 == end2)) == true);
+    CHECK(fn(it1 == end1, it2 == end2) == true);
 }
 
 TEST_CASE("Coiteration-Dense-Dense-Dense")
@@ -72,8 +72,8 @@ TEST_CASE("Coiteration-Dense-Dense-Dense")
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s2{ 5 };
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s3{ 5 };
 
-    constexpr auto fn = [](std::tuple<bool, bool, bool> t) constexpr
-    { return (std::get<0>(t) && std::get<1>(t)) || (std::get<2>(t)); };
+    constexpr auto fn = [](bool t1, bool t2, bool t3) constexpr
+    { return (t1 && t2) || (t3); };
 
     xsparse::level_capabilities::Coiterate<xsparse::util::LambdaWrapper<decltype(fn)>::template apply,
     // std::function<bool(std::tuple<bool, bool, bool>)>,
@@ -118,7 +118,7 @@ TEST_CASE("Coiteration-Dense-Dense-Dense")
             ++it3;
         }
     }
-    CHECK(fn(std::tuple(it1 == end1, it2 == end2, it3 == end3)) == true);
+    CHECK(fn(it1 == end1, it2 == end2, it3 == end3) == true);
 }
 
 TEST_CASE("Coiteration-Singleton-Singleton-Dense-Dense")
@@ -133,8 +133,8 @@ TEST_CASE("Coiteration-Singleton-Singleton-Dense-Dense")
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s3{ 5 };
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s4{ 5 };
 
-    constexpr auto fn = [](std::tuple<bool, bool, bool, bool> t) constexpr
-    { return (std::get<0>(t) || std::get<2>(t)) || (std::get<1>(t) || std::get<3>(t)); };
+    constexpr auto fn = [](bool t1, bool t2, bool t3, bool t4) constexpr
+    { return (t1 && t3) || (t2 && t4); };
 
     xsparse::level_capabilities::Coiterate<
         xsparse::util::LambdaWrapper<decltype(fn)>::template apply,
@@ -192,7 +192,7 @@ TEST_CASE("Coiteration-Singleton-Singleton-Dense-Dense")
             }
         }
     }
-    CHECK(fn(std::tuple(it1 == end1, it2 == end2, it3 == end3, it4 == end4)) == true);
+    CHECK(fn(it1 == end1, it2 == end2, it3 == end3, it4 == end4) == true);
 }
 
 TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
@@ -227,7 +227,7 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
         hash_level{ 5, crd0 };
 
     // define a conjunctive function
-    constexpr auto fn = [](std::tuple<bool, bool> t) constexpr { return (std::get<0>(t) && std::get<1>(t)); };
+    constexpr auto fn = [](bool t1, bool t2) constexpr { return (t1 && t2); };
 
     xsparse::level_capabilities::Coiterate<xsparse::util::LambdaWrapper<decltype(fn)>::template apply,
     // std::function<bool(std::tuple<bool, bool>)>,

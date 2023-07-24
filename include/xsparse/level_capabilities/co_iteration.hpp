@@ -36,68 +36,17 @@ constexpr bool is_level_ordered() {
     return Level::LevelProperties::is_ordered;
 }
 
-template<
-    typename ReturnType,
-    typename ClassType
->
-constexpr auto createLambda(ReturnType(ClassType::* method)(void))
-{
-    return [=](void* object) -> int
-    {
-        return (reinterpret_cast<ClassType*>(object)->*method)();
-    };
+// Helper function to apply the lambda function to a tuple
+template <typename F, typename Tuple, std::size_t... Is>
+constexpr auto apply_tuple_helper(F&& fn, const Tuple& t, std::index_sequence<Is...>) {
+    return fn(std::get<Is>(t)...);
 }
 
-// Forward declaration
-// template <class F, std::size_t I, typename... Args, typename... Mask>
-// constexpr bool validate_boolean_helper(std::tuple<Args...> f_args);
-
-
-// template <class F, std::size_t I, typename... Args, typename... Mask>
-// constexpr void validate_boolean_helper(std::tuple<Args...> f_args)
-// /**
-//  * @brief Helper function to validate boolean arguments.
-//  * 
-//  * @details This function performs template recursion to construct a tuple of boolean arguments
-//  * that is then passed to the function object `F`. The function object `F` is a function that
-//  * returns true, or false.
-//  * 
-//  * The template recursion creates a tree, where the leaves of the tree are the
-//  * constructed tuple of boolean arguments. If the Ith element of `Mask` is not ordered,
-//  * then the recursion branches into two paths, one with the Ith element set to true, and
-//  * the other with the Ith element set to false. If the Ith element of `Mask` is ordered,
-//  * then the recursion only branches into one path, with the Ith element set to false.
-//  * 
-//  * At the end of the recursion, the tuple of boolean arguments is passed to the function
-//  * and static_assert is used to check that the function returns false.
-//  * 
-//  * @tparam F - A boolean function object that takes in sizeof...(Mask) boolean arguments.
-//  * @tparam I - The current index of the recursion.
-//  * @tparam Args - The tuple of boolean arguments that is constructed. At the end of any
-//  * recursion path, the tuple of boolean arguments is passed to the function object `F`.
-//  * @tparam Mask - The tuple of boolean values that is used to construct the tuple of
-//  * boolean arguments.
-//  */
-// {
-//     if constexpr (I == sizeof...(Mask))
-//     {
-//         // do something once the full set of arguments is constructed
-//         // e.g.
-//         static_assert(F{}(f_args) == false, "check failed");
-//     }
-//     else
-//     {
-//         if constexpr (std::tuple_element_t<I, std::tuple<Mask...>>::value == false)
-//         {
-//             // static constexpr auto new_args = std::tuple_cat(f_args, std::tuple<bool>(false));
-//             validate_boolean_helper<F, I+1, decltype(std::tuple_cat(f_args, std::tuple<bool>(false))), Mask...>(std::tuple_cat(f_args, std::tuple<bool>(false)));
-//         }
-//         // static constexpr auto new_args = std::tuple_cat(f_args, std::tuple<bool>(true));
-//         validate_boolean_helper<F, I+1, decltype(std::tuple_cat(f_args, std::tuple<bool>(true))), Mask...>(std::tuple_cat(f_args, std::tuple<bool>(true)));
-//     }
-// }
-
-
+// Function to apply the lambda function to a tuple
+template <typename F, typename... Args>
+constexpr auto apply_tuple(F&& fn, const std::tuple<Args...>& t) {
+    return apply_tuple_helper(std::forward<F>(fn), t, std::index_sequence_for<Args...>());
+}
 
 namespace xsparse::level_capabilities
 {
@@ -165,14 +114,14 @@ namespace xsparse::level_capabilities
     {
     private:
         std::tuple<Levels&...> const m_levelsTuple;
-        F const m_comparisonHelper;
+        // F const m_comparisonHelper;
 
     public:
         explicit constexpr inline Coiterate(
-            F f,
+            // F f,
             Levels&... levels)
             : m_levelsTuple(std::tie(levels...))
-            , m_comparisonHelper(f)
+            // , m_comparisonHelper(f)
         {
             if (![](auto const& first, auto const&... rest)
                 { return ((first == rest) && ...); }(levels.size()...))
@@ -203,7 +152,7 @@ namespace xsparse::level_capabilities
 
             // need to convert template parameter `F` into something that is constexpr invokable/callable
             // during compile-time
-            validate_boolean_helper<0>(std::tuple<>());
+            validate_boolean_helper<sizeof(ordered_mask_tuple)>();
         }
 
         // A tuple of booleans corresponding to each level, where true indicates that the level is ordered.
@@ -219,11 +168,11 @@ namespace xsparse::level_capabilities
             std::cout << std::endl;
         }
 
-        template <std::size_t I, typename NewArg, typename... Args>
-        static constexpr auto validate_boolean_helper(std::tuple<Args...> f_args)
+        template <std::size_t I, bool... Args>
+        static constexpr auto validate_boolean_helper()
         {
             // Check if the current recursion depth (I) is less than the number of elements in Mask.
-            if constexpr (I < sizeof(ordered_mask_tuple))
+            if constexpr (I > 0)
             {
                 // If the Ith element of Mask is not ordered (false), branch into two paths.
                 // if constexpr (!std::get<I>(ordered_mask_tuple))
@@ -233,14 +182,14 @@ namespace xsparse::level_capabilities
                 // }
                 // If the Ith element of Mask is ordered (true), only branch into one path with the Ith element set to false.
                 // TODO: tuple concatenation at the template level
-                validate_boolean_helper<I + 1, false, Args...>(std::tuple_cat(f_args, std::tuple<bool>(false)));
+                validate_boolean_helper<I - 1, false, Args...>();
             }
             else
             {
                 // When we reach the end of recursion (base case), call the function object F with the constructed boolean arguments.
                 static_assert(sizeof...(Args) == sizeof...(Levels), "Number of arguments must be equal to number of levels");
 
-                print_boolean_tuple(f_args);
+                // print_boolean_tuple(f_args);
 
 
                 // TODO: start from a blank godbolt C++20 short example
@@ -248,18 +197,9 @@ namespace xsparse::level_capabilities
 
                 // This line results in the following errors.
                 // static_assert(callFunction(f_args) == false, "Function F should return false for the given arguments.");
-                static_assert(F<Args...>::value == false);
+                // static_assert(F<Args...>::value == false);
+                static_assert(F<Args...>::value == false, "Function F should return false for the given arguments.");
             }
-            // static_assert(F{}(f_args) == false);
-            // static_assert(callFunction(f_args) == false, "Function F should return false for the given arguments.");
-        }
-
-        // Helper function template to call F and return the result
-        template <typename... Args>
-        static constexpr bool callFunction(Args&&... args)
-        {
-            return F{}(std::forward<Args>(args)...);
-            // return std::integral_constant<bool, F{}(std::forward<Args>(args)...)>();
         }
         
     public:
@@ -488,8 +428,11 @@ namespace xsparse::level_capabilities
 
                 inline bool operator!=(iterator const& other) const noexcept
                 {
-                    return !m_coiterHelper.m_coiterate.m_comparisonHelper(
-                        compareHelper(iterators, other.iterators));
+                    // return !(std::apply(, my_tuple);
+    
+                    return !F<compareHelper(iterators, other.iterators)>::value;
+                    // return !m_coiterHelper.m_coiterate.m_comparisonHelper(
+                    //     compareHelper(iterators, other.iterators));
                 };
 
                 inline bool operator==(iterator const& other) const noexcept
