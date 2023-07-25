@@ -77,7 +77,7 @@ namespace xsparse
         {
         private:
             // a tuple of coiterators defined for each index level
-            std::tuple<Coiterate...> m_coiters;
+            std::tuple<xsparse::level_capabilities::Coiterate...> m_coiters;
 
             // number of coiterators is the same as the number of indices
             static constexpr auto n_coiterators = get_max_index<Indices...>();
@@ -95,8 +95,11 @@ namespace xsparse
             {
                 if constexpr (I < n_coiterators)
                 {
-                    return std::tuple_cat(std::make_tuple(Coiterate(std::get<I>(m_tensors))),
-                                          init_coiterator_for_levels<I + 1>());
+                    return std::tuple_cat(
+                        std::make_tuple(
+                            xsparse::level_capabilities::Coiterate(std::get<I>(m_tensors))
+                        ), init_coiterator_for_levels<I + 1>()
+                    );
                 }
 
                 // compute which indices are not involved, so they are always set to true
@@ -134,8 +137,7 @@ namespace xsparse
             inline reference operator*() const noexcept
             {
                 // dereference each coiterator and return a tuple of the values
-                for
-                    coiter in m_coiters : auto [ik, pk] = coiter*;
+                // for coiter in m_coiters : auto [ik, pk] = coiter*;
 
 
                 // auto PK_tuple = get_PKs();
@@ -167,6 +169,18 @@ namespace xsparse
                  * Questions:
                  * 1. Does each coiterator check it with respect to the function `F`, or
                  * with their modified function, where certain indices are set to `true`?
+                 * 2. [Derferencing] How should we dereference?
+                 * 3. [Advancing] When we advance for a merge lattice with (i, j, k)
+                 * we want to advance all coiterators starting at index i. Once we
+                 * get to the next position, we want to advance all coiterators starting
+                 * at index j, and so on. How do we do this?
+                 * 
+                 * For example: row 0 has no non-zero values, so row i==1 is the first
+                 * advanced row. Then, we would need to advance column j to the first
+                 * non-zero value, and then advance column k to the first non-zero value.
+                 * However, column j and k need to be aware if a new row has occured?
+                 * 
+                 * 4. How can we initialize the coiterators during compile-time?
                  */
                 {
                     // return !F<>::value;
@@ -177,6 +191,7 @@ namespace xsparse
                 return !(*this != other);
             };
         };
+
         inline iterator begin() const noexcept
         /**
          * @brief Beginning of each index's coiterator.

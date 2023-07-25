@@ -16,6 +16,11 @@ namespace xsparse
      * @tparam DataType - the type of the data that is held (e.g. int) is a tensor of ints
      * @tparam Levels - a tuple of levels, which comprise this tensor.
      * @tparam ContainerTraits - the container traits to use for the tensor.
+     * 
+     * Questions:
+     * 1. How do we get data at a specific index if they don't support locate?
+     * 2. How do we use containertraits here?
+     * 3. What sort of compile-time checks should we do to check on Tensor during construction?
      */
     template <typename DataType,
               class Levels,
@@ -37,6 +42,7 @@ namespace xsparse
     private:
         std::tuple<Levels&...> const m_levelsTuple;
 
+        /*Private methods for public API.*/
         template <std::size_t I>
         inline constexpr auto get_size_level() const noexcept
         {
@@ -77,6 +83,25 @@ namespace xsparse
             return sizeof...(Levels);
         }
 
+        inline auto shape() const noexcept
+        {
+            // e.g. for a tensor of shape (i, j, k) this should return (i, j, k)
+            // get the size of each tensor mode and return as a tuple
+            return get_shape_complete(
+                std::make_index_sequence<std::tuple_size_v<decltype(m_levelsTuple)>>{});
+        }
+
+        inline auto get_levels() const noexcept
+        {
+            return m_levelsTuple;
+        }
+
+        inline auto get_levels() noexcept
+        {
+            return m_levelsTuple;
+        }
+
+
         /**
          * @brief Get reference to data element at specific index tuple.
          *
@@ -101,23 +126,6 @@ namespace xsparse
         //         m_levelsTuple);
         // }
 
-        inline auto shape() const noexcept
-        {
-            // e.g. for a tensor of shape (i, j, k) this should return (i, j, k)
-            // get the size of each tensor mode and return as a tuple
-            return get_shape_complete(
-                std::make_index_sequence<std::tuple_size_v<decltype(m_levelsTuple)>>{});
-        }
-
-        inline auto get_levels() const noexcept
-        {
-            return m_levelsTuple;
-        }
-
-        inline auto get_levels() noexcept
-        {
-            return m_levelsTuple;
-        }
     };
 }
 
