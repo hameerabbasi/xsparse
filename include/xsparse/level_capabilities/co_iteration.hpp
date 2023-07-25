@@ -70,44 +70,8 @@ namespace xsparse::level_capabilities
      * to be iterated.
      * @tparam Is - A tuple of indices that is used to keep track of the current position in each
      * level.
-     *
-     * @note Coiteration is only allowed through tuples of levels if the following criterion is met:
-     * If:
-     * 1. the levels are all ordered (i.e. has the `is_ordered == True` property)
-     * 2. if any of the level are do not have the is_ordered property, it must have the locate
-     * function, else return False. Then do a check that `m_comparisonHelper` defines
-     * a conjunctive merge (i.e. AND operation).
-     * Otherwise, coiteration is not allowed.
      * 
-     * Now, I want to do a check over the levels and `F`that defines a valid coiteration. F is
-     * a function that takes in boolean values corresponding to each level and returns a boolean.
-     * For example, if there are 5 levels, then F takes in a tuple of 5 booleans and returns a
-     * boolean.
-     * 
-     * For each ordered level, we want to pass in `false` to F, and for each unordered level, we want to
-     * evaluate `F` with `true` and `false` for the unordered level. I want to implement a template
-     * recursion over the `Levels` tuple that does this check. Initially `F` is evaluated
-     * with all inputs as `false`. Then recursing over `Levels`, if a level is unordered,
-     * we want to evaluate `F` with `true` and `false` for that level. If a level is ordered,
-     * we want to evaluate `F` with `false` for that level. For any level
-     * that we are not on, the input to `F` is `false`. If `F` returns `true` for any of these
-     * evaluations, then we throw an error. 
-     * 
-     * For example, if Levels = (A, B, C, D)
-     
-        And A, and D are unordered with locate() function defined and B and C are ordered.
-
-        We want to check that the output is always false for F evaluated:
-
-        F(false, false, false, false)
-        F(true, false, false, false)
-        F(false, false, false, true)
-        F(true, false, false, true)
-
-        If any of the above returns `true`, then we throw an error.
-
-     *
-     * This check is done automatically in the constructor, via the function `
+     * @param levels - A tuple of levels is passed in during runtime via the constructor.
      */
 
     template <template<bool...> class F, class IK, class PK, class Levels, class Is>
@@ -118,14 +82,11 @@ namespace xsparse::level_capabilities
     {
     private:
         std::tuple<Levels&...> const m_levelsTuple;
-        // F const m_comparisonHelper;
 
     public:
         explicit constexpr inline Coiterate(
-            // F f,
             Levels&... levels)
             : m_levelsTuple(std::tie(levels...))
-            // , m_comparisonHelper(f)
         {
             if (![](auto const& first, auto const&... rest)
                 { return ((first == rest) && ...); }(levels.size()...))
@@ -179,14 +140,15 @@ namespace xsparse::level_capabilities
             if constexpr (I > 0)
             {
                 // If the Ith element of Mask is not ordered (false), branch into two paths.
-                // if constexpr (!std::get<I>(ordered_mask_tuple))
-                // {
-                //     // Next, set the Ith element of f_args to false and recursively call the function.
-                //     validate_boolean_helper<I + 1, Args...>(std::tuple_cat(f_args, std::tuple<bool>(true)));
-                // }
+                if constexpr (!std::get<I>(ordered_mask_tuple))
+                {
+                    // Next, set the Ith element of f_args to false and recursively call the function.
+                    validate_boolean_helper<I + 1, true, Args...>();
+                    // validate_boolean_helper<I + 1, std::tuple_cat(std::make_tuple(true), std::tuple<Args...>{})>();
+                }
                 // If the Ith element of Mask is ordered (true), only branch into one path with the Ith element set to false.
-                // TODO: tuple concatenation at the template level
                 validate_boolean_helper<I - 1, false, Args...>();
+                // validate_boolean_helper<I + 1, std::tuple_cat(std::make_tuple(true), std::tuple<Args...>{})>();
             }
             else
             {
@@ -194,11 +156,6 @@ namespace xsparse::level_capabilities
                 static_assert(sizeof...(Args) == sizeof...(Levels), "Number of arguments must be equal to number of levels");
 
                 // print_boolean_tuple(f_args);
-
-
-                // TODO: start from a blank godbolt C++20 short example
-                // and try to get a static_assert to work on a constexpr invokable function.
-
                 // This line results in the following errors.
                 // static_assert(callFunction(f_args) == false, "Function F should return false for the given arguments.");
                 // static_assert(F<Args...>::value == false);
@@ -323,6 +280,14 @@ namespace xsparse::level_capabilities
                     min_helper();
                 }
 
+                ~iterator()
+                {
+                    // levels should either be ordered or have locate function.
+                    static_assert(iter::parent_type::LevelProperties::is_ordered
+                                      || has_locate_v<typename iter::parent_type>,
+                                  "Levels should either be ordered or have locate function.");
+                }
+
                 template <class iter, std::size_t I>
                 inline constexpr auto get_PK_iter(iter& i) const noexcept
                 /**
@@ -337,12 +302,6 @@ namespace xsparse::level_capabilities
                  * @return The PK of the iterator at index I.
                  */
                 {
-                    // XXX: move this into a destructor.
-                    // levels should either be ordered or have locate function.
-                    static_assert(iter::parent_type::LevelProperties::is_ordered
-                                      || has_locate_v<typename iter::parent_type>,
-                                  "Levels should either be ordered or have locate function.");
-
                     if constexpr (iter::parent_type::LevelProperties::is_ordered)
                     {
                         return deref_PKs(i);
@@ -430,28 +389,12 @@ namespace xsparse::level_capabilities
                     return *this;
                 }
 
-                // Function to unpack the tuple and pass the values to `F`
-                template <typename Tuple, std::size_t... Indices>
-                inline bool unpackAndCheck(const Tuple& tuple, std::index_sequence<Indices...>) const {
-                    return !F<std::get<Indices>(tuple)...>::value;
-                }
-
-                // Base case: Function to handle the last element in the tuple
-                template <size_t Index = 0, typename... Ts>
-                auto unpack_arguments(const std::tuple<Ts...>& t) {
-                    return std::get<Index>(t);
-                }
-
-                // Recursive case: Function to handle elements in the tuple except the last one
-                template <size_t Index = 0, typename... Ts>
-                auto print_arguments(const std::tuple<Ts...>& t) {
-                    return print_arguments<Index + 1>(t);
-                }
-
                 inline bool operator!=(iterator const& other) const noexcept
                 {
                     // a tuple of booleans E.g. (true, false, true, false)
                     const auto result_bools = compareHelper(iterators, other.iterators);
+
+                    return !F{}(result_bools);
 
                     // constexpr auto unpack_tuple = []<typename Tuple, size_t... Ints>(std::index_sequence<Ints...>)->bool {
                     //     return !F<std::tuple_element_t<Ints, Tuple>...>::value;

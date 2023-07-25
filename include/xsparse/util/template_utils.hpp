@@ -53,12 +53,6 @@ namespace xsparse::util
         struct apply {
             static constexpr bool value = fn(std::tuple<std::integral_constant<bool, Args>...>{}); 
         };
-
-        // The 'apply' template takes a tuple of bool arguments and passes it to the lambda function
-        // template <typename Tuple>
-        // struct apply {
-        //     static constexpr bool value = std::apply(fn, Tuple{});
-        // };
     };
 }
 #endif  // XSPARSE_TEMPLATE_UTILS_H
