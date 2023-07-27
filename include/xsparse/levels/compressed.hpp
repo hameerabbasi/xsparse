@@ -91,6 +91,11 @@ namespace xsparse
             }
 
             inline void append_init(typename BaseTraits::IK szkm1) noexcept
+            /**
+             * @brief Initialize the compressed level before appending data to it.
+             * 
+             * @param szkm1 - the size of the previous level.
+             */
             {
                 m_pos.resize(szkm1 + 1);
             }
@@ -98,16 +103,36 @@ namespace xsparse
             inline void append_edges(typename BaseTraits::PKM1 pkm1,
                                      typename BaseTraits::PK pk_begin,
                                      typename BaseTraits::PK pk_end) noexcept
+            /**
+             * @brief Append edge information to the compressed level.
+             * 
+             * @param pkm1 - the previous level position where the edge information
+             * is to be stored.
+             * @param pk_begin - the beginning position of the edges in previous
+             * level.
+             * @param pk_end - the ending position of the edges in previous level.
+             * 
+             */
             {
                 m_pos[pkm1 + 1] = pk_end - pk_begin;
             }
 
             inline void append_coord(typename BaseTraits::IK ik) noexcept
+            /**
+             * @brief Append coordinate information to the compressed level.
+             * 
+             * @param ik - the coordinate information to be appended.
+             */
             {
                 m_crd.push_back(ik);
             }
 
             inline void append_finalize(typename BaseTraits::IK szkm1) noexcept
+            /**
+             * @brief Finalize the compressed level after appending data to it.
+             * 
+             * @param szkm1 - the size of the previous level.
+             */
             {
                 typename BaseTraits::PK cumsum = m_pos[0];
                 for (typename BaseTraits::PK pkm1 = 1; pkm1 <= szkm1; ++pkm1)

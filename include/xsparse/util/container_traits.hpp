@@ -22,7 +22,26 @@ namespace xsparse::util
 
         template <class Key, class Val>
         using Map = TMap<Key, Val>;
-    };
+
+        // TODO:
+        // implement generic methods for push_back, and operator[]
+        // what methods would these be? would it be the following?
+        // What should they do?
+        template <typename size_type>
+        constexpr void resize(size_type count)
+        {
+        }
+
+        template <typename T>
+        constexpr void push_back(const T& value)
+        {
+        }
+
+        template <typename size_type, typename Elem>
+        constexpr Elem operator[](size_type pos)
+        {
+        }
+    };    
 }
 
 #endif

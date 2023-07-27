@@ -95,11 +95,9 @@ namespace xsparse
             {
                 if constexpr (I < n_coiterators)
                 {
-                    return std::tuple_cat(
-                        std::make_tuple(
-                            xsparse::level_capabilities::Coiterate(std::get<I>(m_tensors))
-                        ), init_coiterator_for_levels<I + 1>()
-                    );
+                    return std::tuple_cat(std::make_tuple(xsparse::level_capabilities::Coiterate(
+                                              std::get<I>(m_tensors))),
+                                          init_coiterator_for_levels<I + 1>());
                 }
 
                 // compute which indices are not involved, so they are always set to true
@@ -174,12 +172,12 @@ namespace xsparse
                  * we want to advance all coiterators starting at index i. Once we
                  * get to the next position, we want to advance all coiterators starting
                  * at index j, and so on. How do we do this?
-                 * 
+                 *
                  * For example: row 0 has no non-zero values, so row i==1 is the first
                  * advanced row. Then, we would need to advance column j to the first
                  * non-zero value, and then advance column k to the first non-zero value.
                  * However, column j and k need to be aware if a new row has occured?
-                 * 
+                 *
                  * 4. How can we initialize the coiterators during compile-time?
                  */
                 {
