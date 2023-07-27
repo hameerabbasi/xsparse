@@ -38,25 +38,6 @@ is_level_ordered()
     return Level::LevelProperties::is_ordered;
 }
 
-// Helper function to perform tuple unpacking and call a template function
-template <template <bool...> class F, typename T, std::size_t... Indices>
-constexpr auto
-callTemplateFunctionWithTupleElements(const T& tuple, std::index_sequence<Indices...>)
-{
-    // Call the template function with unpacked tuple elements
-    // Here, you can replace 'yourTemplateFunction' with the template function you want to call.
-    // Assuming the template function takes three arguments of type int, double, and char.
-    return F<std::get<Indices>(tuple)...>::value;
-}
-
-// Function to call the template function with the tuple elements
-template <template <bool...> class F, typename... Args>
-constexpr auto
-callTemplateFunctionWithTuple(const std::tuple<Args...>& tuple)
-{
-    callTemplateFunctionWithTupleElements<F>(tuple, std::index_sequence_for<Args...>{});
-}
-
 
 namespace xsparse::level_capabilities
 {
