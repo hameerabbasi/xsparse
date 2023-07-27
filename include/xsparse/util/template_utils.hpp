@@ -38,20 +38,22 @@ namespace xsparse::util
         = is_tuple_with_integral_template_arguments<T>::value;
 
     template <typename Func>
-    struct LambdaWrapper {
+    struct LambdaWrapper
+    {
         /**
          * @brief Utility wrapper for boolean lambda functions in xsparse.
-         * 
+         *
          * @details This wrapper is used to evaluate boolean lambda functions in xsparse.
          * and make them compatible with template arguments accepting template
          * parameter `template <bool...> class F`.
          */
         static constexpr Func fn{};
-        
+
         // The 'apply' template takes two bool arguments and evaluates the lambda function
         template <bool... Args>
-        struct apply {
-            static constexpr bool value = fn(std::tuple<std::integral_constant<bool, Args>...>{}); 
+        struct apply
+        {
+            static constexpr bool value = fn(std::tuple<std::integral_constant<bool, Args>...>{});
         };
     };
 }

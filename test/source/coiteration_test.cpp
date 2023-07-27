@@ -27,14 +27,17 @@ TEST_CASE("Coiteration-Dense-Dense")
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s1{ 5 };
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s2{ 5 };
 
-    constexpr auto fn = [](std::tuple<bool, bool> t) constexpr { return std::get<0>(t) && std::get<1>(t); };
+    auto fn = [](std::tuple<bool, bool> t) constexpr { return std::get<0>(t) && std::get<1>(t); };
 
-    xsparse::level_capabilities::Coiterate<xsparse::util::LambdaWrapper<decltype(fn)>::template apply,
-                                           uintptr_t,
-                                           uintptr_t,
-                                           std::tuple<decltype(s1), decltype(s2)>,
-                                           std::tuple<>>
-        coiter(s1, s2);
+    xsparse::level_capabilities::Coiterate<
+        xsparse::util::LambdaWrapper<decltype(fn)>::template apply,
+        decltype(fn),
+        // std::function<bool(std::tuple<bool, bool>)>,
+        uintptr_t,
+        uintptr_t,
+        std::tuple<decltype(s1), decltype(s2)>,
+        std::tuple<>>
+        coiter(fn, s1, s2);
 
     auto it_helper1 = s1.iter_helper(std::make_tuple(), ZERO);
     auto it1 = it_helper1.begin();
@@ -72,16 +75,18 @@ TEST_CASE("Coiteration-Dense-Dense-Dense")
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s2{ 5 };
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s3{ 5 };
 
-    constexpr auto fn = [](std::tuple<bool, bool, bool> t) constexpr
+    auto fn = [](std::tuple<bool, bool, bool> t) constexpr
     { return (std::get<0>(t) && std::get<1>(t)) || (std::get<2>(t)); };
 
-    xsparse::level_capabilities::Coiterate<xsparse::util::LambdaWrapper<decltype(fn)>::template apply,
-    // std::function<bool(std::tuple<bool, bool, bool>)>,
-                                           uintptr_t,
-                                           uintptr_t,
-                                           std::tuple<decltype(s1), decltype(s2), decltype(s3)>,
-                                           std::tuple<>>
-        coiter(s1, s2, s3);
+    xsparse::level_capabilities::Coiterate<
+        xsparse::util::LambdaWrapper<decltype(fn)>::template apply,
+        // std::function<bool(std::tuple<bool, bool, bool>)>,
+        decltype(fn),
+        uintptr_t,
+        uintptr_t,
+        std::tuple<decltype(s1), decltype(s2), decltype(s3)>,
+        std::tuple<>>
+        coiter(fn, s1, s2, s3);
 
     auto it_helper1 = s1.iter_helper(std::make_tuple(), ZERO);
     auto it1 = it_helper1.begin();
@@ -133,17 +138,18 @@ TEST_CASE("Coiteration-Singleton-Singleton-Dense-Dense")
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s3{ 5 };
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s4{ 5 };
 
-    constexpr auto fn = [](std::tuple<bool, bool, bool, bool> t) constexpr
+    auto fn = [](std::tuple<bool, bool, bool, bool> t) constexpr
     { return (std::get<0>(t) || std::get<2>(t)) || (std::get<1>(t) || std::get<3>(t)); };
 
     xsparse::level_capabilities::Coiterate<
         xsparse::util::LambdaWrapper<decltype(fn)>::template apply,
         // std::function<bool(std::tuple<bool, bool, bool, bool>)>,
+        decltype(fn),
         uintptr_t,
         uintptr_t,
         std::tuple<decltype(s1), decltype(s2), decltype(s3), decltype(s4)>,
         std::tuple<>>
-        coiter(s1, s2, s3, s4);
+        coiter(fn, s1, s2, s3, s4);
 
     auto it_helper1 = s1.iter_helper(std::make_tuple(), ZERO);
     auto it1 = it_helper1.begin();
@@ -227,15 +233,17 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
         hash_level{ 5, crd0 };
 
     // define a conjunctive function
-    constexpr auto fn = [](std::tuple<bool, bool> t) constexpr { return (std::get<0>(t) && std::get<1>(t)); };
+    auto fn = [](std::tuple<bool, bool> t) constexpr { return (std::get<0>(t) && std::get<1>(t)); };
 
-    xsparse::level_capabilities::Coiterate<xsparse::util::LambdaWrapper<decltype(fn)>::template apply,
-    // std::function<bool(std::tuple<bool, bool>)>,
-                                           uintptr_t,
-                                           uintptr_t,
-                                           std::tuple<decltype(dense_level), decltype(hash_level)>,
-                                           std::tuple<>>
-        coiter(dense_level, hash_level);
+    xsparse::level_capabilities::Coiterate<
+        xsparse::util::LambdaWrapper<decltype(fn)>::template apply,
+        // std::function<bool(std::tuple<bool, bool>)>,
+        decltype(fn),
+        uintptr_t,
+        uintptr_t,
+        std::tuple<decltype(dense_level), decltype(hash_level)>,
+        std::tuple<>>
+        coiter(fn, dense_level, hash_level);
 
     // define iteration helper through dense and hashed level
     auto it_helper1 = dense_level.iter_helper(std::make_tuple(), ZERO);
@@ -244,7 +252,6 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
     auto it1 = it_helper1.begin();
     auto end1 = it_helper1.end();
 
-    CHECK(false);
     // when co-iterating over levels that are unordered (i.e. hashed), then we use locate to
     // check if the index exists in the hashed level. If not, then we skip it.
     for (auto const [ik, pk_tuple] : coiter.coiter_helper(std::make_tuple(), ZERO))
