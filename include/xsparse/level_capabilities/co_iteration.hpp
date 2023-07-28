@@ -64,6 +64,9 @@ namespace xsparse::level_capabilities
     template <template <bool...> class F, class Ffunc, class IK, class PK, class Levels, class Is>
     class Coiterate;
 
+    // XXX: This double-passing of the function `F` and `Ffunc` is a workaround
+    // to get a compile-time check of the possible boolean inputs and also to
+    // work in operator!= during runtime. This can probably be made cleaner.
     template <template <bool...> class F,
               class Ffunc,
               class IK,

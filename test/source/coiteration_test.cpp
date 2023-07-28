@@ -18,7 +18,6 @@
 #include <xsparse/level_capabilities/coordinate_iterate.hpp>
 #include <xsparse/util/template_utils.hpp>
 
-#include <iostream>
 
 TEST_CASE("Coiteration-Dense-Dense")
 {
@@ -32,7 +31,6 @@ TEST_CASE("Coiteration-Dense-Dense")
     xsparse::level_capabilities::Coiterate<
         xsparse::util::LambdaWrapper<decltype(fn)>::template apply,
         decltype(fn),
-        // std::function<bool(std::tuple<bool, bool>)>,
         uintptr_t,
         uintptr_t,
         std::tuple<decltype(s1), decltype(s2)>,
@@ -80,7 +78,6 @@ TEST_CASE("Coiteration-Dense-Dense-Dense")
 
     xsparse::level_capabilities::Coiterate<
         xsparse::util::LambdaWrapper<decltype(fn)>::template apply,
-        // std::function<bool(std::tuple<bool, bool, bool>)>,
         decltype(fn),
         uintptr_t,
         uintptr_t,
@@ -143,7 +140,6 @@ TEST_CASE("Coiteration-Singleton-Singleton-Dense-Dense")
 
     xsparse::level_capabilities::Coiterate<
         xsparse::util::LambdaWrapper<decltype(fn)>::template apply,
-        // std::function<bool(std::tuple<bool, bool, bool, bool>)>,
         decltype(fn),
         uintptr_t,
         uintptr_t,
@@ -237,7 +233,6 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
 
     xsparse::level_capabilities::Coiterate<
         xsparse::util::LambdaWrapper<decltype(fn)>::template apply,
-        // std::function<bool(std::tuple<bool, bool>)>,
         decltype(fn),
         uintptr_t,
         uintptr_t,
