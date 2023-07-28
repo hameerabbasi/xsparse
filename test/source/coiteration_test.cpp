@@ -202,7 +202,6 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
     /**
      * @brief Test coiteration for dense and hashed formats when function is conjunctive.
      *
-     * XXX:
      * A conjunctive merge requires coiterating over a dense and hashed format. This
      * test checks that the coiteration is done correctly. The test proceeds as follows:
      *
@@ -212,6 +211,18 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
      * - The coiteration stops when the end of the ordered (i.e. dense) level is reached.
      *
      * This test checks that the lookup is done correctly.
+     *
+     * For example, the following would not compile:
+     *
+     * auto fn2 = [](std::tuple<bool, bool> t) constexpr { return (std::get<0>(t) ||
+     * std::get<1>(t)); }; xsparse::level_capabilities::Coiterate<
+     * xsparse::util::LambdaWrapper<decltype(fn2)>::template apply,
+     * decltype(fn2),
+     * uintptr_t,
+     * uintptr_t,
+     * std::tuple<decltype(dense_level), decltype(hash_level)>,
+     * std::tuple<>>
+     * coiter_incorrect(fn2, dense_level, hash_level);
      */
     constexpr uint8_t ZERO = 0;
 

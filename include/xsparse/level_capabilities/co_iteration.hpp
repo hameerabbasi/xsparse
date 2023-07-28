@@ -111,9 +111,6 @@ namespace xsparse::level_capabilities
             // check that the comparison helper defines a disjunctive merge only over ordered levels
             // recursively pass in false, and true for each level to `m_comparisonHelper` for each
             // unordered level, ans pass in false for each ordered level.
-
-            // need to convert template parameter `F` into something that is constexpr
-            // invokable/callable during compile-time
             validate_boolean_helper<sizeof(ordered_mask_tuple)>();
         }
 
@@ -282,6 +279,8 @@ namespace xsparse::level_capabilities
                  * @return The PK of the iterator at index I.
                  */
                 {
+                    // XXX: move this into a destructor.
+                    // levels should either be ordered or have locate function.
                     static_assert(iter::parent_type::LevelProperties::is_ordered
                                       || has_locate_v<typename iter::parent_type>,
                                   "Levels should either be ordered or have locate function.");
