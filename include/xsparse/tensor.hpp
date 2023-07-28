@@ -17,17 +17,17 @@ namespace xsparse
      * @tparam Levels - a tuple of levels, which comprise this tensor.
      * @tparam ContainerTraits - the container traits to use for the tensor.
      *
-     * Questions:
-     * 1. How do we get data at a specific index if they don't support locate?
-     * 2. How do we use containertraits here?
-     * 3. What sort of compile-time checks should we do to check on Tensor during construction?
-     *
-     * Notes - 07/26/23 with Bharath:
-     * -
      */
     template <typename DataType, class Levels>
     class Tensor;
 
+    // * Questions:
+    //  * 1. How do we get data at a specific index if they don't support locate?
+    //  * 2. How do we use containertraits here?
+    //  * 3. What sort of compile-time checks should we do to check on Tensor during construction?
+    //  *
+    //  * Notes - 07/26/23 with Bharath:
+    //  * -
     // TODO: datatype, and also ContainerTraits similar to the levels, where Elem is `DateType`.
     // Need a TVec of Data
     // - how do we append data to the tensor? -> container_traits helps us define this
@@ -44,9 +44,6 @@ namespace xsparse
     //         append(k, jthlevel)
     //         for kdx <= k:
     //             append(value, kthlevel)
-
-    // We probably don't need ContainerTraits here explicitly since they are already defined
-    // inside the levels.
     template <typename DataType, class... Levels>
     class Tensor<DataType, std::tuple<Levels...>>
     {
