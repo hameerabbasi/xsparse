@@ -90,7 +90,7 @@ namespace xsparse::util
         // Check that the container traits have the properly defined methods and method signatures
         // uses sample type inputs to check the signatures
         static_assert(
-            has_valid_methods<Vec<std::double_t>, std::double_t, std::size_t>::value,
+            has_valid_methods<Vec<double>, double, std::size_t>::value,
             "Vec must have `push_back`, `resize` and `operator[]` methods with the correct signatures.");
         static_assert(has_find<Map<int, std::size_t>, std::size_t>::value,
                       "Map must have find and resize methods with the correct signatures.");
