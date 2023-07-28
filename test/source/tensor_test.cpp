@@ -13,12 +13,17 @@ TEST_CASE("Singleton-level-Tensor")
 {
     // construct a single level
     constexpr uintptr_t SIZE = 20;
-    std::vector<std::double_t> const crd1{ 0, 1, 0, 1, 0, 3, 4 };
 
-    xsparse::levels::singleton<std::tuple<>, uintptr_t, std::double_t> s{ SIZE, crd1 };
+    // iks
+    std::vector<uintptr_t> const crd1{ 0, 1, 0, 1, 0, 3, 4 };
+
+    // values resulting from the pk pointing into data1
+    std::vector<std::double_t> const data1{ 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 };
+
+    xsparse::levels::singleton<std::tuple<>, uintptr_t, uintptr_t> s{ SIZE, crd1 };
 
     // Define a singleton level as tensor
-    xsparse::Tensor<std::double_t, std::tuple<decltype(s)>> t1(s);
+    xsparse::Tensor<std::double_t, std::tuple<decltype(s)>, decltype(data1)> t1(s, data1);
 
     CHECK(t1.ndim() == 1);
     CHECK(t1.shape() == std::make_tuple(SIZE));

@@ -78,6 +78,8 @@ namespace xsparse
         {
             // XXX: we should add compile-time checks to make sure the tensor is appropriately
             // defined.
+            // would we want something like this then?
+            // static_assert(levels[-1].dtype == dtype)
         }
 
         inline constexpr auto ndim() const noexcept
@@ -109,6 +111,11 @@ namespace xsparse
             return m_levelsTuple;
         }
 
+        // TODO: support just iterating through index
+        // e.g. if storage is (i, j, k) corresponding to (hashed, dense, compressed)
+        // we would iterate hashed, then dense, then compressed?
+        // we would iterate in a nested for loop (mainly think about what would be
+        // in operator++)
 
         /**
          * @brief Get reference to data element at specific index tuple.
