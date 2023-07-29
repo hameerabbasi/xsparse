@@ -8,9 +8,6 @@
 #include <xsparse/level_capabilities/locate.hpp>
 #include <xsparse/util/template_utils.hpp>
 
-#include <iostream>
-
-
 template <class... Levels>
 struct all_ordered_or_have_locate;
 
@@ -79,6 +76,44 @@ namespace xsparse::level_capabilities
         Ffunc const m_comparisonHelper;
         std::tuple<Levels&...> const m_levelsTuple;
 
+        // A tuple of booleans corresponding to each level, where true indicates that the level is
+        // ordered. which is used in determining the template recursion
+        static constexpr auto ordered_mask_tuple = std::make_tuple(is_level_ordered<Levels>()...);
+
+        template <std::size_t I, bool... Args>
+        static constexpr auto validate_boolean_helper()
+        /**
+         * @brief Helper function to recursively construct a tuple of boolean arguments to be
+         * evaluated with the function object F.
+         */
+        {
+            // Check if the current recursion depth (I) is less than the number of elements in Mask.
+            if constexpr (I > 0)
+            {
+                // If the Ith element of Mask is not ordered (false), branch into two paths.
+                if constexpr (std::get<I - 1>(ordered_mask_tuple) == false)
+                {
+                    // Next, set the Ith element of f_args to false and recursively call the
+                    // function.
+                    validate_boolean_helper<I - 1, true, Args...>();
+                }
+                // If the Ith element of Mask is ordered (true), only branch into one path with the
+                // Ith element set to false.
+                validate_boolean_helper<I - 1, false, Args...>();
+            }
+            else
+            {
+                // When we reach the end of recursion (base case), call the function object F with
+                // the constructed boolean arguments.
+                static_assert(sizeof...(Args) == sizeof...(Levels),
+                              "Number of arguments must be equal to number of levels");
+
+                // perform check for correct conjunctive/disjunctive merges
+                static_assert(F<Args...>::value == false,
+                              "Function F should return false for the given arguments.");
+            }
+        }
+
     public:
         explicit constexpr inline Coiterate(Ffunc f, Levels&... levels)
             : m_comparisonHelper(f)
@@ -112,40 +147,6 @@ namespace xsparse::level_capabilities
             // recursively pass in false, and true for each level to `m_comparisonHelper` for each
             // unordered level, ans pass in false for each ordered level.
             validate_boolean_helper<sizeof(ordered_mask_tuple)>();
-        }
-
-        // A tuple of booleans corresponding to each level, where true indicates that the level is
-        // ordered. which is used in determining the template recursion
-        static constexpr auto ordered_mask_tuple = std::make_tuple(is_level_ordered<Levels>()...);
-
-        template <std::size_t I, bool... Args>
-        static constexpr auto validate_boolean_helper()
-        {
-            // Check if the current recursion depth (I) is less than the number of elements in Mask.
-            if constexpr (I > 0)
-            {
-                // If the Ith element of Mask is not ordered (false), branch into two paths.
-                if constexpr (std::get<I - 1>(ordered_mask_tuple) == false)
-                {
-                    // Next, set the Ith element of f_args to false and recursively call the
-                    // function.
-                    validate_boolean_helper<I - 1, true, Args...>();
-                }
-                // If the Ith element of Mask is ordered (true), only branch into one path with the
-                // Ith element set to false.
-                validate_boolean_helper<I - 1, false, Args...>();
-            }
-            else
-            {
-                // When we reach the end of recursion (base case), call the function object F with
-                // the constructed boolean arguments.
-                static_assert(sizeof...(Args) == sizeof...(Levels),
-                              "Number of arguments must be equal to number of levels");
-
-                // perform check for correct conjunctive/disjunctive merges
-                static_assert(F<Args...>::value == false,
-                              "Function F should return false for the given arguments.");
-            }
         }
 
     public:
