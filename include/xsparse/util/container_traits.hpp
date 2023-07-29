@@ -50,7 +50,7 @@ namespace xsparse::util
 
     // Helper type trait to check if both push_back and resize are valid for the given container
     template <class Container, class Elem, class Index>
-    struct has_valid_methods
+    struct has_valid_vec_methods
     {
         static constexpr bool value = has_push_back<Container, Elem>::value
                                       && has_resize<Container, typename Container::size_type>::value
@@ -64,6 +64,20 @@ namespace xsparse::util
         template <typename C, typename K>
         static auto test(int)
             -> decltype(std::declval<C>().find(std::declval<K>()), std::true_type());
+
+        template <typename, typename>
+        static auto test(...) -> std::false_type;
+
+        static constexpr bool value = decltype(test<Container, Key>(0))::value;
+    };
+
+    // Helper type trait to check the signature of find method
+    template <class Container, class Key>
+    struct has_contains
+    {
+        template <typename C, typename K>
+        static auto test(int)
+            -> decltype(std::declval<C>().contains(std::declval<K>()), std::true_type());
 
         template <typename, typename>
         static auto test(...) -> std::false_type;
@@ -90,10 +104,12 @@ namespace xsparse::util
         // Check that the container traits have the properly defined methods and method signatures
         // uses sample type inputs to check the signatures
         static_assert(
-            has_valid_methods<Vec<double>, double, std::size_t>::value,
+            has_valid_vec_methods<Vec<double>, double, std::size_t>::value,
             "Vec must have `push_back`, `resize` and `operator[]` methods with the correct signatures.");
         static_assert(has_find<Map<int, std::size_t>, std::size_t>::value,
                       "Map must have find and resize methods with the correct signatures.");
+        static_assert(has_contains<Set<std::size_t>, std::size_t>::value,
+                      "Set must have contain methods with the correct signatures.");
     };
 }
 
