@@ -15,40 +15,18 @@ namespace xsparse
      *
      * @tparam DataType - the type of the data that is held (e.g. int) is a tensor of ints
      * @tparam Levels - a tuple of levels, which comprise this tensor.
-     * @tparam ContainerTraits - the container traits to use for the tensor.
+     * @tparam Data - the data that is pointed to by the last level.
      *
      */
-    template <typename DataType, class Levels>
+    template <typename DataType, class Levels, class Data>
     class Tensor;
 
-    // * Questions:
-    //  * 1. How do we get data at a specific index if they don't support locate?
-    //  * 2. How do we use containertraits here?
-    //  * 3. What sort of compile-time checks should we do to check on Tensor during construction?
-    //  *
-    //  * Notes - 07/26/23 with Bharath:
-    //  * -
-    // TODO: datatype, and also ContainerTraits similar to the levels, where Elem is `DateType`.
-    // Need a TVec of Data
-    // - how do we append data to the tensor? -> container_traits helps us define this
-    // - how do we read/write data to the tensor at a specific location?
-    // - and how do we mush many of these together for the sake of multithreading?
-    //
-    // E.g. 3D tensor, then write non-zero value to (i,j,k) location
-    // at a high level in the Tensor need to access the levels to use the append_init, append_*
-    // methods
-    //
-    // for idx != i:
-    //     append(j, ithlevel)
-    //     for jdx <= j:
-    //         append(k, jthlevel)
-    //         for kdx <= k:
-    //             append(value, kthlevel)
-    template <typename DataType, class... Levels>
-    class Tensor<DataType, std::tuple<Levels...>>
+    template <typename DataType, class... Levels, class Data>
+    class Tensor<DataType, std::tuple<Levels...>, Data>
     {
     private:
         std::tuple<Levels&...> const m_levelsTuple;
+        Data& m_data;
 
         /*Private methods for public API.*/
         template <std::size_t I>
@@ -73,13 +51,14 @@ namespace xsparse
     public:
         using dtype = DataType;
 
-        explicit inline Tensor(Levels&... levels)
+        explicit inline Tensor(Levels&... levels, Data& data)
             : m_levelsTuple(std::tie(levels...))
+            , m_data(data)
         {
             // XXX: we should add compile-time checks to make sure the tensor is appropriately
             // defined.
-            // would we want something like this then?
-            // static_assert(levels[-1].dtype == dtype)
+            // check if Data type is the same as DataType
+            static_assert(std::is_same_v<DataType, typename Data::value_type>, "Data type and DataType must be the same.");
         }
 
         inline constexpr auto ndim() const noexcept
@@ -117,29 +96,103 @@ namespace xsparse
         // we would iterate in a nested for loop (mainly think about what would be
         // in operator++)
 
-        /**
-         * @brief Get reference to data element at specific index tuple.
-         *
-         * @param index
-         * @return DataType&
-         */
-        // inline DataType& get_data(std::tuple<std::size_t...> index) const noexcept
-        // {
-        //     return std::apply(
-        //         [&](auto&&... levels) {
-        //             return std::make_tuple(levels.get_data(index)...);
-        //         },
-        //         m_levelsTuple);
-        // }
+    public:
+        class iterator
+            {
+            private:
+                coiteration_helper const& m_coiterHelper;
+                std::tuple<typename Levels::iteration_helper::iterator...> iterators;
+                IK min_ik;
 
-        // inline DataType& get_data(std::tuple<std::size_t...> index) noexcept
-        // {
-        //     return std::apply(
-        //         [&](auto&&... levels) {
-        //             return std::make_tuple(levels.get_data(index)...);
-        //         },
-        //         m_levelsTuple);
-        // }
+                auto m_iterators_init() noexcept
+                /**
+                 * @brief Initialize iterators for each level in the tensor.
+                 */
+                {
+                    return std::apply([&](auto&... args)
+                                      { return std::tuple(args.begin()...); },
+                                      this->m_levelsTuple);
+                }
+
+            public:
+                using iterator_category = std::forward_iterator_tag;
+                using reference = uintptr_t;
+
+                explicit inline iterator() noexcept
+                : iterators(m_iterators_init)
+                {
+                }
+
+                template <class iter>
+                inline void advance_iter(iter& i) const noexcept
+                {
+                    // advance iterator if it is ordered
+                    if constexpr (iter::parent_type::LevelProperties::is_ordered)
+                    {
+                        if (static_cast<IK>(std::get<0>(*i)) == min_ik)
+                        {
+                            ++i;
+                        }
+                    }
+                }
+
+                inline reference operator*() const noexcept
+                /**
+                 * @brief Return the tuple of index and PK for each level.
+                 * 
+                 */
+                {
+                    // return { min_ik, PK_tuple };
+                }
+
+                inline iterator& operator++() noexcept
+                /**
+                 * @brief Increment the index through the tensor.
+                 * 
+                 * @details For example, for a 3D tensor with indices (i, j, k), 
+                 * representing levels (A, B, C), then the iterator will increment
+                 * through the tensor in the following order:
+                 * 
+                 * (0, 0, 0) -> (0, 0, 1) -> ... -> (0, 0, k) -> (0, 1, 0) 
+                 * -> ... -> (0, i, k) -> (1, 0, 0) -> ... -> (i, k, k)
+                 * 
+                 */
+                {
+                    iterator tmp = *this;
+                    ++(*this);
+                    return tmp;
+                }
+
+                inline bool operator!=(iterator const& other) const noexcept
+                /**
+                 * @brief Compare the iterators of all the levels associated with another tensor.
+                 * 
+                 */
+                {
+                };
+
+                inline bool operator==(iterator const& other) const noexcept
+                {
+                    return !(*this != other);
+                };
+            };
+
+            inline iterator begin() const noexcept
+            {
+                return iterator{ *this,
+                                 std::apply([&](auto&... args)
+                                            { return std::tuple(args.begin()...); },
+                                            this->m_iterHelpers) };
+            }
+
+            inline iterator end() const noexcept
+            {
+                return iterator{ *this,
+                                 std::apply([&](auto&... args)
+                                            { return std::tuple(args.end()...); },
+                                            this->m_iterHelpers) };
+            }
+        };
     };
 }
 
