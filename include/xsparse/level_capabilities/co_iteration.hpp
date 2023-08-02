@@ -8,6 +8,34 @@
 #include <xsparse/level_capabilities/locate.hpp>
 #include <xsparse/util/template_utils.hpp>
 
+template <class... Levels>
+struct all_ordered_or_have_locate;
+
+// Base case: No levels left to check
+template <>
+struct all_ordered_or_have_locate<>
+{
+    static constexpr bool value = true;  // All levels have been checked
+};
+
+// Recursive case: Check the current level and continue with the rest
+template <class Level, class... RemainingLevels>
+struct all_ordered_or_have_locate<Level, RemainingLevels...>
+{
+    static constexpr bool value = Level::LevelProperties::is_ordered || has_locate_v<Level>
+                                      ? all_ordered_or_have_locate<RemainingLevels...>::value
+                                      : false;
+};
+
+// Helper function to check if a level is ordered
+template <typename Level>
+constexpr bool
+is_level_ordered()
+{
+    return Level::LevelProperties::is_ordered;
+}
+
+
 namespace xsparse::level_capabilities
 {
     /**
@@ -27,37 +55,98 @@ namespace xsparse::level_capabilities
      * @tparam Is - A tuple of indices that is used to keep track of the current position in each
      * level.
      *
-     * @note Coiteration is only allowed through tuples of levels if the following criterion is met:
-     * If:
-     * 1. the levels are all ordered (i.e. has the `is_ordered == True` property)
-     * 2. if any of the level are do not have the is_ordered property, it must have the locate
-     * function, else return False. Then do a check that `m_comparisonHelper` defines
-     * a conjunctive merge (i.e. AND operation).
-     * Otherwise, coiteration is not allowed.
-     *
-     * This check is done automatically in the constructor, via the function `
+     * @param levels - A tuple of levels is passed in during runtime via the constructor.
      */
 
-    template <class F, class IK, class PK, class Levels, class Is>
+    template <template <bool...> class F, class Ffunc, class IK, class PK, class Levels, class Is>
     class Coiterate;
 
-    template <class F, class IK, class PK, class... Levels, class... Is>
-    class Coiterate<F, IK, PK, std::tuple<Levels...>, std::tuple<Is...>>
+    // XXX: This double-passing of the function `F` and `Ffunc` is a workaround
+    // to get a compile-time check of the possible boolean inputs and also to
+    // work in operator!= during runtime. This can probably be made cleaner.
+    template <template <bool...> class F,
+              class Ffunc,
+              class IK,
+              class PK,
+              class... Levels,
+              class... Is>
+    class Coiterate<F, Ffunc, IK, PK, std::tuple<Levels...>, std::tuple<Is...>>
     {
     private:
+        Ffunc const m_comparisonHelper;
         std::tuple<Levels&...> const m_levelsTuple;
-        F const m_comparisonHelper;
+
+        // A tuple of booleans corresponding to each level, where true indicates that the level is
+        // ordered. which is used in determining the template recursion
+        static constexpr auto ordered_mask_tuple = std::make_tuple(is_level_ordered<Levels>()...);
+
+        template <std::size_t I, bool... Args>
+        static constexpr auto validate_boolean_helper()
+        /**
+         * @brief Helper function to recursively construct a tuple of boolean arguments to be
+         * evaluated with the function object F.
+         */
+        {
+            // Check if the current recursion depth (I) is less than the number of elements in Mask.
+            if constexpr (I > 0)
+            {
+                // If the Ith element of Mask is not ordered (false), branch into two paths.
+                if constexpr (std::get<I - 1>(ordered_mask_tuple) == false)
+                {
+                    // Next, set the Ith element of f_args to false and recursively call the
+                    // function.
+                    validate_boolean_helper<I - 1, true, Args...>();
+                }
+                // If the Ith element of Mask is ordered (true), only branch into one path with the
+                // Ith element set to false.
+                validate_boolean_helper<I - 1, false, Args...>();
+            }
+            else
+            {
+                // When we reach the end of recursion (base case), call the function object F with
+                // the constructed boolean arguments.
+                static_assert(sizeof...(Args) == sizeof...(Levels),
+                              "Number of arguments must be equal to number of levels");
+
+                // perform check for correct conjunctive/disjunctive merges
+                static_assert(F<Args...>::value == false,
+                              "Function F should return false for the given arguments.");
+            }
+        }
 
     public:
-        explicit inline Coiterate(F f, Levels&... levels)
-            : m_levelsTuple(std::tie(levels...))
-            , m_comparisonHelper(f)
+        explicit constexpr inline Coiterate(Ffunc f, Levels&... levels)
+            : m_comparisonHelper(f)
+            , m_levelsTuple(std::tie(levels...))
         {
             if (![](auto const& first, auto const&... rest)
                 { return ((first == rest) && ...); }(levels.size()...))
             {
                 throw std::invalid_argument("level sizes should be same");
             }
+
+            // the following checks that at least one level is always ordered,
+            // and any unordered levels are only part of conjunctive merges
+            // check that at least one of the levels is ordered
+            constexpr bool check_ordered = (Levels::LevelProperties::is_ordered || ...);
+            static_assert(check_ordered,
+                          "Coiteration is only allowed if at least one level is ordered");
+
+            // check that all levels are either ordered, or has locate function
+            constexpr bool check_levels = all_ordered_or_have_locate<Levels...>::value;
+            static_assert(
+                check_levels,
+                "Coiteration is only allowed if all levels are ordered or have the locate function");
+
+            // Add a member variable to hold the boolean mask of ordered levels
+            static_assert(std::get<0>(ordered_mask_tuple) == true, "First level must be ordered");
+            static_assert(sizeof...(Levels) == std::tuple_size_v<decltype(ordered_mask_tuple)>,
+                          "Size of ordered mask tuple must be equal to number of levels");
+
+            // check that the comparison helper defines a disjunctive merge only over ordered levels
+            // recursively pass in false, and true for each level to `m_comparisonHelper` for each
+            // unordered level, ans pass in false for each ordered level.
+            validate_boolean_helper<sizeof(ordered_mask_tuple)>();
         }
 
     public:
@@ -286,8 +375,9 @@ namespace xsparse::level_capabilities
 
                 inline bool operator!=(iterator const& other) const noexcept
                 {
-                    return !m_coiterHelper.m_coiterate.m_comparisonHelper(
-                        compareHelper(iterators, other.iterators));
+                    // a tuple of booleans E.g. (true, false, true, false)
+                    const auto result_bools = compareHelper(iterators, other.iterators);
+                    return !m_coiterHelper.m_coiterate.m_comparisonHelper(result_bools);
                 };
 
                 inline bool operator==(iterator const& other) const noexcept
