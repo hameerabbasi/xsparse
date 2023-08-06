@@ -40,9 +40,9 @@ namespace xsparse::util
                            decltype(std::declval<Vec<double>>().at(std::declval<std::size_t>()))>,
             "Vec must have `operator[]` method with the correct signature.");
 
-        static_assert(std::is_same_v<decltype(std::declval<Map<int, std::size_t>>().find(
-                                         std::declval<std::size_t>())),
-                                     typename Map<int, std::size_t>::iterator>,
+        static_assert(std::is_same_v<
+                          decltype(std::declval<Map<int, std::size_t>>().find(std::declval<int>())),
+                          typename Map<int, std::size_t>::iterator>,
                       "Map must have `find` method with the correct signature.");
 
         static_assert(std::is_same_v<decltype(std::declval<Set<std::size_t>>().contains(
