@@ -103,13 +103,36 @@ namespace xsparse::util
 
         // Check that the container traits have the properly defined methods and method signatures
         // uses sample type inputs to check the signatures
+        // static_assert(decltype(std::declval<Vec>().contains(std::declval<double>())), std::true_type());
+        // static_assert(std::is_same_v<decltype(std::declval<Vec>().contains(std::declval<double>())), std::true_type>);
+
+        // static_assert(
+        //     has_valid_vec_methods<Vec<double>, double, std::size_t>::value,
+        //     "Vec must have `push_back`, `resize` and `operator[]` methods with the correct signatures.");
+        // static_assert(has_find<Map<int, std::size_t>, std::size_t>::value,
+        //               "Map must have find and resize methods with the correct signatures.");
+        // static_assert(has_contains<Set<std::size_t>, std::size_t>::value,
+        //               "Set must have contain methods with the correct signatures.");
+
         static_assert(
-            has_valid_vec_methods<Vec<double>, double, std::size_t>::value,
-            "Vec must have `push_back`, `resize` and `operator[]` methods with the correct signatures.");
-        static_assert(has_find<Map<int, std::size_t>, std::size_t>::value,
-                      "Map must have find and resize methods with the correct signatures.");
-        static_assert(has_contains<Set<std::size_t>, std::size_t>::value,
-                      "Set must have contain methods with the correct signatures.");
+            std::is_same_v<decltype(std::declval<Vec<double>>().push_back(std::declval<double>())), void>,
+            "Vec must have `push_back` method with the correct signature.");
+
+        static_assert(
+            std::is_same_v<decltype(std::declval<Vec<double>>().resize(std::declval<typename Vec<double>::size_type>())), void>,
+            "Vec must have `resize` method with the correct signature.");
+
+        static_assert(
+            std::is_same_v<decltype(std::declval<Vec<double>>()[std::declval<std::size_t>()]), decltype(std::declval<Vec<double>>().at(std::declval<std::size_t>()))>,
+            "Vec must have `operator[]` method with the correct signature.");
+
+        static_assert(
+            std::is_same_v<decltype(std::declval<Map<int, std::size_t>>().find(std::declval<std::size_t>())), typename Map<int, std::size_t>::iterator>,
+            "Map must have `find` method with the correct signature.");
+
+        static_assert(
+            std::is_same_v<decltype(std::declval<Set<std::size_t>>().contains(std::declval<std::size_t>())), bool>,
+            "Set must have `contains` method with the correct signature.");
     };
 }
 
