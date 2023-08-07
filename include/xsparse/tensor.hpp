@@ -18,11 +18,11 @@ namespace xsparse
      * @tparam Data - the data that is pointed to by the last level.
      *
      */
-    template <typename DataType, class Levels, class Data>
+    template <class Levels, class Data>
     class Tensor;
 
-    template <typename DataType, class... Levels, class Data>
-    class Tensor<DataType, std::tuple<Levels...>, Data>
+    template <class... Levels, class Data>
+    class Tensor<std::tuple<Levels...>, Data>
     {
     private:
         std::tuple<Levels&...> const m_levelsTuple;
@@ -49,7 +49,7 @@ namespace xsparse
         }
 
     public:
-        using dtype = DataType;
+        using dtype = typename Data::value_type;
 
         explicit inline Tensor(Levels&... levels, Data& data)
             : m_levelsTuple(std::tie(levels...))
@@ -57,8 +57,6 @@ namespace xsparse
         {
             // XXX: we should add compile-time checks to make sure the tensor is appropriately
             // defined.
-            // check if Data type is the same as DataType
-            static_assert(std::is_same_v<DataType, typename Data::value_type>, "Data type and DataType must be the same.");
         }
 
         inline constexpr auto ndim() const noexcept
@@ -95,104 +93,6 @@ namespace xsparse
         // we would iterate hashed, then dense, then compressed?
         // we would iterate in a nested for loop (mainly think about what would be
         // in operator++)
-
-    public:
-        class iterator
-            {
-            private:
-                coiteration_helper const& m_coiterHelper;
-                std::tuple<typename Levels::iteration_helper::iterator...> iterators;
-                IK min_ik;
-
-                auto m_iterators_init() noexcept
-                /**
-                 * @brief Initialize iterators for each level in the tensor.
-                 */
-                {
-                    return std::apply([&](auto&... args)
-                                      { return std::tuple(args.begin()...); },
-                                      this->m_levelsTuple);
-                }
-
-            public:
-                using iterator_category = std::forward_iterator_tag;
-                using reference = uintptr_t;
-
-                explicit inline iterator() noexcept
-                : iterators(m_iterators_init)
-                {
-                }
-
-                template <class iter>
-                inline void advance_iter(iter& i) const noexcept
-                {
-                    // advance iterator if it is ordered
-                    if constexpr (iter::parent_type::LevelProperties::is_ordered)
-                    {
-                        if (static_cast<IK>(std::get<0>(*i)) == min_ik)
-                        {
-                            ++i;
-                        }
-                    }
-                }
-
-                inline reference operator*() const noexcept
-                /**
-                 * @brief Return the tuple of index and PK for each level.
-                 * 
-                 */
-                {
-                    // return { min_ik, PK_tuple };
-                }
-
-                inline iterator& operator++() noexcept
-                /**
-                 * @brief Increment the index through the tensor.
-                 * 
-                 * @details For example, for a 3D tensor with indices (i, j, k), 
-                 * representing levels (A, B, C), then the iterator will increment
-                 * through the tensor in the following order:
-                 * 
-                 * (0, 0, 0) -> (0, 0, 1) -> ... -> (0, 0, k) -> (0, 1, 0) 
-                 * -> ... -> (0, i, k) -> (1, 0, 0) -> ... -> (i, k, k)
-                 * 
-                 */
-                {
-                    iterator tmp = *this;
-                    ++(*this);
-                    return tmp;
-                }
-
-                inline bool operator!=(iterator const& other) const noexcept
-                /**
-                 * @brief Compare the iterators of all the levels associated with another tensor.
-                 * 
-                 */
-                {
-                };
-
-                inline bool operator==(iterator const& other) const noexcept
-                {
-                    return !(*this != other);
-                };
-            };
-
-            inline iterator begin() const noexcept
-            {
-                return iterator{ *this,
-                                 std::apply([&](auto&... args)
-                                            { return std::tuple(args.begin()...); },
-                                            this->m_iterHelpers) };
-            }
-
-            inline iterator end() const noexcept
-            {
-                return iterator{ *this,
-                                 std::apply([&](auto&... args)
-                                            { return std::tuple(args.end()...); },
-                                            this->m_iterHelpers) };
-            }
-        };
     };
 }
 

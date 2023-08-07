@@ -163,20 +163,6 @@ namespace xsparse::level_capabilities
                     calc_min_ik(std::make_index_sequence<std::tuple_size_v<decltype(iterators)>>{});
                 }
 
-            public:
-                using iterator_category = std::forward_iterator_tag;
-                using reference = typename std::
-                    tuple<IK, std::tuple<std::optional<typename Levels::BaseTraits::PK>...>>;
-
-                explicit inline iterator(
-                    coiteration_helper const& coiterHelper,
-                    std::tuple<typename Levels::iteration_helper::iterator...> it) noexcept
-                    : m_coiterHelper(coiterHelper)
-                    , iterators(it)
-                {
-                    min_helper();
-                }
-
                 template <class iter, std::size_t I>
                 inline constexpr auto get_PK_iter(iter& i) const noexcept
                 /**
@@ -262,6 +248,20 @@ namespace xsparse::level_capabilities
                             ++i;
                         }
                     }
+                }
+
+            public:
+                using iterator_category = std::forward_iterator_tag;
+                using reference = typename std::
+                    tuple<IK, std::tuple<std::optional<typename Levels::BaseTraits::PK>...>>;
+
+                explicit inline iterator(
+                    coiteration_helper const& coiterHelper,
+                    std::tuple<typename Levels::iteration_helper::iterator...> it) noexcept
+                    : m_coiterHelper(coiterHelper)
+                    , iterators(it)
+                {
+                    min_helper();
                 }
 
                 inline reference operator*() const noexcept

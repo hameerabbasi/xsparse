@@ -22,7 +22,7 @@ TEST_CASE("Singleton-level-Tensor")
     std::vector<std::double_t> data1{ 1.0, 2.0, 3.0, 4.0, 5.0 };
 
     // Define a singleton level as tensor
-    xsparse::Tensor<std::double_t, std::tuple<decltype(s)>, decltype(data1)> t1(s, data1);
+    xsparse::Tensor<std::tuple<decltype(s)>, decltype(data1)> t1(s, data1);
 
     CHECK(t1.ndim() == 1);
     CHECK(t1.shape() == std::make_tuple(SIZE));
@@ -47,7 +47,7 @@ TEST_CASE("Multiple-levels-Tensor")
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s1{ 5 };
     xsparse::levels::dense<std::tuple<decltype(s1)>, uintptr_t, uintptr_t> s2{ 6 };
     xsparse::levels::hashed<std::tuple<decltype(s2)>, uintptr_t, uintptr_t> h{ SIZE1, crd };
-    xsparse::Tensor<std::double_t, std::tuple<decltype(s1), decltype(s2), decltype(h)>, decltype(data)> t1(
+    xsparse::Tensor<std::tuple<decltype(s1), decltype(s2), decltype(h)>, decltype(data)> t1(
         s1, s2, h, data);
 
     CHECK(t1.ndim() == 3);
