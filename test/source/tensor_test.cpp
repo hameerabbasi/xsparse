@@ -19,7 +19,7 @@ TEST_CASE("Singleton-level-Tensor")
     xsparse::levels::singleton<std::tuple<>, uintptr_t, uintptr_t> s{ SIZE, crd1 };
 
     // define a data vector that are pointed to by the singleton level's PKs
-    std::vector<std::double_t> data1{ 1.0, 2.0, 3.0, 4.0, 5.0 };
+    std::vector<double> data1{ 1.0, 2.0, 3.0, 4.0, 5.0 };
 
     // Define a singleton level as tensor
     xsparse::Tensor<std::tuple<decltype(s)>, decltype(data1)> t1(s, data1);
@@ -27,7 +27,7 @@ TEST_CASE("Singleton-level-Tensor")
     CHECK(t1.ndim() == 1);
     CHECK(t1.shape() == std::make_tuple(SIZE));
     CHECK(std::get<0>(t1.get_levels()).size() == SIZE);
-    CHECK(std::is_same_v<decltype(t1)::dtype, std::double_t>);
+    CHECK(std::is_same_v<decltype(t1)::dtype, double>);
 }
 
 
@@ -41,7 +41,7 @@ TEST_CASE("Multiple-levels-Tensor")
     std::vector<std::unordered_map<uintptr_t, uintptr_t>> const crd{ umap1, umap2, umap3 };
 
     // define a data vector that are pointed to by the singleton level's PKs
-    std::vector<std::double_t> data{ 1.0, 2.0, 3.0, 4.0, 5.0 };
+    std::vector<double> data{ 1.0, 2.0, 3.0, 4.0, 5.0 };
 
     // construct a 3D tensor of dense, dense, hashed
     xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> s1{ 5 };
@@ -53,5 +53,5 @@ TEST_CASE("Multiple-levels-Tensor")
     CHECK(t1.ndim() == 3);
     CHECK(t1.shape() == std::make_tuple(5, 6, SIZE1));
     CHECK(std::get<2>(t1.get_levels()).size() == SIZE1);
-    CHECK(std::is_same_v<decltype(t1)::dtype, std::double_t>);
+    CHECK(std::is_same_v<decltype(t1)::dtype, double>);
 }
