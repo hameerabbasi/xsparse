@@ -23,25 +23,33 @@ namespace xsparse::util
         template <class Key, class Val>
         using Map = TMap<Key, Val>;
 
-        // TODO:
-        // implement generic methods for push_back, and operator[]
-        // what methods would these be? would it be the following?
-        // What should they do?
-        template <typename size_type>
-        constexpr void resize(size_type count)
-        {
-        }
+        // Check that the container traits have the properly defined methods and method signatures
+        // uses sample type inputs to check the signatures
+        static_assert(
+            std::is_same_v<decltype(std::declval<Vec<double>>().push_back(std::declval<double>())),
+                           void>,
+            "Vec must have `push_back` method with the correct signature.");
 
-        template <typename T>
-        constexpr void push_back(const T& value)
-        {
-        }
+        static_assert(std::is_same_v<decltype(std::declval<Vec<double>>().resize(
+                                         std::declval<typename Vec<double>::size_type>())),
+                                     void>,
+                      "Vec must have `resize` method with the correct signature.");
 
-        template <typename size_type, typename Elem>
-        constexpr Elem operator[](size_type pos)
-        {
-        }
-    };    
+        static_assert(
+            std::is_same_v<decltype(std::declval<Vec<double>>()[std::declval<std::size_t>()]),
+                           decltype(std::declval<Vec<double>>().at(std::declval<std::size_t>()))>,
+            "Vec must have `operator[]` method with the correct signature.");
+
+        static_assert(std::is_same_v<
+                          decltype(std::declval<Map<int, std::size_t>>().find(std::declval<int>())),
+                          typename Map<int, std::size_t>::iterator>,
+                      "Map must have `find` method with the correct signature.");
+
+        static_assert(std::is_same_v<decltype(std::declval<Set<std::size_t>>().contains(
+                                         std::declval<std::size_t>())),
+                                     bool>,
+                      "Set must have `contains` method with the correct signature.");
+    };
 }
 
 #endif
