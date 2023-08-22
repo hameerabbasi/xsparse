@@ -5,6 +5,8 @@
 #include <functional>
 #include <unordered_set>
 #include <unordered_map>
+#include <map>
+#include <set>
 
 #include <xsparse/levels/compressed.hpp>
 #include <xsparse/levels/dense.hpp>
@@ -98,7 +100,7 @@ TEST_CASE("Coiteration-Dense-Dense-Dense")
     auto end2 = it_helper2.end();
     auto end3 = it_helper3.end();
 
-    for (auto const [ik, pk_tuple] : coiter.coiter_helper(std::make_tuple(), std::make_tuple(ZERO)))
+    for (auto const [ik, pk_tuple] : coiter.coiter_helper(std::make_tuple(), std::make_tuple()))
     {
         auto [i1, p1] = *it1;
         auto [i2, p2] = *it2;
@@ -164,7 +166,7 @@ TEST_CASE("Coiteration-Singleton-Singleton-Dense-Dense")
     auto end3 = it_helper3.end();
     auto end4 = it_helper4.end();
 
-    for (auto const [ik, pk_tuple] : coiter.coiter_helper(std::make_tuple(), std::make_tuple(ZERO)))
+    for (auto const [ik, pk_tuple] : coiter.coiter_helper(std::make_tuple(), std::make_tuple()))
     {
         if (it1 != end1 && it2 != end2 && it3 != end3 && it4 != end4)
         {
@@ -264,7 +266,7 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
 
     // when co-iterating over levels that are unordered (i.e. hashed), then we use locate to
     // check if the index exists in the hashed level. If not, then we skip it.
-    for (auto const [ik, pk_tuple] : coiter.coiter_helper(std::make_tuple(), std::make_tuple(ZERO)))
+    for (auto const [ik, pk_tuple] : coiter.coiter_helper(std::make_tuple(), std::make_tuple()))
     {
         // get the index and pointer from the levels involved in co-iteration
         auto [i1, p1] = *it1;
@@ -301,4 +303,77 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
 
     // check that the dense level should've reached its end
     CHECK((it1 == end1) == true);
+}
+
+
+TEST_CASE("Coiteration-Nested-Levels")
+{
+    // consider two nested compressed levels, where we coiterate over the dense and compressed levels
+    constexpr uintptr_t SIZE1 = 3;
+    constexpr uintptr_t SIZE2 = 100;
+    constexpr uint8_t ZERO = 0;
+    std::vector<uintptr_t> const pos{ 0, 2, 5, 9 };
+    std::vector<uintptr_t> const crd{ 20, 50, 30, 40, 70, 10, 60, 80, 90 };
+
+    // the first CSR "tensor"
+    xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> d1{ SIZE1 };
+    xsparse::levels::compressed<std::tuple<decltype(d1)>,
+                                uintptr_t,
+                                uintptr_t,
+                                xsparse::util::container_traits<std::vector, std::set, std::map>,
+                                xsparse::level_properties<true, false, false, false, true>>
+        s1{ SIZE2, pos, crd };
+
+    // the second CSR "tensor"
+    xsparse::levels::dense<std::tuple<>, uintptr_t, uintptr_t> d2{ SIZE1 };
+    xsparse::levels::compressed<std::tuple<decltype(d2)>,
+                                uintptr_t,
+                                uintptr_t,
+                                xsparse::util::container_traits<std::vector, std::set, std::map>,
+                                xsparse::level_properties<true, false, false, false, true>>
+        s2{ SIZE2, pos, crd };
+
+    // define a conjunctive function
+    auto fn = [](std::tuple<bool, bool> t) constexpr { return (std::get<0>(t) && std::get<1>(t)); };
+
+    // define two coiteration objects that coiterate over the dense and compressed levels respectively
+    xsparse::level_capabilities::Coiterate<
+        xsparse::util::LambdaWrapper<decltype(fn)>::template apply,
+        decltype(fn),
+        uintptr_t,
+        uintptr_t,
+        std::tuple<decltype(s1), decltype(s2)>,
+        std::tuple<>,
+        std::tuple<>>
+        coiter_compressed(fn, s1, s2);
+     xsparse::level_capabilities::Coiterate<
+        xsparse::util::LambdaWrapper<decltype(fn)>::template apply,
+        decltype(fn),
+        uintptr_t,
+        uintptr_t,
+        std::tuple<decltype(d1), decltype(d2)>,
+        std::tuple<>,
+        std::tuple<>>
+        coiter_dense(fn, d1, d2);
+
+    auto it_helper1 = d1.iter_helper(std::make_tuple(), ZERO);
+    auto it1 = it_helper1.begin();
+    auto it_helper2 = d2.iter_helper(std::make_tuple(), ZERO);
+    auto it2 = it_helper2.begin();
+
+    auto end1 = it_helper1.end();
+    auto end2 = it_helper2.end();
+
+    // when co-iterating over levels that are unordered (i.e. hashed), then we use locate to
+    // check if the index exists in the hashed level. If not, then we skip it.
+    for (auto const [ik, pk_tuple] : coiter_dense.coiter_helper(std::make_tuple(), std::make_tuple()))
+    {
+        for (auto const [cik, cpk_tuple] : coiter_compressed.coiter_helper(std::make_tuple(ik), pk_tuple))
+        {
+        }
+    }
+
+    // check that the dense levelS should've reached its end
+    CHECK((it1 == end1) == true);
+    CHECK((it2 == end2) == true);
 }
