@@ -34,6 +34,7 @@ TEST_CASE("Coiteration-Dense-Dense")
         uintptr_t,
         uintptr_t,
         std::tuple<decltype(s1), decltype(s2)>,
+        std::tuple<>,
         std::tuple<>>
         coiter(fn, s1, s2);
 
@@ -45,7 +46,7 @@ TEST_CASE("Coiteration-Dense-Dense")
     auto end1 = it_helper1.end();
     auto end2 = it_helper2.end();
 
-    for (auto const [ik, pk_tuple] : coiter.coiter_helper(std::make_tuple(), ZERO))
+    for (auto const [ik, pk_tuple] : coiter.coiter_helper(std::make_tuple(), std::make_tuple(ZERO)))
     {
         auto [i1, p1] = *it1;
         auto [i2, p2] = *it2;
@@ -82,6 +83,7 @@ TEST_CASE("Coiteration-Dense-Dense-Dense")
         uintptr_t,
         uintptr_t,
         std::tuple<decltype(s1), decltype(s2), decltype(s3)>,
+        std::tuple<>,
         std::tuple<>>
         coiter(fn, s1, s2, s3);
 
@@ -96,7 +98,7 @@ TEST_CASE("Coiteration-Dense-Dense-Dense")
     auto end2 = it_helper2.end();
     auto end3 = it_helper3.end();
 
-    for (auto const [ik, pk_tuple] : coiter.coiter_helper(std::make_tuple(), ZERO))
+    for (auto const [ik, pk_tuple] : coiter.coiter_helper(std::make_tuple(), std::make_tuple(ZERO)))
     {
         auto [i1, p1] = *it1;
         auto [i2, p2] = *it2;
@@ -144,6 +146,7 @@ TEST_CASE("Coiteration-Singleton-Singleton-Dense-Dense")
         uintptr_t,
         uintptr_t,
         std::tuple<decltype(s1), decltype(s2), decltype(s3), decltype(s4)>,
+        std::tuple<>,
         std::tuple<>>
         coiter(fn, s1, s2, s3, s4);
 
@@ -161,7 +164,7 @@ TEST_CASE("Coiteration-Singleton-Singleton-Dense-Dense")
     auto end3 = it_helper3.end();
     auto end4 = it_helper4.end();
 
-    for (auto const [ik, pk_tuple] : coiter.coiter_helper(std::make_tuple(), ZERO))
+    for (auto const [ik, pk_tuple] : coiter.coiter_helper(std::make_tuple(), std::make_tuple(ZERO)))
     {
         if (it1 != end1 && it2 != end2 && it3 != end3 && it4 != end4)
         {
@@ -248,6 +251,7 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
         uintptr_t,
         uintptr_t,
         std::tuple<decltype(dense_level), decltype(hash_level)>,
+        std::tuple<>,
         std::tuple<>>
         coiter(fn, dense_level, hash_level);
 
@@ -260,7 +264,7 @@ TEST_CASE("Coiteration-Dense-Hashed-ConjunctiveMerge")
 
     // when co-iterating over levels that are unordered (i.e. hashed), then we use locate to
     // check if the index exists in the hashed level. If not, then we skip it.
-    for (auto const [ik, pk_tuple] : coiter.coiter_helper(std::make_tuple(), ZERO))
+    for (auto const [ik, pk_tuple] : coiter.coiter_helper(std::make_tuple(), std::make_tuple(ZERO)))
     {
         // get the index and pointer from the levels involved in co-iteration
         auto [i1, p1] = *it1;

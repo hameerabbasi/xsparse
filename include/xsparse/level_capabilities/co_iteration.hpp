@@ -58,7 +58,7 @@ namespace xsparse::level_capabilities
      * @param levels - A tuple of levels is passed in during runtime via the constructor.
      */
 
-    template <template <bool...> class F, class Ffunc, class IK, class PK, class Levels, class Is>
+    template <template <bool...> class F, class Ffunc, class IK, class PK, class Levels, class Is, class Ps>
     class Coiterate;
 
     // XXX: This double-passing of the function `F` and `Ffunc` is a workaround
@@ -69,8 +69,9 @@ namespace xsparse::level_capabilities
               class IK,
               class PK,
               class... Levels,
-              class... Is>
-    class Coiterate<F, Ffunc, IK, PK, std::tuple<Levels...>, std::tuple<Is...>>
+              class... Is,
+              class... Ps>
+    class Coiterate<F, Ffunc, IK, PK, std::tuple<Levels...>, std::tuple<Is...>, std::tuple<Ps...>>
     {
     private:
         Ffunc const m_comparisonHelper;
@@ -155,18 +156,20 @@ namespace xsparse::level_capabilities
         public:
             Coiterate const& m_coiterate;
             std::tuple<Is...> const m_i;
-            PK const m_pkm1;
+            std::tuple<Ps...> const m_pkm1;
             std::tuple<typename Levels::iteration_helper...> m_iterHelpers;
 
         public:
             explicit inline coiteration_helper(Coiterate const& coiterate,
                                                std::tuple<Is...> i,
-                                               PK pkm1) noexcept
+                                               std::tuple<Ps...> pkm1) noexcept
                 : m_coiterate(coiterate)
                 , m_i(std::move(i))
                 , m_pkm1(std::move(pkm1))
                 , m_iterHelpers(std::apply([&](auto&... args)
-                                           { return std::tuple(args.iter_helper(i, pkm1)...); },
+                                           { return std::make_tuple(
+                                            args.iter_helper(std::get<decltype(args)::value_type>(i),
+                                                             std::get<decltype(args)::value_type>(pkm1))...); },
                                            coiterate.m_levelsTuple))
             {
             }
@@ -279,7 +282,7 @@ namespace xsparse::level_capabilities
                     else if constexpr (has_locate_v<typename iter::parent_type>)
                     {
                         return std::get<I>(this->m_coiterHelper.m_coiterate.m_levelsTuple)
-                            .locate(m_coiterHelper.m_pkm1, min_ik);
+                            .locate(std::get<I>(m_coiterHelper.m_pkm1), min_ik);
                     }
                 }
 
@@ -403,7 +406,7 @@ namespace xsparse::level_capabilities
             }
         };
 
-        coiteration_helper coiter_helper(std::tuple<Is...> i, PK pkm1)
+        coiteration_helper coiter_helper(std::tuple<Is...> i, std::tuple<Ps...> pkm1)
         {
             return coiteration_helper{ *this, i, pkm1 };
         }
