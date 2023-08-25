@@ -407,6 +407,13 @@ namespace xsparse::level_capabilities
         };
 
         coiteration_helper coiter_helper(std::tuple<Is...> i, std::tuple<Ps...> pkm1)
+        /**
+         * @brief 
+         * 
+         * IK can be a single min_ik if we are coiterating over the same coordinate each level
+         * 
+         * IK
+         */
         {
             return coiteration_helper{ *this, i, pkm1 };
         }

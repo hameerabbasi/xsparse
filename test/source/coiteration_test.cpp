@@ -366,7 +366,7 @@ TEST_CASE("Coiteration-Nested-Levels")
 
     // when co-iterating over levels that are unordered (i.e. hashed), then we use locate to
     // check if the index exists in the hashed level. If not, then we skip it.
-    for (auto const [ik, pk_tuple] : coiter_dense.coiter_helper(std::make_tuple(), std::make_tuple()))
+    for (auto const [ik, pk_tuple] : coiter_dense.coiter_helper(std::make_tuple(), std::make_tuple(ZERO, ZERO)))
     {
          // get the index and pointer from the outer-most level involved in co-iteration
         auto [i1, p1] = *it1;
@@ -387,7 +387,7 @@ TEST_CASE("Coiteration-Nested-Levels")
         auto end2_inner = it_helper_inner2.end();
 
         // co-iterate over the inner-most compressed level now
-        for (auto const [cik, cpk_tuple] : coiter_compressed.coiter_helper(std::make_tuple(ik, ik), pk_tuple))
+        for (auto const [cik, cpk_tuple] : coiter_compressed.coiter_helper(std::make_tuple(ik), pk_tuple))
         {
             auto [ci1, cp1] = *it1_inner;
             auto [ci2, cp2] = *it2_inner;
