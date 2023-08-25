@@ -395,8 +395,8 @@ TEST_CASE("Coiteration-Nested-Levels")
         auto it_helper_inner2 = s2.iter_helper(i2, p2);
         auto it1_inner = it_helper_inner1.begin();
         auto it2_inner = it_helper_inner2.begin();
-        auto end1_inner = it_helper_inner1.end();
-        auto end2_inner = it_helper_inner2.end();
+        // auto end1_inner = it_helper_inner1.end();
+        // auto end2_inner = it_helper_inner2.end();
 
         // co-iterate over the inner-most compressed level now
         for (auto const [cik, cpk_tuple] :
