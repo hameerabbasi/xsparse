@@ -58,7 +58,13 @@ namespace xsparse::level_capabilities
      * @param levels - A tuple of levels is passed in during runtime via the constructor.
      */
 
-    template <template <bool...> class F, class Ffunc, class IK, class PK, class Levels, class Is, class Ps>
+    template <template <bool...> class F,
+              class Ffunc,
+              class IK,
+              class PK,
+              class Levels,
+              class Is,
+              class Ps>
     class Coiterate;
 
     // XXX: This double-passing of the function `F` and `Ffunc` is a workaround
@@ -166,11 +172,9 @@ namespace xsparse::level_capabilities
                 : m_coiterate(coiterate)
                 , m_i(std::move(i))
                 , m_pkm1(std::move(pkm1))
-                , m_iterHelpers(std::apply([&](auto&... args)
-                                           { return std::make_tuple(
-                                            args.iter_helper(std::get<decltype(args)::value_type>(i),
-                                                             std::get<decltype(args)::value_type>(pkm1))...); },
-                                           coiterate.m_levelsTuple))
+                , m_iterHelpers(std::apply(
+                      [&](auto&... args) { return std::make_tuple(args.iter_helper(i, pkm1)...); },
+                      coiterate.m_levelsTuple))
             {
             }
 
@@ -408,11 +412,14 @@ namespace xsparse::level_capabilities
 
         coiteration_helper coiter_helper(std::tuple<Is...> i, std::tuple<Ps...> pkm1)
         /**
-         * @brief 
-         * 
+         * @brief
+         *
          * IK can be a single min_ik if we are coiterating over the same coordinate each level
-         * 
-         * IK
+         *
+         * IK is a tuple where each element corresponds to the depth of the level
+         *
+         * PKM1 is a tuple where each element corresponds to a level/array that we would iterate
+         * over in the current depth.
          */
         {
             return coiteration_helper{ *this, i, pkm1 };
