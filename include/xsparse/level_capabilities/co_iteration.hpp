@@ -35,6 +35,14 @@ is_level_ordered()
     return Level::LevelProperties::is_ordered;
 }
 
+template <typename... Args, typename ITuple, typename Pkm1Tuple, size_t... Indices>
+auto unfold_and_apply_helper(const std::tuple<Args...>& args,
+                        const ITuple& m_i,
+                        const Pkm1Tuple& pkm1,
+                        std::index_sequence<Indices...>)
+{
+    return std::make_tuple(std::get<Indices>(args).iter_helper(m_i, std::get<Indices>(pkm1))...);
+}
 
 namespace xsparse::level_capabilities
 {
@@ -172,9 +180,11 @@ namespace xsparse::level_capabilities
                 : m_coiterate(coiterate)
                 , m_i(std::move(i))
                 , m_pkm1(std::move(pkm1))
-                , m_iterHelpers(std::apply(
-                      [&](auto&... args) { return std::tuple(args.iter_helper(i, pkm1)...); },
-                      coiterate.m_levelsTuple))
+                // TODO: try to write a custom template to only unfold the PKM1s. The i can prolly
+                // be left as is.
+                // maybe try std::apply within the std::tuple to unfold the pkm1
+                , m_iterHelpers(unfold_and_apply_helper(
+                      coiterate.m_levelsTuple, m_i, m_pkm1, std::index_sequence_for<Ps...>{}))
             {
             }
 
