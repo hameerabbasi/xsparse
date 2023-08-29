@@ -36,7 +36,8 @@ is_level_ordered()
 }
 
 template <typename... Args, typename ITuple, typename Pkm1Tuple, size_t... Indices>
-auto unfold_and_apply_helper(const std::tuple<Args...>& args,
+auto
+unfold_and_apply_helper(const std::tuple<Args...>& args,
                         const ITuple& m_i,
                         const Pkm1Tuple& pkm1,
                         std::index_sequence<Indices...>)
@@ -180,13 +181,24 @@ namespace xsparse::level_capabilities
                 : m_coiterate(coiterate)
                 , m_i(std::move(i))
                 , m_pkm1(std::move(pkm1))
+                , m_iterHelpers(std::apply([&](auto&... args)
+                               {
+                                   return std::tuple(
+                                       (std::tuple_size<decltype(m_i)>::value > 0) ?
+                                       args.iter_helper(std::get<0>(m_i), m_pkm1) :
+                                       args.iter_helper(m_i, m_pkm1))...);
+                               },
+                               coiterate.m_levelsTuple))
+                // , m_iterHelpers(std::apply([&](auto&... args)
+                //                            { return std::tuple(args.iter_helper(std::get<0>(m_i), pkm1)...); },
+                //                            coiterate.m_levelsTuple))
+                // , m_iterHelpers(unfold_and_apply_helper(
+                //       coiterate.m_levelsTuple, i, pkm1, std::index_sequence_for<Ps...>{}))
+            {
+            }
                 // TODO: try to write a custom template to only unfold the PKM1s. The i can prolly
                 // be left as is.
                 // maybe try std::apply within the std::tuple to unfold the pkm1
-                , m_iterHelpers(unfold_and_apply_helper(
-                      coiterate.m_levelsTuple, m_i, m_pkm1, std::index_sequence_for<Ps...>{}))
-            {
-            }
 
             class iterator
             {
@@ -422,14 +434,11 @@ namespace xsparse::level_capabilities
 
         coiteration_helper coiter_helper(std::tuple<Is...> i, std::tuple<Ps...> pkm1)
         /**
-         * @brief
+         * @brief Initialize the co-iterator helper object.
          *
-         * IK can be a single min_ik if we are coiterating over the same coordinate each level
-         *
-         * IK is a tuple where each element corresponds to the depth of the level
-         *
-         * PKM1 is a tuple where each element corresponds to a level/array that we would iterate
-         * over in the current depth.
+         * @tparam i - the tuple of minimum IKs for each level at each depth above the current
+         * set of levels.
+         * @tparam pkm1 - the tuple of PKs for each level above the current `m_levelsTuple`.
          */
         {
             return coiteration_helper{ *this, i, pkm1 };
