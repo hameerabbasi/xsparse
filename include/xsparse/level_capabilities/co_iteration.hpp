@@ -181,24 +181,21 @@ namespace xsparse::level_capabilities
                 : m_coiterate(coiterate)
                 , m_i(std::move(i))
                 , m_pkm1(std::move(pkm1))
-                , m_iterHelpers(std::apply([&](auto&... args)
-                               {
-                                   return std::tuple(
-                                       (std::tuple_size<decltype(m_i)>::value > 0) ?
-                                       args.iter_helper(std::get<0>(m_i), m_pkm1) :
-                                       args.iter_helper(m_i, m_pkm1))...);
-                               },
-                               coiterate.m_levelsTuple))
                 // , m_iterHelpers(std::apply([&](auto&... args)
-                //                            { return std::tuple(args.iter_helper(std::get<0>(m_i), pkm1)...); },
-                //                            coiterate.m_levelsTuple))
-                // , m_iterHelpers(unfold_and_apply_helper(
-                //       coiterate.m_levelsTuple, i, pkm1, std::index_sequence_for<Ps...>{}))
+                // {
+                //     return std::tuple(args.iter_helper(std::get<0>(m_i), m_pkm1)...);
+                // }, coiterate.m_levelsTuple))
+                , m_iterHelpers(unfold_and_apply_helper(coiterate.m_levelsTuple,
+                                                        std::get<0>(m_i),
+                                                        pkm1,
+                                                        std::index_sequence_for<Ps...>{}))
             {
+                // PKM1 should have the same number of elements as the number of levels in
+                // `m_levelsTuple`
+                static_assert(
+                    std::tuple_size_v<std::remove_reference_t<decltype(coiterate.m_levelsTuple)>>
+                    == std::tuple_size_v<std::remove_reference_t<decltype(pkm1)>>);
             }
-                // TODO: try to write a custom template to only unfold the PKM1s. The i can prolly
-                // be left as is.
-                // maybe try std::apply within the std::tuple to unfold the pkm1
 
             class iterator
             {
