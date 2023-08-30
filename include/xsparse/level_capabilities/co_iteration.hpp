@@ -183,10 +183,10 @@ namespace xsparse::level_capabilities
                 , m_pkm1(std::move(pkm1))
                 // , m_iterHelpers(std::apply([&](auto&... args)
                 // {
-                //     return std::tuple(args.iter_helper(std::get<0>(m_i), m_pkm1)...);
+                //     return std::tuple(args.iter_helper(m_i, m_pkm1)...);
                 // }, coiterate.m_levelsTuple))
                 , m_iterHelpers(unfold_and_apply_helper(coiterate.m_levelsTuple,
-                                                        std::get<0>(m_i),
+                                                        m_i,
                                                         pkm1,
                                                         std::index_sequence_for<Ps...>{}))
             {
