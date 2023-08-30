@@ -391,32 +391,35 @@ TEST_CASE("Coiteration-Nested-Levels")
         CHECK(std::get<1>(pk_tuple).value() == p2);
 
         // use these to define the inner-most iterator
-        // auto it_helper_inner1 = s1.iter_helper(i1, p1);
-        // auto it_helper_inner2 = s2.iter_helper(i2, p2);
-        // auto it1_inner = it_helper_inner1.begin();
-        // auto it2_inner = it_helper_inner2.begin();
-        // auto end1_inner = it_helper_inner1.end();
-        // auto end2_inner = it_helper_inner2.end();
+        auto it_helper_inner1 = s1.iter_helper(i1, p1);
+        auto it_helper_inner2 = s2.iter_helper(i2, p2);
+        auto it1_inner = it_helper_inner1.begin();
+        auto it2_inner = it_helper_inner2.begin();
+        auto end1_inner = it_helper_inner1.end();
+        auto end2_inner = it_helper_inner2.end();
 
         // co-iterate over the inner-most compressed level now
-        // for (auto const [cik, cpk_tuple] :
-        //      coiter_compressed.coiter_helper(std::make_tuple(std::make_tuple(ik)), pk_tuple))
-        // {
-        //     auto [ci1, cp1] = *it1_inner;
-        //     auto [ci2, cp2] = *it2_inner;
-        //     uintptr_t l = std::min(ci1, ci2);
+        for (auto const [cik, cpk_tuple] :
+             coiter_compressed.coiter_helper(std::make_tuple(std::make_tuple(ik)), pk_tuple))
+        {
+            auto [ci1, cp1] = *it1_inner;
+            auto [ci2, cp2] = *it2_inner;
+            uintptr_t l = std::min(ci1, ci2);
 
-        //     if (ci1 == l)
-        //     {
-        //         CHECK(cp1 == std::get<0>(cpk_tuple).value());
-        //         ++it1_inner;
-        //     }
-        //     if (ci2 == l)
-        //     {
-        //         CHECK(cp2 == std::get<1>(cpk_tuple).value());
-        //         ++it2_inner;
-        //     }
-        // }
+            if (ci1 == l)
+            {
+                CHECK(cp1 == std::get<0>(cpk_tuple).value());
+                ++it1_inner;
+            }
+            if (ci2 == l)
+            {
+                CHECK(cp2 == std::get<1>(cpk_tuple).value());
+                ++it2_inner;
+            }
+        }
+
+        // XOR: only one iterators should have reached the end, but not both and not neither
+        CHECK(!(it1_inner == end1_inner) != !(it2_inner == end2_inner));
 
         // increment both dense iterators
         ++it1;
