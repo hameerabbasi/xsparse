@@ -21,8 +21,6 @@
 #include <xsparse/util/template_utils.hpp>
 
 
-#include <iostream>
-
 TEST_CASE("Coiteration-Dense-Dense")
 {
     constexpr uint8_t ZERO = 0;

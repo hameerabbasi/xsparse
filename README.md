@@ -68,8 +68,18 @@ CTEST_OUTPUT_ON_FAILURE=1 cmake --build build/test --target test
 ./build/test/GreeterTests
 ```
 
+To define a different compiler. For example if you are working on a Mac, with
+gcc-13 installed via Homewbrew, you might want to run this to switch compilers.
+This can happen when you want to test against different compilers, or if the Mac
+compiler is not up-to-date (e.g. there are known bugs that occur on Macs that are
+not fixed, but are fixed in open-source compilers).
 
+```bash
 cmake -DCMAKE_C_COMPILER=/opt/homebrew/bin/gcc-13 -DCMAKE_CXX_COMPILER=/opt/homebrew/bin/g++-13 -S test -B build/test
+
+cmake --build build/test
+CTEST_OUTPUT_ON_FAILURE=1 cmake --build build/test --target test
+```
 
 To enable debug mode
 
