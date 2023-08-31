@@ -392,15 +392,34 @@ TEST_CASE("Coiteration-Nested-Levels")
         CHECK(std::get<0>(pk_tuple).value() == p1);
         CHECK(std::get<1>(pk_tuple).value() == p2);
 
-        auto pk1
-            = std::get<0>(pk_tuple).value_or(ZERO);  // Extract value or use p1 if optional is empty
-        auto pk2
-            = std::get<1>(pk_tuple).value_or(ZERO);  // Extract value or use p2 if optional is empty
+        // There are two options for extracting the values of the PKs such that
+        // if the dereferenced value is nullopt (i.e. optional), then we default to a ZERO value
+        //
+        // 1. We have code the explicitly extracts each tuple element:
+        //
+        // auto pk1
+        //     = std::get<0>(pk_tuple).value_or(ZERO);  // Extract value or use p1 if optional is
+        //     empty
+        // auto pk2
+        //     = std::get<1>(pk_tuple).value_or(ZERO);  // Extract value or use p2 if optional is
+        //     empty
+        //
+        // 2. We define a lambda function to do it for us over the entire pk_tuple:
+        // This is shown below.
+
+        // Function to extract value from optional or use default
+        auto extractOrDefault = [](const std::optional<int>& value, int defaultValue)
+        { return value.value_or(defaultValue); };
+
+        // Unpack the tuple dynamically using std::apply and lambda
+        auto unpacked = std::apply([&](auto... args)
+                                   { return std::make_tuple(extractOrDefault(args, ZERO)...); },
+                                   pk_tuple);
 
         // XXX: Currently, the below for loop causes a compiler-crash on my laptop
         // use these to define the inner-most iterator
-        auto it_helper_inner1 = s1.iter_helper(ik, pk1);
-        auto it_helper_inner2 = s2.iter_helper(ik, pk2);
+        auto it_helper_inner1 = s1.iter_helper(ik, std::get<0>(unpacked));
+        auto it_helper_inner2 = s2.iter_helper(ik, std::get<1>(unpacked));
         auto it1_inner = it_helper_inner1.begin();
         auto it2_inner = it_helper_inner2.begin();
         auto end1_inner = it_helper_inner1.end();
@@ -408,7 +427,7 @@ TEST_CASE("Coiteration-Nested-Levels")
 
         // co-iterate over the inner-most compressed level now
         for (auto const [cik, cpk_tuple] :
-             coiter_compressed.coiter_helper(std::make_tuple(ik), std::make_tuple(pk1, pk2)))
+             coiter_compressed.coiter_helper(std::make_tuple(ik), unpacked))
         {
             auto [ci1, cp1] = *it1_inner;
             auto [ci2, cp2] = *it2_inner;
