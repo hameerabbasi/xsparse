@@ -21,6 +21,8 @@
 #include <xsparse/util/template_utils.hpp>
 
 
+#include <iostream>
+
 TEST_CASE("Coiteration-Dense-Dense")
 {
     constexpr uint8_t ZERO = 0;
@@ -401,8 +403,8 @@ TEST_CASE("Coiteration-Nested-Levels")
         auto it_helper_inner2 = s2.iter_helper(ik, pk2);
         auto it1_inner = it_helper_inner1.begin();
         auto it2_inner = it_helper_inner2.begin();
-        // auto end1_inner = it_helper_inner1.end();
-        // auto end2_inner = it_helper_inner2.end();
+        auto end1_inner = it_helper_inner1.end();
+        auto end2_inner = it_helper_inner2.end();
 
         // co-iterate over the inner-most compressed level now
         for (auto const [cik, cpk_tuple] :
@@ -410,24 +412,26 @@ TEST_CASE("Coiteration-Nested-Levels")
         {
             auto [ci1, cp1] = *it1_inner;
             auto [ci2, cp2] = *it2_inner;
-            uintptr_t l = std::min(ci1, ci2);
 
-            if (ci1 == l)
+            if (ci1 == cik)
             {
                 CHECK(cp1 == std::get<0>(cpk_tuple).value());
                 ++it1_inner;
             }
-            else
+            else if (ci2 == cik)
             {
                 CHECK(cp2 == std::get<1>(cpk_tuple).value());
                 ++it2_inner;
             }
+            else
+            {
+                throw std::runtime_error("CI1 and CI2 does not equal CIK");
+            }
         }
 
         // XOR: only one iterators should have reached the end, but not both and not neither
-        // bool result = (it1_inner == end1_inner) ^ (it2_inner == end2_inner);
-        // CHECK(result);
-        // CHECK(!(it1_inner == end1_inner) && (it2_inner == end2_inner));
+        bool result = (it1_inner == end1_inner) ^ (it2_inner == end2_inner);
+        CHECK(result);
 
         // increment both dense iterators
         ++it1;
