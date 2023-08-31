@@ -80,7 +80,7 @@ namespace xsparse
             {
             }
 
-            inline std::pair<PK, PK> pos_bounds(typename BaseTraits::PKM1 pkm1) const noexcept
+            inline std::pair<PK, PK> pos_bounds(typename BaseTraits::PKM1 const pkm1) const noexcept
             {
                 return { m_pos[pkm1], m_pos[static_cast<typename BaseTraits::PKM1>(pkm1 + 1)] };
             }
@@ -95,7 +95,7 @@ namespace xsparse
                 m_pos.resize(szkm1 + 1);
             }
 
-            inline void append_edges(typename BaseTraits::PKM1 pkm1,
+            inline void append_edges(typename BaseTraits::PKM1 const pkm1,
                                      typename BaseTraits::PK pk_begin,
                                      typename BaseTraits::PK pk_end) noexcept
             {
