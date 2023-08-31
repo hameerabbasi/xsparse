@@ -406,7 +406,7 @@ TEST_CASE("Coiteration-Nested-Levels")
         // This is shown below.
 
         // Function to extract value from optional or use default
-        auto extractOrDefault = [](const std::optional<int>& value, int defaultValue)
+        auto extractOrDefault = [](const std::optional<uintptr_t>& value, uintptr_t defaultValue)
         { return value.value_or(defaultValue); };
 
         // Unpack the tuple dynamically using std::apply and lambda
