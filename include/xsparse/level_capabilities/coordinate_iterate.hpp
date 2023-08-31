@@ -142,7 +142,8 @@ namespace xsparse::level_capabilities
             }
         };
 
-        iteration_helper iter_helper(typename BaseTraits::I i, typename BaseTraits::PKM1 pkm1)
+        iteration_helper iter_helper(typename BaseTraits::I const i,
+                                     typename BaseTraits::PKM1 const pkm1)
         {
             return iteration_helper{ *static_cast<typename BaseTraits::Level*>(this), i, pkm1 };
         }
@@ -268,7 +269,8 @@ namespace xsparse::level_capabilities
             }
         };
 
-        iteration_helper iter_helper(typename BaseTraits::I i, typename BaseTraits::PKM1 pkm1)
+        iteration_helper iter_helper(typename BaseTraits::I const i,
+                                     typename BaseTraits::PKM1 const pkm1)
         {
             return iteration_helper{ *static_cast<typename BaseTraits::Level*>(this), i, pkm1 };
         }

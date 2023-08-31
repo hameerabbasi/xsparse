@@ -176,8 +176,8 @@ namespace xsparse::level_capabilities
 
         public:
             explicit inline coiteration_helper(Coiterate const& coiterate,
-                                               std::tuple<Is...> i,
-                                               std::tuple<Ps...> pkm1) noexcept
+                                               std::tuple<Is...> const i,
+                                               std::tuple<Ps...> const pkm1) noexcept
                 : m_coiterate(coiterate)
                 , m_i(std::move(i))
                 , m_pkm1(std::move(pkm1))
@@ -185,10 +185,8 @@ namespace xsparse::level_capabilities
                 // {
                 //     return std::tuple(args.iter_helper(m_i, m_pkm1)...);
                 // }, coiterate.m_levelsTuple))
-                , m_iterHelpers(unfold_and_apply_helper(coiterate.m_levelsTuple,
-                                                        m_i,
-                                                        pkm1,
-                                                        std::index_sequence_for<Ps...>{}))
+                , m_iterHelpers(unfold_and_apply_helper(
+                      coiterate.m_levelsTuple, m_i, pkm1, std::index_sequence_for<Ps...>{}))
             {
                 // PKM1 should have the same number of elements as the number of levels in
                 // `m_levelsTuple`
@@ -278,6 +276,15 @@ namespace xsparse::level_capabilities
                     calc_min_ik(std::make_index_sequence<std::tuple_size_v<decltype(iterators)>>{});
                 }
 
+                template <class iter>
+                inline auto deref_PKs(iter i) const noexcept
+                {
+                    return std::get<0>(*i) == min_ik
+                               ? std::optional<std::tuple_element_t<1, decltype(*i)>>(
+                                   std::get<1>(*i))
+                               : std::nullopt;
+                }
+
                 template <class iter, std::size_t I>
                 inline constexpr auto get_PK_iter(iter& i) const noexcept
                 /**
@@ -341,15 +348,6 @@ namespace xsparse::level_capabilities
                 {
                     return get_PKs_complete(
                         std::make_index_sequence<std::tuple_size_v<decltype(iterators)>>{});
-                }
-
-                template <class iter>
-                inline auto deref_PKs(iter i) const noexcept
-                {
-                    return (std::get<0>(*i) == min_ik)
-                               ? std::optional<std::tuple_element_t<1, decltype(*i)>>(
-                                   std::get<1>(*i))
-                               : std::nullopt;
                 }
 
                 template <class iter>
@@ -429,7 +427,7 @@ namespace xsparse::level_capabilities
             }
         };
 
-        coiteration_helper coiter_helper(std::tuple<Is...> i, std::tuple<Ps...> pkm1)
+        coiteration_helper coiter_helper(std::tuple<Is...> const i, std::tuple<Ps...> const pkm1)
         /**
          * @brief Initialize the co-iterator helper object.
          *

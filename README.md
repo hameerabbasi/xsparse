@@ -68,6 +68,9 @@ CTEST_OUTPUT_ON_FAILURE=1 cmake --build build/test --target test
 ./build/test/GreeterTests
 ```
 
+
+cmake -DCMAKE_C_COMPILER=/opt/homebrew/bin/gcc-13 -DCMAKE_CXX_COMPILER=/opt/homebrew/bin/g++-13 -S test -B build/test
+
 To enable debug mode
 
 ```bash
